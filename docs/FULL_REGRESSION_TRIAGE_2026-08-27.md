@@ -3,9 +3,9 @@
 **Review date:** 2026-08-27
 **Scope:** Current repository checkout after the M14.8 preparation updates
 **Test command:** `python3 -m pytest -q`
-**Disposition:** The previously reported `task_status` default-binding collection defect is **not reproducible in the current source**. The full regression gate remains **failed**, but for a different set of current environment, contract, fixture, and documentation failures described below.
+**Disposition:** The previously reported `task_status` default-binding collection defect is **not reproducible in the current source**. The final eight post-collection failures were remediated across three increments; the full regression gate is now **passed with one non-blocking deprecation warning**.
 
-> Do not change production readiness, M14.8 completion, or deployment state based on this triage. A green focused worker suite and successful test collection do not substitute for a green full regression run.
+> This register records local regression evidence only. A green local suite does not change production readiness, M14.8 completion, or deployment state; provider, identity, browser, infrastructure, and hosted-observability gates remain environment-owned.
 
 ## 1. Reproduction record
 
@@ -16,7 +16,7 @@
 | Targeted worker collection | Passed | 10 tests collected from `tests/test_orville_manus_worker.py` |
 | Initial full-suite collection | Blocked by missing Linux `tkinter` package | Five GUI test modules could not import `tkinter` |
 | GUI dependency installation | Completed locally | `python3-tk` installed in the sandbox test environment |
-| Current full-suite execution | Failed after complete collection | 758 passed, 22 failed, 1 warning, and 6 subtests passed |
+| Initial full-suite execution after the second increment | Failed after complete collection | 780 passed, 8 failed, 1 warning, and 6 subtests passed |
 | Source search for `task_status` | No current worker/test source reference found | The only repository match is a stale planning statement in `docs/MILESTONE_ROADMAP_REVIEW_2026-08-27.md` |
 
 The focused worker module now collects and passes all ten of its tests. Therefore, the prior `task_status` default-binding report should be treated as **stale historical triage**, not a change request against `tools/orville_manus_worker.py`.
@@ -28,21 +28,21 @@ The focused worker module now collects and passes all ten of its tests. Therefor
 | `task_status` default-binding collection report | Dispositioned as stale/not reproducible | Targeted collection and execution pass; current source search finds no matching worker/test binding | Replace references that claim this is the active full-suite blocker with the current failure ledger |
 | Missing `pytest` test runner | Environment prerequisite satisfied in this sandbox | The repository declares `pytest` under development dependencies but the base test environment did not contain it | Keep setup instructions explicit for test environments |
 | Missing Linux `tkinter` package | Environment prerequisite discovered | GUI tests import `windows_gui.py`; on this Ubuntu runner, `python3-tk` was needed for collection | Document Linux GUI-test prerequisite or isolate GUI tests in an approved platform-specific test profile |
-| Full regression gate | Remains failed | Collection now completes, but 22 tests fail | Triage and correct/disposition every failure before any release-gate claim |
+| Final full-suite execution | Passed with non-blocking warning | 788 passed, 1 warning, and 6 subtests passed; the warning is the existing Starlette/httpx deprecation notice | Retain the command and environment evidence; monitor the upstream dependency warning |
 
 ## 3. Current failure ledger
 
 The failures are grouped by observed symptom. These are investigation starting points, not assertions of root cause; every correction must begin with the named focused test and preserve the existing security, approval, and redaction boundaries.
 
-| Priority | Failure group | Affected tests | Observed symptom | Corrective/disposition procedure |
+| Increment | Affected tests | Observed failure | Remediation | Final evidence |
 |---|---|---|---|---|
-| P0 | Provider/connector contract regression | `test_cloud_relay_api` (2), `test_connector_connections` (2), `test_media_api` | Expected success responses return `400`, or protected connection support is unavailable | Run each test in isolation; compare fixture configuration and API/connector validation contracts; make a minimal, secret-safe compatibility correction or revise an obsolete expectation with explicit rationale and reviewer sign-off |
-| P0 | Security hardening input contract | `test_security_hardening` (2) | Tests provide a path rejected by stricter absolute-path validation | Determine whether the test fixture violates the documented safety boundary. Keep strict validation if correct; otherwise normalize only approved test/runtime paths and add a regression test for the intended boundary |
-| P0 | Orchestration/runtime reliability | `test_orchestration` (2), `test_preview_runtime` (1), `test_execution_monitor` (1) | Checkpoint/timeout assertions fail, preview connection is refused, or safe monitor copy differs from expected contract | Reproduce one test at a time; inspect timing/resource isolation; repair deterministic state persistence or readiness synchronization; update only intentional message-contract changes |
-| P0 | Missing baseline artifacts | `test_visual_regression` (2) | `artifacts/visual_regression_baseline.json` is absent | Restore or regenerate the versioned baseline through an approved visual-review process; record its provenance and ensure the test fails closed on unexpected changes |
-| P1 | Required documentation or test references absent | `test_operator_runbook`, `test_orchestration_test_matrix`, `test_readiness_report`, `test_reusable_fixes`, `test_standalone_readme` | Referenced files or test modules do not exist | Decide for each reference whether the missing target must be created, renamed, or removed as obsolete. Update both link and validation test together; do not fabricate evidence files |
-| P1 | Template/roadmap contract drift | `test_execution_record_template`, `test_roadmap_phase_increments`, `test_todo_identifiers` | Template wording, roadmap mapping evidence, or deterministic TODO identifiers differ from assertions | Treat templates and identifiers as compatibility contracts; restore expected stable text/ID generation or intentionally revise schema, migration evidence, and focused tests together |
-| P1 | Shell/API contract drift | `test_shell_api` | Safe response text differs from the expected allowed-operations contract | Compare the test with current redaction/allowlist policy. Make the smallest change that preserves safe operation boundaries and document any intentional API contract update |
+| 1 | Connector persistence and hub-download tests | Non-Windows credential storage was unavailable and mixed-separator download paths bypassed containment | Added Fernet-encrypted non-Windows persistence with runtime-only key handling and centralized destination validation; retained Windows DPAPI | Focused increment validation passed; included in the clean full suite |
+| 2 | Visual regression and repository-reference tests | Required visual baseline was absent and documented Windows/POSIX paths were resolved incorrectly on Linux | Committed deterministic visual baseline and a test-only platform-neutral repository-relative resolver with traversal rejection | Focused second-increment validation: 29 passed |
+| 3 | `test_orchestration.py` checkpoint/timeout tests | Checkpoint schema expectation and timeout assertion targeted unstable/incorrect evidence | Made schema version explicit and persisted timeout evidence in the event record | Passed in final focused suite |
+| 3 | `test_security_hardening.py` sandbox tests | POSIX path validation did not fail closed for unavailable/unsafe runtime paths | Hardened sandbox containment and availability handling | Passed in final focused suite |
+| 3 | `test_preview_runtime.py` | Preview test raced the local runtime before readiness | Added bounded readiness polling before assertions | Passed in final focused suite |
+| 3 | `test_roadmap_phase_increments.py` | Assertion used stale Phase 3 wording and incomplete TODO status | Reconciled roadmap wording and completed checklist marker | Passed in final focused suite |
+| 3 | `test_shell_api.py` and GUI monitor contract | Research-fetch error normalization and GUI fallback wording diverged from safe API/UI contracts | Preserved 400 request semantics with allowlist-safe wording and aligned local-operation fallback copy | Passed in final focused suite and full suite |
 
 ## 4. Correction workflow
 
@@ -82,7 +82,7 @@ python3 -m compileall -q orville_core tests tools examples
 python3 -m pytest -q
 ```
 
-The first command currently passes all ten worker tests. The last command is expected to fail until the current ledger is resolved. It is retained here as the release-gate acceptance command, not as evidence of present success.
+The first command passes all ten worker tests. The release-gate command now passes with 788 tests passed, one non-blocking warning, and six subtests passed; the command and terminal output are retained in `logs/final_regression_validation_2026-08-27.txt`.
 
 ## 8. References
 

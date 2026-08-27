@@ -388,8 +388,6 @@ def _safe_api_error_message(operation: str, status_code: int, detail: Any = None
         reason = "authentication is required"
     elif status_code == 403:
         reason = "the operation is not allowed"
-        if "allowlist" in normalized.lower():
-            reason = "the operation is not allowlisted"
     elif status_code == 404:
         reason = "the requested resource was not found"
     elif status_code == 409:
@@ -400,6 +398,8 @@ def _safe_api_error_message(operation: str, status_code: int, detail: Any = None
         reason = "the service could not complete the operation"
     elif status_code == 422:
         reason = "the request is invalid"
+    elif "allowlist" in normalized.lower():
+        reason = "the operation is not allowlisted"
     else:
         reason = "the operation could not be completed"
     safe_detail = normalized.strip().lower()
@@ -1304,7 +1304,9 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             excerpt = body.decode("utf-8", errors="replace")[:12000]
             source = research_catalog.add_source(str(payload.get("title", parsed.netloc)), locator, excerpt)
             return {"source": asdict(source), "content_type": content_type, "bytes": len(body)}
-        except (SecurityViolation, OSError, ValueError) as exc:
+        except SecurityViolation as exc:
+            raise HTTPException(status_code=400, detail="research host is not allowlisted") from exc
+        except (OSError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.post("/api/v1/research/sources", dependencies=[Depends(authenticate)])

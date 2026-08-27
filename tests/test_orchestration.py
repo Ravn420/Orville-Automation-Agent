@@ -5,7 +5,7 @@ import time
 import unittest
 from pathlib import Path
 
-from orville_core import CheckpointStore, OrchestrationEngine, RunStatus, TaskGraph, TaskNode, TaskStatus
+from orville_core import Checkpoint, CheckpointStore, OrchestrationEngine, RunStatus, TaskGraph, TaskNode, TaskStatus
 
 
 class OrchestrationTests(unittest.TestCase):
@@ -188,7 +188,7 @@ class OrchestrationTests(unittest.TestCase):
             store = CheckpointStore(directory)
             OrchestrationEngine(store, {"noop": lambda task, context: True}).run(graph, run_id="json-run")
             payload = json.loads(Path(directory, "json-run.json").read_text(encoding="utf-8"))
-            self.assertEqual(payload["schema_version"], 2)
+            self.assertEqual(payload["schema_version"], Checkpoint.CURRENT_SCHEMA_VERSION)
             self.assertEqual(payload["run_status"], "completed")
 
 

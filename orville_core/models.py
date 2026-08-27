@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, ClassVar
 
 
 class TaskStatus(StrEnum):
@@ -261,6 +261,7 @@ class OperationCheckpoint:
 class Checkpoint:
     """Complete persisted state needed to resume one graph execution."""
 
+    CURRENT_SCHEMA_VERSION: ClassVar[int] = 2
     run_id: str
     graph: TaskGraph
     context: dict[str, Any] = field(default_factory=dict)
@@ -270,7 +271,7 @@ class Checkpoint:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "schema_version": 2,
+            "schema_version": self.CURRENT_SCHEMA_VERSION,
             "run_id": self.run_id,
             "graph": self.graph.to_dict(),
             "context": self.context,

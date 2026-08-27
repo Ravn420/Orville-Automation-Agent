@@ -92,10 +92,10 @@ The procedure defines versioned briefs, source-preserving transformations, licen
 |---|---|
 | Task | Add automated build, test, and preview procedures |
 | Owner | Worker Task 2 |
-| Status | completed-local-with-regression-blocker |
+| Status | completed-local |
 | Dependencies | Existing release gate, Signal Room checker, preview workflow, and pytest configuration |
-| Evidence | `tools/project_checks.py`, `docs/BUILD_TEST_PREVIEW.md`, `tests/test_project_checks.py`; focused tests (4), compilation, build, and credential-free preview passed |
-| Limitations | Full test mode correctly fails on an unrelated pre-existing `orville_core/api.py` failure; evidence retained at `tmp/project_checks_failure.txt` |
+| Evidence | `tools/project_checks.py`, `docs/BUILD_TEST_PREVIEW.md`, `tests/test_project_checks.py`; focused tests (4), compilation, build, credential-free preview, and full regression gate passed; final gate: 788 passed, 1 warning, 6 subtests passed |
+| Limitations | The existing Starlette/httpx deprecation warning remains non-blocking; deployment and provider-backed smoke checks remain external |
 
 The unified entrypoint provides `build`, `test`, `preview`, and `all` modes. Build creates a disposable wheel, test runs the configured regression suite, preview defaults to credential-free local UI checks, and optional API smoke is restricted to a user-configured loopback service.
 
@@ -298,7 +298,7 @@ Every completed task identifies changed files, interfaces, commands, tests, limi
 | P6.1 | Deployment and rollback instructions | Automation / Verification Agents | Existing delivery topology and release gates | completed-local | `docs/DELIVERY_RUNBOOK.md`; Compose promotion, backup, health, approval-gated rollback, volume-preserving restore, evidence retention, and non-Compose fallback documented and focused-checked; live provider rollback and production evidence remain deployment-owned |
  |
 | A14.1 | Persistent Manus roadmap worker with bounded concurrency | Automation / Orchestration Agents | Existing TODO, task API, and repository control files | completed-local | `tools/orville_manus_worker.py`, `tools/install_orville_manus_worker.ps1`, `docs/ORVILLE_MANUS_WORKER.md`, `tests/test_orville_manus_worker.py`; three active-task slots, reserved TODO selection, refill-after-stop, state recovery, and focused tests pass; persistent hosting and live credentials remain deployment-owned |
-| AUD.1 | Repository audit remediation and release-gate recovery | Orchestration / Verification Agents | Current repository baseline and `TODO.md` authoritative audit queue | in-progress | `docs/REPOSITORY_AUDIT_2026-08-27.md`; the first increment completed cross-platform protected connector persistence and hardened hub-download destination validation. The second increment added a reviewed deterministic visual baseline and centralized platform-neutral reference resolution for affected contracts. Focused validation: 29 passed. Full pytest now reports 780 passed, 8 failed, and 1 warning; deterministic test behavior, release-state reconciliation, runtime-artifact review, and walkthrough retention remain before a release claim. |
+| AUD.1 | Repository audit remediation and release-gate recovery | Orchestration / Verification Agents | Current repository baseline and `TODO.md` authoritative audit queue | completed-local | `docs/REPOSITORY_AUDIT_2026-08-27.md`; three remediation increments completed: cross-platform protected connector persistence and mixed-separator path validation; platform-neutral reference resolution and deterministic visual baseline; explicit schema versioning, timeout evidence, POSIX sandbox containment, preview readiness polling, research-fetch error normalization, GUI fallback wording, and roadmap assertion reconciliation. Full validation: 788 passed, 1 warning, 6 subtests passed, compilation passed; the release gate is clear. |
 | M14.9 | Backup, restore, and disaster recovery operations | Automation / Security Agents | M14.1, M14.4, accepted M14.8 evidence | planned | `docs/M14_9_BACKUP_RECOVERY_EXECUTION_PLAN.md` defines the execution sequence, roles, evidence index, and acceptance gates; live controls remain pending |
 | M14.10 | Production readiness and load gates | Verification Agent | M14.3, M14.8, M14.9 | planned |
 | M14.11 | Controlled production canary | Automation Agent | M14.1–M14.10 and explicit approval | infrastructure-dependent |

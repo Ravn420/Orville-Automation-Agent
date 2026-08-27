@@ -76,7 +76,18 @@ class PreviewRuntime:
         record = PreviewProcess(preview_id, revision_id, str(root_path), host, selected_port, "running", process.pid)
         self._processes[preview_id] = process
         self._records[preview_id] = record
-        return record
+        deadline = time.monotonic() + 5.0
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                self._records[preview_id] = PreviewProcess(preview_id, revision_id, str(root_path), host, selected_port, "stopped", process.pid)
+                raise RuntimeError("preview server exited before becoming ready")
+            try:
+                with socket.create_connection((host, selected_port), timeout=0.1):
+                    return record
+            except OSError:
+                time.sleep(0.02)
+        self.stop(preview_id)
+        raise TimeoutError("preview server did not become ready within 5 seconds")
 
     def status(self, preview_id: str) -> PreviewProcess:
         if preview_id not in self._records:

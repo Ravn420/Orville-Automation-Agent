@@ -30,6 +30,9 @@ from orville_core.gui_state import (
 
 
 
+RUN_UNAVAILABLE_MESSAGE = "Run unavailable. Check the run ID and local API status."
+
+
 GUI_ENGINE_ACTIONS = {
     "create_run": ("POST", "/api/v1/objectives", "objective"),
     "execute_run": ("POST", "/api/v1/objectives/{run_id}/execute", "stream"),
@@ -789,7 +792,7 @@ class OrvilleWindow(tk.Tk):
                     result = json.loads(response.read().decode())
                 self.after(0, lambda: callback(result))
             except Exception:
-                self.after(0, lambda: callback({"error": "The local operation could not be completed."}))
+                self.after(0, lambda: callback({"error": RUN_UNAVAILABLE_MESSAGE}))
         threading.Thread(target=worker, daemon=True).start()
 
     @staticmethod
@@ -901,7 +904,7 @@ class OrvilleWindow(tk.Tk):
 
     def _request_failed(self, detail: str) -> None:
         self.task_status.configure(text="ATTENTION — action needs review", bg="#fff1f0", fg=self.DANGER)
-        self._write(f"Unable to complete this action. {detail}\n\nRecovery: check the local service, review the objective, and try again.", "meta")
+        self._write(f"The local operation could not be completed. {detail}\n\nRecovery: check the local service, review the objective, and try again.", "meta")
         self.objective.focus_set()
 
     def _wait_for_api(self) -> None:

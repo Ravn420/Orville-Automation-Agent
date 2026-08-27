@@ -6,13 +6,13 @@
 
 ## Review outcome
 
-The current milestone has established a substantial standalone control-plane foundation. Recent work covers task intake and templates, orchestration and graph validation, approvals and untrusted-content boundaries, structured logs and operational reports, deployment preflight and smoke checks, standalone examples, operator recovery procedures, and canonical project terminology. The milestone is **locally evidence-bearing but not production-ready** because the current full regression suite completes with 8 failures after the second remediation increment, while live provider, identity, browser, infrastructure, and hosted-observability gates remain environment-owned. The formerly reported `task_status` worker collection defect is resolved; its focused suite now passes.
+The current milestone has established a substantial standalone control-plane foundation. Recent work covers task intake and templates, orchestration and graph validation, approvals and untrusted-content boundaries, structured logs and operational reports, deployment preflight and smoke checks, standalone examples, operator recovery procedures, and canonical project terminology. The milestone is **locally evidence-bearing but not production-ready** because live provider, identity, browser, infrastructure, and hosted-observability gates remain environment-owned. The three-increment regression remediation is complete: Python 3.12 compilation and the full suite completed with 788 passed, 1 warning, and 6 subtests passed. The formerly reported `task_status` worker collection defect is resolved; its focused suite now passes.
 
 ## Progress summary
 
 | Area | Evidence reviewed | Status | Follow-up |
 |---|---|---|---|
-| Core orchestration | Task graph, checkpoints, state transitions, delegation, retries, failure handling | Completed-local | Resolve the current full-suite failures and maintain regression coverage |
+| Core orchestration | Task graph, checkpoints, state transitions, delegation, retries, failure handling | Completed-local | Maintain regression coverage and deterministic release evidence |
 | Safety and governance | Confirmation gate, untrusted-content boundary, secret rules, incident/recovery runbook | Completed-local | Integrate all external adapters with the fail-closed contracts |
 | Observability | Structured correlation logging, operational report, phase metrics, dashboards/report guidance | Completed-local | Add deployment-owned retention, alerting, and SLO collection |
 | Standalone operation | README, examples, templates, reusable-fixes catalog, glossary, operator runbook | Completed-local | Keep contracts synchronized as interfaces change |
@@ -23,7 +23,7 @@ The current milestone has established a substantial standalone control-plane fou
 
 | Priority | Next work | Impact | Dependencies | Risk |
 |---|---|---|---|---|
-| P0 | Restore the full regression release gate and triage the 8 verified failures | Restores the release feedback loop | Authoritative repository-audit queue | High until a clean run and per-failure evidence are retained |
+| P0 | Maintain the restored full regression release gate | Preserves the release feedback loop | `TODO.md` audit queue and CI/local evidence | Low locally; external deployment and provider gates remain high-risk |
 | P0 | Preserve approval, secret, untrusted-content, and path-safety gates during adapter integration | Prevents unauthorized or unsafe side effects | Adapter contracts and integration tests | High if bypassed; the first increment provides portable encrypted connector records and mixed-separator model-download path containment, while the second restores a reviewed visual baseline and portable reference checks |
 | P1 | Resolve the cleanup item with explicit confirmation and a named-path retention review | Reduces obsolete material without deleting retained evidence | Approval and path-by-path inventory | High if broad deletion is attempted |
 | P1 | Complete deployment-owned identity, secret management, TLS, monitoring, backup, and rollback evidence | Enables controlled hosted or persistent deployment | Environment owner and authorized infrastructure | High and environment-specific |
@@ -36,7 +36,7 @@ The project remains standalone-capable and local-first. Manus-specific services,
 
 ## Acceptance gates for the next milestone
 
-1. The full configured suite runs to completion and every failure is resolved or explicitly triaged with current evidence; the prior worker collection issue is already resolved.
+1. The full configured suite runs to completion with no untriaged failures; final evidence records 788 passed, 1 warning, and 6 subtests passed, and the prior worker collection issue is resolved.
 2. Coverage measurement is available, or its absence is documented as a release limitation with a concrete installation and collection plan.
 3. Each supported deployment target has preflight, smoke, rollback, and recovery evidence appropriate to that environment.
 4. External adapters preserve confirmation, secret handling, untrusted-content, path containment, and bounded retry contracts.

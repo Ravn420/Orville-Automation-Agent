@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 import shlex
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Mapping, Protocol
 
 
@@ -68,7 +68,7 @@ class SandboxPlan:
         if any(char in self.command[0] for char in "&|;<>`\n"):
             raise ValueError("shell syntax is not allowed in sandbox argv")
         for path_name, path in (("model_path", self.model_path), ("scratch_path", self.scratch_path), ("output_path", self.output_path)):
-            if not path.is_absolute():
+            if not path.is_absolute() and not PureWindowsPath(str(path)).is_absolute():
                 raise ValueError(f"{path_name} must be absolute")
         if set(self.environment) - self.policy.allowed_environment:
             raise ValueError("environment contains variables outside the sandbox allowlist")
