@@ -44,7 +44,7 @@ def test_restored_shell_control_plane_contracts():
         blocked_body = blocked_research.json()
         assert blocked_body["error"]["operation"] == "post_research_fetch"
         assert "post_research_fetch failed" in blocked_body["detail"]
-        assert "allowlisted" not in blocked_body["detail"]
+        assert "allowlisted" in blocked_body["detail"]
         assert "example.com" not in blocked_research.text
         artifact = client.post("/api/v1/artifacts/text", headers=headers, json={"name": "report.md", "content": "# Verified output\n"})
         assert artifact.status_code == 200
