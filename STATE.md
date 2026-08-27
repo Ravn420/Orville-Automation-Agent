@@ -77,7 +77,7 @@ M14.5 is complete as a local contract. `orville_core/protected_secrets.py` provi
 
 ## Blackbox support-confirmation blocker — 2026-08-27
 
-The first actionable unchecked TODO item requiring explicit Blackbox developer-support confirmation was reviewed and marked blocked. Public documentation does not establish third-party OAuth, device authorization, CLI token interoperability, scopes, redirect URI, refresh-token, rate-limit, or redistribution semantics. No support request, external post, credential submission, or provider-side action was performed under the current task constraints.
+The first actionable unchecked TODO item requiring explicit Blackbox developer-support confirmation was reviewed and remains blocked pending authoritative provider evidence. Public documentation does not establish third-party OAuth, device authorization, CLI token interoperability, scopes, redirect URI, refresh-token, rate-limit, or redistribution semantics. An approved request was submitted through the official Blackbox AI support form; the provider response and independent claim reconciliation remain pending. Receipt: `artifacts/m12_18_external_submission_receipt_2026-08-27.md`.
 
 ## Remaining infrastructure-dependent work
 

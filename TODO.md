@@ -390,7 +390,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Re-check the official Blackbox API, Agent API, CLI, authentication, terms, privacy, and developer documentation on 2026-08-27 before implementation; findings are recorded in `docs/BLACKBOX_INTEGRATION_RESEARCH.md`. Current public evidence supports Bearer API-key authentication, an account/Pro prerequisite for Agent API, API-key CLI configuration, and public/enterprise endpoint-family separation. <!-- task-id:TODO-d092129e3301 -->
 
-- [!] Obtain explicit Blackbox developer-support confirmation for third-party OAuth, device authorization, CLI token interoperability, scopes, redirect URIs, refresh-token behavior, rate limits, and redistribution requirements. Blocked: obtaining confirmation requires submitting an external support request or receiving provider correspondence, which was not authorized and is prohibited by the current no-post/no-external-side-effects constraint. <!-- task-id:TODO-66fbf5bde1c2 -->
+- [!] Obtain explicit Blackbox developer-support confirmation for third-party OAuth, device authorization, CLI token interoperability, scopes, redirect URIs, refresh-token behavior, rate limits, and redistribution requirements. Official support request submitted through `https://www.blackbox.ai/support`; remain blocked until the provider response is received and independently reconciled. Receipt: `artifacts/m12_18_external_submission_receipt_2026-08-27.md`. <!-- task-id:TODO-66fbf5bde1c2 -->
 
 **Architecture and provider boundary:**
 

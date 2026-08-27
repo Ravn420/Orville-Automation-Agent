@@ -48,7 +48,7 @@
 
 | M12.17 | Connector mutation governance and safe capability audit | Connector Agent, Security Agent, and Verification Agent | completed-local | `connector_governance.py`, `connector_capability.py`, `api.py`, `CONNECTOR_OPERATIONS.md`, connector connection/governance tests, 324-test regression suite |
 
-| M12.18 | Blackbox developer-support confirmation assessment | Research Agent and Governance Agent | blocked-external | Public documentation is insufficient; external support correspondence is required, and no request was submitted under the no-post/no-external-side-effects constraint |
+| M12.18 | Blackbox developer-support confirmation assessment | Research Agent and Governance Agent | blocked-external | Official support request submitted; provider response and independent claim verification are pending. Receipt: `artifacts/m12_18_external_submission_receipt_2026-08-27.md` |
 
 | M12.19 | Deterministic Blackbox local fallback and actionable unavailable state | Provider Agent and Verification Agent | completed-local | `cloud_relay.py`, `api.py`, `tests/test_cloud_relay.py`, `docs/BLACKBOX_INTEGRATION_RESEARCH.md`; relay failure-state fallback and redacted status tests pass |
 
