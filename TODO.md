@@ -24,6 +24,30 @@ The roadmap is complete when Orville can accept a new objective, create a depend
 | `[!]` | Blocked or requires user decision |
 | `[~]` | Deferred by design |
 
+## Current repository audit — 2026-08-27
+
+This section is the **authoritative remediation queue** from the complete repository audit. These items take precedence over legacy unchecked entries below because the full regression release gate is currently blocked. Each task must retain the existing approval, secret-redaction, untrusted-content, and path-safety controls.
+
+- [ ] Restore the full regression release gate and attach triaged results for every failure. Acceptance: a clean full-suite run has no untriaged failure and release evidence records the command, environment, totals, and residual warning status. <!-- task-id:TODO-cff928829702 -->
+
+- [ ] Provide secure credential persistence or clear platform skips for non-Windows local development. Acceptance: manual connector and Blackbox API-key routes have an explicit, tested cross-platform contract and never serialize credentials in plaintext. <!-- task-id:TODO-54d8ec6f80b9 -->
+
+- [ ] Create and review the committed visual-regression baseline required by the checker. Acceptance: `artifacts/visual_regression_baseline.json` is reviewed, source-controlled where appropriate, and both visual-regression tests pass. <!-- task-id:TODO-25105284c9fc -->
+
+- [ ] Repair cross-platform documentation-reference tests without altering documented paths. Acceptance: all documentation contract tests use platform-neutral `Path` resolution and pass on supported hosts. <!-- task-id:TODO-f7347e19331a -->
+
+- [ ] Repair TODO marker parsing and reconcile stale checkpoint and template records. Acceptance: identifier generation is idempotent, every marker is terminal, and superseded or template-only checklist state is explicit. <!-- task-id:TODO-f83deb76611e -->
+
+- [ ] Make orchestration timeout evidence and preview-runtime readiness tests deterministic. Acceptance: checkpoint schema expectations match the current format, timeout assertions target the correct event, and preview tests wait for a bounded ready state. <!-- task-id:TODO-1f336418c5a4 -->
+
+- [ ] Resolve hub-download response and temporary-file cleanup regression. Acceptance: the hub-download contract returns the documented status and temporary test resources are released before cleanup. <!-- task-id:TODO-3d2f46e3bd16 -->
+
+- [ ] Reconcile release-state documents with the current test baseline and current worker status. Acceptance: `STATE.md`, readiness reporting, and milestone review agree on current evidence, blockers, and next gates. <!-- task-id:TODO-ac288c7cbdfb -->
+
+- [ ] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Acceptance: a named-path decision, secret scan, retention rationale, and explicit approval record exist before any destructive change. <!-- task-id:TODO-570aaf580e3d -->
+
+- [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
+
 ## 4. Initial Baseline
 
 - [x] Load the Orville project instructions and operating constraints. <!-- task-id:TODO-3c5b654f54ab -->
@@ -586,7 +610,7 @@ The roadmap is complete when Orville can accept a new objective, create a depend
 
 - [x] Add a fact-verification checklist for names, dates, numerical values, claims, and quotations. Added and validated `docs/FACT_VERIFICATION_CHECKLIST.md` with identity, chronology, numerical, causal-claim, quotation, citation, freshness, safety, and second-review gates. <!-- task-id:TODO-ba5067073963 -->
 
-- [-] Add a reproducible data-acquisition record for datasets and APIs. <!-- task-id:TODO-52eb2241121e -->
+- [x] Add a reproducible data-acquisition record for datasets and APIs. Added `docs/DATA_ACQUISITION_RECORD_TEMPLATE.md`; focused validation in `tests/test_research_data.py` passes (3 tests). <!-- task-id:TODO-52eb2241121e -->
 
 ## 11. Phase 6 — Web, Mobile, Media, and Document Workflows
 
@@ -927,7 +951,7 @@ This audit compares the roadmap with the implementation artifacts currently pres
 
 ## 19. Standard Execution Record Template
 
-Use the following record for each future objective:
+Use the following record for each future objective: this **reusable execution-record** template has verification placeholders that are examples, not active roadmap tasks.
 
 ```markdown
 # Execution Record: <objective title>
@@ -959,11 +983,11 @@ Use the following record for each future objective:
 
 ## Verification
 
-- [!] Requirements checked. <!-- task-id:TODO-1813c90c24df --> Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records.
-- [!] Outputs inspected. <!-- task-id:TODO-42ada86910f9 --> Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records.
-- [!] Tests or validation commands executed. <!-- task-id:TODO-9e65a63bd1d3 --> Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records.
-- [!] Independent review completed. <!-- task-id:TODO-f7bf278e300e --> Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records.
-- [x] Known limitations recorded. <!-- task-id:TODO-e22984a50c7a --> Added structured reusable categories for scope limitations, environment/provider limitations, validation limitations, and unresolved risks/follow-up dependencies; `tests/test_execution_record_template.py` passed 2 focused tests and Python compilation passed. The checklist remains a template placeholder for future execution records.
+- [!] Requirements checked. Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records. <!-- task-id:TODO-1813c90c24df -->
+- [!] Outputs inspected. Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records. <!-- task-id:TODO-42ada86910f9 -->
+- [!] Tests or validation commands executed. Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records. <!-- task-id:TODO-9e65a63bd1d3 -->
+- [!] Independent review completed. Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records. <!-- task-id:TODO-f7bf278e300e -->
+- [x] Known limitations recorded. Added structured reusable categories for scope limitations, environment/provider limitations, validation limitations, and unresolved risks/follow-up dependencies; `tests/test_execution_record_template.py` previously passed 2 focused tests and Python compilation. The checklist remains a template placeholder for future execution records. <!-- task-id:TODO-e22984a50c7a -->
 
 ### Known limitations
 
@@ -972,7 +996,7 @@ Use the following record for each future objective:
 - Validation limitations:
 - Unresolved risks and follow-up dependencies:
 
-- [!] Final artifacts integrated and delivered. <!-- task-id:TODO-abc4b239dd1b --> Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records.
+- [!] Final artifacts integrated and delivered. Blocked: this checkbox is a reusable verification-template placeholder inside the Standard Execution Record Template, not an actionable roadmap task; it must remain unchecked for future execution records. <!-- task-id:TODO-abc4b239dd1b -->
 
 ## Final Outcome
 
@@ -1011,13 +1035,13 @@ The following requirements were added after reviewing primary documentation and 
 
 ### 21.1 Orchestration reliability
 
-- [x] Separate deterministic workflow steps from agentic steps and require deterministic implementations for safety-critical, authorization, validation, persistence, and artifact-integrity operations. <!-- task-id:TODO-cc2edc55d532 --> Added explicit deterministic/agentic modes, isolated agentic handlers, fail-closed unknown-mode handling, and protected-category validation in `orville_core/automation.py`; documented in `docs/WORKFLOW_EXECUTION_POLICY.md` with focused coverage in `tests/test_workflow_execution_policy.py`. Nine focused policy/automation tests and Python compilation passed.
+- [x] Separate deterministic workflow steps from agentic steps and require deterministic implementations for safety-critical, authorization, validation, persistence, and artifact-integrity operations. Added explicit deterministic/agentic modes, isolated agentic handlers, fail-closed unknown-mode handling, and protected-category validation in `orville_core/automation.py`; documented in `docs/WORKFLOW_EXECUTION_POLICY.md` with focused coverage in `tests/test_workflow_execution_policy.py`. Nine focused policy/automation tests and Python compilation passed. <!-- task-id:TODO-cc2edc55d532 -->
 
-- [x] Implement durable checkpoints before and after material agent, tool, model, approval, and artifact operations. <!-- task-id:TODO-629895d4fa49 --> Added schema-versioned `OperationCheckpoint` records with deterministic IDs and secret-safe before/after evidence across serial, parallel, and approval-gated execution in `orville_core/models.py` and `orville_core/engine.py`; documented in `docs/OPERATION_CHECKPOINTS.md` with focused coverage in `tests/test_operation_checkpoints.py`. Nine focused automation tests, 18 workflow/acceptance/core regressions, and Python compilation passed.
+- [x] Implement durable checkpoints before and after material agent, tool, model, approval, and artifact operations. Added schema-versioned `OperationCheckpoint` records with deterministic IDs and secret-safe before/after evidence across serial, parallel, and approval-gated execution in `orville_core/models.py` and `orville_core/engine.py`; documented in `docs/OPERATION_CHECKPOINTS.md` with focused coverage in `tests/test_operation_checkpoints.py`. Nine focused automation tests, 18 workflow/acceptance/core regressions, and Python compilation passed. <!-- task-id:TODO-629895d4fa49 -->
 
-- [-] Support replay, resume, pause, cancellation, retry, and controlled state inspection after interruption or failure. <!-- task-id:TODO-175df4cecc51 --> *(Worker Task 2 — in progress.)*
+- [-] Support replay, resume, pause, cancellation, retry, and controlled state inspection after interruption or failure. *(Worker Task 2 — in progress.)* <!-- task-id:TODO-175df4cecc51 -->
 
-- [-] Stream graph, agent, tool, model, approval, and artifact events to the GUI and persist an auditable event history. <!-- task-id:TODO-2b113eb0e255 --> *(Worker Task 1 — in progress 2026-08-27; extending the existing authenticated polling/SSE contract with explicit event-category coverage and durable audit-history evidence.)*
+- [-] Stream graph, agent, tool, model, approval, and artifact events to the GUI and persist an auditable event history. *(Worker Task 1 — in progress 2026-08-27; extending the existing authenticated polling/SSE contract with explicit event-category coverage and durable audit-history evidence.)* <!-- task-id:TODO-2b113eb0e255 -->
 
 - [ ] Define short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing rules. <!-- task-id:TODO-3108982ea7c3 -->
 

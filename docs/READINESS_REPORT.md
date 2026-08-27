@@ -13,7 +13,7 @@ Orville is **locally implementation-ready for continued development and controll
 |---|---|---|---|
 | Source compilation | Pass | `python -m compileall -q orville_core tools tests examples` | Local Python source only |
 | Focused contract tests | Pass | Recent focused suites for deployment, confirmations, untrusted content, logging, reports, README, examples, glossary, reusable fixes, and runbook | Does not replace the full regression gate |
-| Full regression suite | Blocked | Collection currently fails because `tools/orville_manus_worker.py` uses `task_status` as a default before definition in `tests/test_orville_manus_worker.py` | Existing collection defect must be corrected and triaged |
+| Full regression suite | Blocked | Current audit: 760 passed, 20 failed, 1 warning after checklist reconciliation; the formerly reported `task_status` worker collection defect is resolved and `tests/test_orville_manus_worker.py` passes 10 focused tests | Resolve the authoritative `TODO.md` audit queue, rerun the suite, and retain per-failure triage |
 | API readiness contract | Conditional | `orville readiness`, `orville config`, and `orville health` | Requires a runtime token for authenticated API readiness; values must remain protected |
 | Adapter readiness | Conditional | `ProductionReadiness.evaluate` checks required adapter/capability pairs | Requires explicitly configured adapters and health evidence |
 | Deployment preflight | Pass for local contract | `tools/deployment_validation.py preflight --target <target>` | Live target infrastructure remains environment-owned |
@@ -36,9 +36,9 @@ The report incorporates the current standalone task-template catalog, reusable-f
 
 ## Blocking findings and actions
 
-The full regression release gate is currently blocked by the existing worker-module collection error described above. The next eligible roadmap item, cleanup of obsolete dependencies/connectors/instructions/artifacts, is also blocked pending explicit confirmation and a named-path deletion list under the repository safety rules. Neither blocker is silently treated as resolved by this report.
+The full regression release gate is currently blocked by the post-collection failures recorded in `docs/REPOSITORY_AUDIT_2026-08-27.md`; the prior worker-module collection defect is resolved and must not be treated as the active blocker. The authoritative remediation queue covers cross-platform credential persistence, the missing visual baseline, documentation/test synchronization, deterministic runtime-test behavior, hub-download cleanup, release-state reconciliation, and a non-destructive review of tracked runtime artifacts. Any cleanup remains blocked pending explicit confirmation, a named-path deletion list, and a retention review. Neither blocker is silently treated as resolved by this report.
 
-Before any production claim, the operator must rerun the full configured suite after the collection defect is fixed, triage every failure, validate target-specific preflight and smoke checks, confirm secret and approval controls, verify backups and rollback, and obtain environment-owner evidence for identity, provider, browser, infrastructure, monitoring, and recovery.
+Before any production claim, the operator must resolve or explicitly triage each current full-suite failure, rerun the full configured suite, validate target-specific preflight and smoke checks, confirm secret and approval controls, verify backups and rollback, and obtain environment-owner evidence for identity, provider, browser, infrastructure, monitoring, and recovery.
 
 ## Reproduction commands
 

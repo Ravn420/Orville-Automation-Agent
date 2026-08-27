@@ -1,5 +1,18 @@
 # Orville Changelog
 
+## 2026-08-27 — Repository audit and remediation queue
+
+### Changed
+
+- Added `docs/REPOSITORY_AUDIT_2026-08-27.md` and a prioritized authoritative remediation queue at the top of `TODO.md` after a complete tracked-repository review.
+- Reconciled the completed data-acquisition record task with `docs/DATA_ACQUISITION_RECORD_TEMPLATE.md` and its focused test coverage.
+- Clarified the reusable execution-record template and moved its existing task-ID markers to line endings so the current identifier tool can parse those template rows without generating duplicate markers.
+- Updated `STATE.md`, `TASK_GRAPH.md`, `docs/READINESS_REPORT.md`, and `docs/MILESTONE_ROADMAP_REVIEW_2026-08-27.md` to replace the resolved roadmap-worker collection diagnosis with the current post-collection release-gate baseline.
+
+### Validation
+
+Python compilation and base-wheel creation passed. After the GUI runtime dependency was made available, the final full pytest suite completed with 760 passed, 20 failed, and 1 warning; the release gate remains blocked and all confirmed remediation work is tracked in the new authoritative queue. The credential-free preview check passed with three existing normal-text contrast warnings. No live credentials, external provider calls, deployments, repository deletions, or account changes were performed.
+
 ## 2026-08-27 — Guarded TODO automation
 
 ### Added
