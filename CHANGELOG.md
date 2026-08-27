@@ -1,3 +1,9 @@
+## 2026-08-27 — Memory governance task
+
+### Added
+
+- Added `docs/MEMORY_GOVERNANCE.md` and focused contract tests defining short-term and long-term memory scope, retention, deletion, isolation, user editing, secret exclusion, and auditability. No memory backend or user data was changed.
+
 # Orville Changelog
 
 ## 2026-08-27 — Guarded TODO queue and bounded autopilot dispatch

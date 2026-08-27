@@ -1019,7 +1019,7 @@ The following requirements were added after reviewing primary documentation and 
 
 - [-] Stream graph, agent, tool, model, approval, and artifact events to the GUI and persist an auditable event history. <!-- task-id:TODO-2b113eb0e255 --> *(Worker Task 1 — in progress 2026-08-27; extending the existing authenticated polling/SSE contract with explicit event-category coverage and durable audit-history evidence.)*
 
-- [ ] Define short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing rules. <!-- task-id:TODO-3108982ea7c3 -->
+- [x] Define short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing rules. <!-- task-id:TODO-3108982ea7c3 -->
 
 - [ ] Add idempotency keys and deduplication for external actions, retries, scheduled jobs, and artifact writes. <!-- task-id:TODO-93ad3cc054dc -->
 
