@@ -2191,4 +2191,4 @@ Completed an inspection-only review for `TODO-570aaf580e3d`. Added `docs/SQLITE_
 
 - Focused registry contract tests: **3 passed**.
 - Python compilation: passed.
-- Broader regression: **792 passed, 1 warning, 6 subtests passed**.
+- Broader regression: **798 passed, 1 warning, 6 subtests passed**.
