@@ -1497,3 +1497,12 @@ Checkpoint schema version 2 now persists secret-safe operation records with dete
 | Boundary | The checklist remains a reusable template placeholder and does not represent a product feature completion. |
 
 Each future execution record now has a consistent place to state what was not tested, what remains environment-owned, and which risks or dependencies remain open.
+
+
+## 21.4 — Evaluation datasets and golden cases
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-37bc97abee20 | Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import | Verification Agent / Research Agent | Existing task, agent, model-import, GUI, and verification contracts | completed-local | `config/evaluation-datasets.json`, `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md`, `tests/test_evaluation_datasets.py`; 3 focused tests, Python compilation, and broader regression passed |
+
+The registry is synthetic/local, deterministic by default, and safety-bounded. It does not replace isolated software evaluation, repository-level coding evaluations, trace observability, or live deployment acceptance.

@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Task-specific evaluation datasets
+
+### Added
+
+- Completed `TODO-37bc97abee20` with seven synthetic/local evaluation suites for planning, code generation, debugging, refactoring, research, GUI workflows, and model import.
+- Added stable golden-case IDs, required and prohibited behaviors, deterministic defaults, explicit approval and side-effect boundaries, privacy rules, and structured acceptance fields in `config/evaluation-datasets.json`.
+- Added `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md` covering selection, reporting, evidence, safety, and known limitations.
+
+### Validation
+
+- Focused registry contract tests: **3 passed**.
+- Python compilation: passed.
+- Broader regression: **792 passed, 1 warning, 6 subtests passed**.
+
 ## 2026-08-27 — Release readiness: portable test repairs and API/browser validation
 
 ### Fixed

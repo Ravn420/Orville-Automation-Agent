@@ -1083,7 +1083,7 @@ The following requirements were added after reviewing primary documentation and 
 
 ### 21.4 Evaluation and observability
 
-- [ ] Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import. <!-- task-id:TODO-37bc97abee20 -->
+- [x] Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import. Added `config/evaluation-datasets.json` with seven synthetic/local suites and 14 stable golden cases, plus `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md`; focused validation passed 3 tests, Python compilation passed, and broader regression passed 792 tests, 1 warning, and 6 subtests. <!-- task-id:TODO-37bc97abee20 -->
 
 - [ ] Evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria rather than text similarity alone. <!-- task-id:TODO-06227efe167c -->
 

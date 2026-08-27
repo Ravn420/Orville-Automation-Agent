@@ -992,3 +992,8 @@ Implemented schema-versioned, secret-safe `OperationCheckpoint` records and inte
 ## Worker Task 1 checkpoint — execution-record known limitations — 2026-08-27
 
 The selected reusable-template item is complete locally. The Standard Execution Record Template now includes explicit categories for scope limitations, environment/provider limitations, validation limitations, and unresolved risks/follow-up dependencies. `tests/test_execution_record_template.py` verifies the categories and placeholder semantics; two focused tests and Python compilation passed. The checklist remains a reusable template and is not treated as a completed product milestone.
+
+
+## Evaluation datasets and golden cases checkpoint — 2026-08-28
+
+`TODO-37bc97abee20` is complete as a local contract. `config/evaluation-datasets.json` defines seven synthetic, task-specific suites—planning, code generation, debugging, refactoring, research, GUI workflows, and model import—with stable case IDs, required and prohibited behaviors, deterministic defaults, safety constraints, and structured acceptance fields. `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md` defines selection, reporting, privacy, approval, evidence, and limitation rules. Focused validation passed 3 tests, Python compilation passed, and the broader regression suite passed **792 tests, 1 warning, and 6 subtests**. The registry does not claim isolated software evaluation, repository-level coding evaluation, trace observability, or live deployment acceptance.
