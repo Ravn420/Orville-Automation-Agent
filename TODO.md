@@ -1049,19 +1049,19 @@ The following requirements were added after reviewing primary documentation and 
 
 ### 21.2 Model and local-file security
 
-- [ ] Prefer Safetensors or another safe serialization format where supported and classify unsafe formats before import. <!-- task-id:TODO-8b7695ad413d -->
+- [x] Prefer Safetensors or another safe serialization format where supported and classify unsafe formats before import. Implemented closed format classification and safe-format preference in `orville_core/model_security.py`; unsafe formats fail activation. <!-- task-id:TODO-8b7695ad413d -->
 
-- [ ] Isolate model conversion, metadata inspection, loading, and execution from the host system with least privilege. <!-- task-id:TODO-8481cc10aeb5 -->
+- [x] Isolate model conversion, metadata inspection, loading, and execution from the host system with least privilege. Existing sandbox/local-execution boundaries provide read-only model paths, bounded scratch/output, filtered environment, and fail-closed adapter selection. <!-- task-id:TODO-8481cc10aeb5 -->
 
-- [ ] Never execute arbitrary code, scripts, hooks, or model-provided commands merely because they are present in an imported model directory. <!-- task-id:TODO-1bc110138c38 -->
+- [x] Never execute arbitrary code, scripts, hooks, or model-provided commands merely because they are present in an imported model directory. Sidecars are inventoried as evidence under `never_execute_imported_content`; no imported content is invoked. <!-- task-id:TODO-1bc110138c38 -->
 
-- [ ] Verify checksums, provenance, license metadata, source information, and optional signatures or attestations before activation. <!-- task-id:TODO-c5619fe172c0 -->
+- [x] Verify checksums, provenance, license metadata, source information, and optional signatures or attestations before activation. Activation now requires integrity, source/provenance, and license checks; attestation policies remain fail-closed. <!-- task-id:TODO-c5619fe172c0 -->
 
-- [ ] Distinguish full models, adapters, quantized models, tokenizers, configuration files, and auxiliary assets in the catalog. <!-- task-id:TODO-b45a2c1f0a81 -->
+- [x] Distinguish full models, adapters, quantized models, tokenizers, configuration files, and auxiliary assets in the catalog. Normalized taxonomy is persisted in catalog security metadata. <!-- task-id:TODO-b45a2c1f0a81 -->
 
-- [ ] Require base-model identity and compatibility checks when importing adapters; provide a clear diagnostic when the base model does not match. <!-- task-id:TODO-1293b8da5bb1 -->
+- [x] Require base-model identity and compatibility checks when importing adapters; provide a clear diagnostic when the base model does not match. Deterministic mismatch and missing-identity diagnostics are covered by focused tests. <!-- task-id:TODO-1293b8da5bb1 -->
 
-- [ ] Add resource-aware scheduling for CPU, RAM, GPU, VRAM, disk, context length, concurrency, and thermal or power constraints where available. <!-- task-id:TODO-9a455058aebf -->
+- [x] Add resource-aware scheduling for CPU, RAM, GPU, VRAM, disk, context length, concurrency, and thermal or power constraints where available. `ResourceScheduler` rejects deterministic oversubscription and supports explicit release. <!-- task-id:TODO-9a455058aebf -->
 
 ### 21.3 Provider and MCP security
 
@@ -2513,4 +2513,5 @@ The durable scheduling and signed webhook milestone is implemented: ScheduleStor
 - [ ] M14.9 Establish encrypted off-host backups, retention, restore verification, RTO/RPO evidence, access review, and a disaster-recovery runbook. <!-- task-id:TODO-97bdd2fb0076 -->
 - [ ] M14.10 Run production-readiness security, load, soak, dependency, observability, quota, cost, and rollback gates with sanitized evidence. <!-- task-id:TODO-20c9e32dc7de -->
 - [!] M14.11 Execute a controlled production canary only after M14.1–M14.10 pass and explicit operator approval is recorded. <!-- task-id:TODO-1f50da4a9ba5 -->
+
 

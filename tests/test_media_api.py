@@ -78,7 +78,7 @@ def test_local_model_activation_exposes_generation_provider_and_pause_is_approva
         model_path.parent.mkdir()
         model_path.write_bytes(b"fake model")
         catalog = LocalModelCatalog(root / "orville-models.json")
-        catalog.import_model(model_path, model_id="org/tiny", capabilities=["text", "code"])
+        catalog.import_model(model_path, model_id="org/tiny", capabilities=["text", "code"], license="apache-2.0", provenance={"source": "synthetic-fixture"})
         app = create_app(api_token="local-token", storage="json", checkpoint_dir=root / ".orville")
         client = TestClient(app)
         headers = {"Authorization": "Bearer local-token"}

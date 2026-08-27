@@ -55,7 +55,7 @@ def test_activation_persists_optional_attestation_evidence(tmp_path):
     asset = tmp_path / "model.gguf"
     asset.write_bytes(b"synthetic model")
     catalog = LocalModelCatalog(tmp_path / "catalog.json")
-    catalog.import_model(asset, model_id="demo", runtime="ollama")
+    catalog.import_model(asset, model_id="demo", runtime="ollama", license="apache-2.0", provenance={"source": "synthetic-fixture"})
     activated = catalog.activate("demo", endpoint="http://localhost:11434", attestation_policy="optional")
     assert activated.status == "active"
     assert activated.activation_evidence["policy_mode"] == "optional"
@@ -68,6 +68,6 @@ def test_required_attestation_blocks_activation(tmp_path):
     asset = tmp_path / "model.gguf"
     asset.write_bytes(b"synthetic model")
     catalog = LocalModelCatalog(tmp_path / "catalog.json")
-    catalog.import_model(asset, model_id="demo", runtime="ollama")
+    catalog.import_model(asset, model_id="demo", runtime="ollama", license="apache-2.0", provenance={"source": "synthetic-fixture"})
     with pytest.raises(ValueError, match="failed validation"):
         catalog.activate("demo", attestation_policy="required")

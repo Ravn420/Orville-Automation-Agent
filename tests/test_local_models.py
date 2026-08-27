@@ -142,7 +142,7 @@ def test_dry_run_does_not_mutate_or_activate_model(tmp_path: Path) -> None:
 
 def test_activation_deactivation_and_deletion_confirmation(tmp_path: Path) -> None:
     catalog, asset = make_catalog(tmp_path)
-    catalog.import_model(asset, model_id="local/lifecycle", runtime="ollama", endpoint="http://localhost:11434")
+    catalog.import_model(asset, model_id="local/lifecycle", runtime="ollama", endpoint="http://localhost:11434", license="apache-2.0", provenance={"source": "synthetic-fixture"})
 
     active = catalog.activate("local/lifecycle", required_runtime="ollama")
     assert active.status == "active"

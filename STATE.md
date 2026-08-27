@@ -996,3 +996,8 @@ Implemented schema-versioned, secret-safe `OperationCheckpoint` records and inte
 ## Worker Task 1 checkpoint — execution-record known limitations — 2026-08-27
 
 The selected reusable-template item is complete locally. The Standard Execution Record Template now includes explicit categories for scope limitations, environment/provider limitations, validation limitations, and unresolved risks/follow-up dependencies. `tests/test_execution_record_template.py` verifies the categories and placeholder semantics; two focused tests and Python compilation passed. The checklist remains a reusable template and is not treated as a completed product milestone.
+
+
+## 21.2 model and local-file security checkpoint — 2026-08-28
+
+The local model lifecycle now has a closed asset taxonomy, safe/unsafe serialization classification, non-executing directory inspection, persisted sidecar inventory, mandatory license and provenance checks at activation, and deterministic adapter compatibility diagnostics. Existing sandbox and local-execution boundaries continue to provide least-privilege, bounded-path, filtered-environment, and fail-closed execution behavior. `ResourceScheduler` adds non-oversubscribing admission across CPU, RAM, GPU count, VRAM, disk, context length, concurrency, thermal, and power budgets. Focused 21.2 coverage plus the full regression suite passed: **794 passed, 1 warning, 6 subtests passed**. The remaining limitations are live Linux/GPU isolation verification, provider-specific model loading, production attestation ceremony, and deployment-owned hardware telemetry.

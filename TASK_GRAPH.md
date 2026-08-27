@@ -1497,3 +1497,16 @@ Checkpoint schema version 2 now persists secret-safe operation records with dete
 | Boundary | The checklist remains a reusable template placeholder and does not represent a product feature completion. |
 
 Each future execution record now has a consistent place to state what was not tested, what remains environment-owned, and which risks or dependencies remain open.
+
+
+## 21.2 — Model and local-file security
+
+| ID | Requirement | Owner | Dependencies | Acceptance gate | Status |
+|---|---|---|---|---|---|
+| TODO-8b7695ad413d | Prefer Safetensors or another safe serialization format; classify unsafe formats before import | Security Agent | M13.1, M13.7 | Safe-format preference is explicit and unsafe serialization cannot activate by default | completed-local | `model_security.py`, `local_models.py`, `tests/test_model_security_21_2.py`; 794 passed |
+| TODO-8481cc10aeb5 | Isolate conversion, metadata inspection, loading, and execution with least privilege | Security Agent / Environment Interface Layer | TODO-8b7695ad413d, M13.2, M13.3, M13.4 | Model operations use an approved isolation boundary or fail closed | completed-local | Existing `sandbox.py`, `sandbox_adapters.py`, `local_execution.py`; focused and regression tests pass |
+| TODO-1bc110138c38 | Never execute arbitrary code, scripts, hooks, or model-provided commands from imported directories | Security Agent | TODO-8481cc10aeb5 | Executable sidecars and command-bearing hooks are ignored or rejected; negative tests prove no execution | completed-local | `model_security.py`, `local_execution.py`, `tests/test_model_security_21_2.py` |
+| TODO-c5619fe172c0 | Verify checksums, provenance, license metadata, source information, and optional signatures or attestations before activation | Security Agent / Verification Agent | TODO-8b7695ad413d, M13.5, M13.6 | Activation blocks on integrity/provenance/license/source/required-attestation failures | completed-local | `local_models.py`, attestation service, `docs/MODEL_AND_LOCAL_FILE_SECURITY.md`; activation-gate regressions pass |
+| TODO-b45a2c1f0a81 | Distinguish full models, adapters, quantized models, tokenizers, configuration files, and auxiliary assets | Code Synthesis Agent / Research Agent | TODO-8b7695ad413d | Catalog uses a closed asset taxonomy and rejects ambiguous classifications | completed-local | `model_security.py`, catalog `metadata.asset_taxonomy`, focused taxonomy tests |
+| TODO-1293b8da5bb1 | Require base-model identity and compatibility checks for adapters | Verification Agent | TODO-b45a2c1f0a81, TODO-c5619fe172c0 | Adapter activation requires a matching base identity and emits a deterministic mismatch diagnostic | completed-local | Existing model-safety diagnostics plus `adapter_compatibility`; mismatch test passes |
+| TODO-9a455058aebf | Add resource-aware scheduling for CPU, RAM, GPU, VRAM, disk, context length, concurrency, and thermal or power constraints | Automation Agent | TODO-b45a2c1f0a81, TODO-1293b8da5bb1, M13.10 | Scheduler admits only within declared budgets and records rejection reasons | completed-local | `model_security.py` ResourceScheduler; oversubscription/release test passes |

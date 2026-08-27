@@ -13,6 +13,7 @@ from typing import Any
 from .attestations import AttestationError, AttestationPolicy, TrustStore, verify_attestation
 from .attestation_service import AttestationVerificationService
 from .model_safety import inspect_safety
+from .model_security import classify_asset, classify_serialization, inspect_directory
 
 
 @dataclass
@@ -165,7 +166,7 @@ class LocalModelCatalog:
                 return model
         raise KeyError(f"local model not found: {model_id}")
 
-    def validate(self, model_id: str, *, required_runtime: str | None = None, endpoint: str | None = None, available_ram_bytes: int | None = None, available_vram_bytes: int | None = None, hardware: dict[str, Any] | None = None, selected_base_model: str | None = None, attestation_policy: str = "optional") -> dict[str, Any]:
+    def validate(self, model_id: str, *, required_runtime: str | None = None, endpoint: str | None = None, available_ram_bytes: int | None = None, available_vram_bytes: int | None = None, hardware: dict[str, Any] | None = None, selected_base_model: str | None = None, attestation_policy: str = "optional", activation: bool = False) -> dict[str, Any]:
         record = self.get(model_id)
         path = Path(record.source_path)
         checks: dict[str, bool] = {"exists": path.exists(), "readable": os.access(path, os.R_OK) if path.exists() else False}
@@ -226,6 +227,13 @@ class LocalModelCatalog:
             diagnostics.append({"code": "incompatible_hardware", "message": "this model requires a compatible GPU, but no supported GPU was detected", "severity": "error"})
         if record.license_restrictions:
             diagnostics.append({"code": "license_restriction", "message": "license restrictions require operator review before activation", "severity": "warning"})
+        if activation:
+            checks["provenance_recorded"] = bool(record.provenance.get("source") or record.provenance.get("repository") or record.provenance.get("source_path"))
+            checks["license_recorded"] = bool(record.license and record.license.strip())
+            if not checks["provenance_recorded"]:
+                diagnostics.append({"code": "missing_provenance", "message": "activation requires source and provenance metadata", "severity": "error"})
+            if not checks["license_recorded"]:
+                diagnostics.append({"code": "missing_license_metadata", "message": "activation requires license metadata", "severity": "error"})
         checks["valid"] = all(value for key, value in checks.items() if key != "valid")
         return {"model_id": model_id, "checks": checks, "status": "valid" if checks["valid"] else "invalid", "diagnostics": diagnostics, "safety": safety_report.to_dict(), "metadata": {"license": record.license, "license_restrictions": record.license_restrictions, "provenance": record.provenance, "ownership": record.ownership, "checksum_sha256": record.checksum_sha256, "attestation": record.attestation, "activation_evidence": attestation_evidence.to_dict(), "attestation_policy": attestation_policy}}
 
@@ -235,7 +243,7 @@ class LocalModelCatalog:
         return {"mode": "validation_only", "model_id": model_id, "would_activate": bool(validation["checks"]["valid"]), "executed": False, "catalog_mutated": False, "validation": validation}
 
     def activate(self, model_id: str, *, required_runtime: str | None = None, endpoint: str | None = None, attestation_policy: str = "optional") -> LocalModelRecord:
-        validation = self.validate(model_id, required_runtime=required_runtime, endpoint=endpoint, attestation_policy=attestation_policy)
+        validation = self.validate(model_id, required_runtime=required_runtime, endpoint=endpoint, attestation_policy=attestation_policy, activation=True)
         if not validation["checks"]["valid"]:
             raise ValueError(f"local model failed validation: {validation}")
         records = self.list_models()
@@ -315,22 +323,26 @@ class LocalModelCatalog:
 
     @staticmethod
     def _inspect(path: Path) -> tuple[str, str, dict[str, Any]]:
+        inventory = inspect_directory(path)
         if path.is_file():
             suffix = path.suffix.lower().lstrip(".") or "unknown"
-            asset_type = "adapter" if "adapter" in path.name.lower() or "lora" in path.name.lower() else "model"
-            return suffix, asset_type, {"size_bytes": path.stat().st_size}
+            classified_type = classify_asset(path, file_format=suffix)
+            legacy_type = "adapter" if classified_type == "adapter" else "model"
+            return suffix, legacy_type, {"size_bytes": path.stat().st_size, "serialization_class": classify_serialization(suffix), "asset_taxonomy": classified_type, "security_inventory": inventory}
         config = path / "config.json"
-        metadata: dict[str, Any] = {"file_count": sum(1 for item in path.rglob("*") if item.is_file())}
+        metadata: dict[str, Any] = {"file_count": inventory["file_count"], "security_inventory": inventory}
         if config.is_file():
             try:
                 raw = json.loads(config.read_text(encoding="utf-8"))
-                for key in ("architectures", "model_type", "torch_dtype", "max_position_embeddings", "_name_or_path"):
+                for key in ("architectures", "model_type", "torch_dtype", "max_position_embeddings", "_name_or_path", "quantization_config"):
                     if key in raw:
                         metadata[key] = raw[key]
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 metadata["config_readable"] = False
         extensions = {item.suffix.lower().lstrip(".") for item in path.rglob("*") if item.is_file()}
         file_format = "safetensors" if "safetensors" in extensions else ("directory" if extensions else "unknown")
+        classified_type = classify_asset(path, file_format=file_format, metadata=metadata)
+        metadata["asset_taxonomy"] = classified_type
         return file_format, "directory", metadata
 
     @staticmethod

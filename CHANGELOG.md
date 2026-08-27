@@ -16,6 +16,17 @@
 - Python compilation and `python tools/project_checks.py all` passed.
 - No external provider calls or destructive actions were used.
 
+## 2026-08-28 — Model and local-file security
+
+### Changed
+
+- Added safe-format and unsafe-serialization classification, a closed model-asset taxonomy, non-executing sidecar inventory, mandatory license/provenance activation gates, adapter/base-model diagnostics, and deterministic resource admission across compute, memory, accelerator, storage, context, concurrency, thermal, and power limits.
+- Documented the isolation and evidence contract in `docs/MODEL_AND_LOCAL_FILE_SECURITY.md` and added focused coverage in `tests/test_model_security_21_2.py`.
+
+### Validation
+
+- Full regression suite: **794 passed, 1 warning, 6 subtests passed**. The warning is the existing Starlette/httpx deprecation notice.
+
 ## 2026-08-28 — Signal Room GUI redesign closeout
 
 ### Changed
