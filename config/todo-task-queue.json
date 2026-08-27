@@ -128,9 +128,67 @@
       "operation_id": "6dca6968-02d3-4843-b467-668c0977b8ea",
       "reason": "Removed literal shell quotation marks from the queued task title; scope and permissions are unchanged.",
       "task_id": "TODO-3108982ea7c3"
+    },
+    {
+      "actor": "orchestration",
+      "after": {
+        "acceptance_criteria": [
+          "Add a repository documentation artifact defining short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing boundaries.",
+          "Add focused documentation-contract validation that checks each governance boundary.",
+          "Run focused validation and the prescribed broader project checks before canonical TODO completion."
+        ],
+        "dependencies": [],
+        "execution": {
+          "allowed_actions": [
+            "edit_files",
+            "run_tests"
+          ],
+          "timeout_minutes": 30
+        },
+        "id": "TODO-3108982ea7c3",
+        "priority": 900,
+        "revision": 3,
+        "source": {
+          "heading": "21.1 Orchestration reliability",
+          "line": 1022,
+          "todo_path": "/home/ubuntu/Orville-Automation-Agent/TODO.md"
+        },
+        "status": "review",
+        "title": "Define project memory governance boundaries"
+      },
+      "at_utc": "2026-08-27T13:38:02.366338Z",
+      "before": {
+        "acceptance_criteria": [
+          "Add a repository documentation artifact defining short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing boundaries.",
+          "Add focused documentation-contract validation that checks each governance boundary.",
+          "Run focused validation and the prescribed broader project checks before canonical TODO completion."
+        ],
+        "dependencies": [],
+        "execution": {
+          "allowed_actions": [
+            "edit_files",
+            "run_tests"
+          ],
+          "timeout_minutes": 30
+        },
+        "id": "TODO-3108982ea7c3",
+        "priority": 900,
+        "revision": 2,
+        "source": {
+          "heading": "21.1 Orchestration reliability",
+          "line": 1022,
+          "todo_path": "/home/ubuntu/Orville-Automation-Agent/TODO.md"
+        },
+        "status": "ready",
+        "title": "Define project memory governance boundaries"
+      },
+      "kind": "task_edit",
+      "operation_id": "35bd88e5-5335-4961-be8a-c2d87bfe3d5f",
+      "reason": "Autopilot completed the bounded local executor on its isolated branch; retain review status until the pushed commit and evidence are reconciled into the queue record.",
+      "task_id": "TODO-3108982ea7c3"
     }
   ],
-  "queue_revision": 2,
+  "queue_revision": 3,
   "schema_version": 1,
   "tasks": [
     {
@@ -549,13 +607,13 @@
       },
       "id": "TODO-3108982ea7c3",
       "priority": 900,
-      "revision": 2,
+      "revision": 3,
       "source": {
         "heading": "21.1 Orchestration reliability",
         "line": 1022,
         "todo_path": "/home/ubuntu/Orville-Automation-Agent/TODO.md"
       },
-      "status": "ready",
+      "status": "review",
       "title": "Define project memory governance boundaries"
     },
     {
