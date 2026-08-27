@@ -1550,3 +1550,18 @@ The TODO acceptance criteria are satisfied by the named-path decision, retention
 | Limitations | Cases are declarative and credential-free. Runtime isolation, dependency provisioning, live provider behavior, and production-scale evaluation remain environment-owned |
 
 The catalog is maintained as a stable acceptance contract: published case IDs and semantics require focused fixture validation and changelog evidence when changed.
+
+
+## Walkthrough-video archival checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-f8a70d13fc97` — retain walkthrough-video source, validation evidence, and delivery metadata |
+| Owner | Orchestration Agent |
+| Status | completed-local-limitation |
+| Evidence | `artifacts/WALKTHROUGH_VIDEO_ARCHIVAL_EVIDENCE_2026-08-28.md`; `docs/WALKTHROUGH_VIDEO_ARCHIVAL_COMPLIANCE_NOTE.md`; `TODO.md`; `STATE.md`; `CHANGELOG.md` |
+| Delivery | Source unavailable in the attached workspace; not archived, uploaded, published, or otherwise externally delivered |
+| Validation | Bounded read-only search metadata retained; no checksum or playable-copy validation claimed because source bytes are absent |
+| Limitation | Historical 30-second/1280×720/H.264 metadata remains unverified; future source delivery or release-owner waiver is separate follow-up work |
+
+The selected item is closed through an explicit archival limitation, not an archive claim. No credentials, external services, uploads, or destructive actions were used.

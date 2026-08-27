@@ -46,7 +46,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Completed inspection-only review with named-path retention decisions, SHA-256 metadata, Git provenance, bounded secret scan, retention rationale, and explicit no-approval/no-deletion record in `docs/SQLITE_ARTIFACT_RETENTION_REVIEW_2026-08-28.md`; all four sidecars were retained and no data was deleted. Focused project-control tests and compilation passed; broader regression has two unrelated baseline failures documented in the review. <!-- task-id:TODO-570aaf580e3d -->
 
-- [-] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
+- [x] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Completed through an explicit archival limitation: the source is unavailable, not externally delivered, and reproducible search metadata, delivery status, and control-file links are retained in `artifacts/WALKTHROUGH_VIDEO_ARCHIVAL_EVIDENCE_2026-08-28.md`. No checksum or archive claim is made because source bytes are absent. <!-- task-id:TODO-f8a70d13fc97 -->
 
 ## 4. Initial Baseline
 
