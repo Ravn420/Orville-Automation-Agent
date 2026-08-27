@@ -41,7 +41,11 @@ def test_restored_shell_control_plane_contracts():
         assert any(item["adapter_id"] == "local-workspace" for item in capabilities.json()["adapters"])
         blocked_research = client.post("/api/v1/research/fetch", headers=headers, json={"locator": "https://example.com"})
         assert blocked_research.status_code == 400
-        assert "allowlisted" in blocked_research.json()["detail"]
+        blocked_body = blocked_research.json()
+        assert blocked_body["error"]["operation"] == "post_research_fetch"
+        assert "post_research_fetch failed" in blocked_body["detail"]
+        assert "allowlisted" not in blocked_body["detail"]
+        assert "example.com" not in blocked_research.text
         artifact = client.post("/api/v1/artifacts/text", headers=headers, json={"name": "report.md", "content": "# Verified output\n"})
         assert artifact.status_code == 200
         assert artifact.json()["artifact"]["name"] == "report.md"
