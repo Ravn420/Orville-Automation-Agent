@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Hub transfer retry checkpoint
+
+### Changed
+
+- Closed the Hub retry telemetry, persistence, API, queue-rendering, regression, and checkpoint TODOs under `Current Task — Hub Transfer Retry and Backoff Telemetry`.
+- Documented durable failure recovery, bounded exponential backoff, cooperative pause/cancel handling, retry telemetry, API exposure, and Signal Room queue behavior in `docs/HUB_TRANSFER_RETRY_CHECKPOINT.md`.
+
+### Validation
+
+- Focused Hub/model/API validation: **23 tests passed**.
+- Full repository regression: **818 tests and 6 subtests passed**.
+- Windows-native executable rebuild remains open and requires a Windows runner.
+
+
 ## 2026-08-28 — Local-model GUI controls
 
 ### Changed

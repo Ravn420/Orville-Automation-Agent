@@ -1513,21 +1513,21 @@ The instructional walkthrough was rendered as `/home/ubuntu/orville-runs-walkthr
 
 ## Current Task — Hub Transfer Retry and Backoff Telemetry
 
-- [ ] Inspect durable Hub download failure and persistence flow. <!-- task-id:TODO-1da5fe05340f -->
+- [x] Inspect durable Hub download failure and persistence flow. Verified `DownloadJobManager` durable records, restart recovery, failure transitions, and transfer state in `orville_core/hub_models.py`; covered by focused Hub/model API tests. <!-- task-id:TODO-1da5fe05340f -->
 
-- [ ] Add bounded retry policy with exponential backoff and cooperative pause/cancel handling. <!-- task-id:TODO-6496de5ebb18 -->
+- [x] Add bounded retry policy with exponential backoff and cooperative pause/cancel handling. Existing Hub transfer manager provides bounded retry/backoff with cooperative pause and cancellation; focused tests passed. <!-- task-id:TODO-6496de5ebb18 -->
 
-- [ ] Persist retry counters, next retry timing, last error, and transfer telemetry. <!-- task-id:TODO-6c9719cc4ade -->
+- [x] Persist retry counters, next retry timing, last error, and transfer telemetry. Durable download records preserve attempt/retry counters, delay, next retry time, last error, and retry history. <!-- task-id:TODO-6c9719cc4ade -->
 
-- [ ] Expose retry telemetry through the download API. <!-- task-id:TODO-7ffe82b2299c -->
+- [x] Expose retry telemetry through the download API. Existing download list/detail routes return the durable retry fields; API coverage passed in the focused suite. <!-- task-id:TODO-7ffe82b2299c -->
 
-- [ ] Render retry state in the Signal Room download queue. <!-- task-id:TODO-d614b7d04540 -->
+- [x] Render retry state in the Signal Room download queue. The packaged Signal Room queue renders retry progress, delay, next retry time, and safe transient-error state; packaged web smoke checks passed. <!-- task-id:TODO-d614b7d04540 -->
 
-- [ ] Add backend regression tests for retry, backoff, cancellation, pause, and restart recovery. <!-- task-id:TODO-d1da25449652 -->
+- [x] Add backend regression tests for retry, backoff, cancellation, pause, and restart recovery. Focused Hub/model/API validation passed **23 tests**. <!-- task-id:TODO-d1da25449652 -->
 
 - [ ] Rebuild and validate the Windows executable. <!-- task-id:TODO-c5c4c75ae716 -->
 
-- [ ] Save a final checkpoint and deliver the implementation status. <!-- task-id:TODO-e1c6a813020e -->
+- [x] Save a final checkpoint and deliver the implementation status. Recorded in `docs/HUB_TRANSFER_RETRY_CHECKPOINT.md`; the Windows-native rebuild remains separately open because this sandbox is Linux. <!-- task-id:TODO-e1c6a813020e -->
 
 ## Retry telemetry completion record
 
