@@ -2175,3 +2175,6 @@ Added structured limitation categories to the reusable Standard Execution Record
 
 ## 2026-08-28 — Repository coding evaluations
 Added two deterministic, synthetic repository coding-evaluation fixtures covering a cache-key collision and a path-boundary defect, with realistic issue statements, golden patches, offline requirements, focused tests, baseline-failure checks, patch dry-run/apply, compilation, and regression validation. Added `tools/run_repository_coding_evaluations.py`, `config/repository-coding-evaluations.json`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, and focused tests. The evaluator uses disposable workspaces and does not access networks, credentials, production resources, or external side effects.
+
+## 2026-08-28 — SQLite WAL/shared-memory retention review
+Completed an inspection-only review for `TODO-570aaf580e3d`. Added `docs/SQLITE_WAL_SHARED_MEMORY_RETENTION_REVIEW_2026-08-28.md` with an exact four-path inventory, metadata and SHA-256 evidence, privacy-safe secret-scan results, retain decisions, recovery requirements, and an explicit record that destructive approval was not granted. No runtime data was deleted or modified. Exact-path/hash checks, `git diff --check`, and 12 TODO automation tests passed.

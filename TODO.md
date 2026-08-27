@@ -44,7 +44,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Reconcile release-state documents with the current test baseline and current worker status. Updated `STATE.md`, `TASK_GRAPH.md`, `READINESS_REPORT.md`, and `MILESTONE_ROADMAP_REVIEW_2026-08-27.md` with the clean 788-pass gate, residual warning, completed remediation increments, and remaining external/deployment-owned blockers. <!-- task-id:TODO-ac288c7cbdfb -->
 
-- [ ] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Acceptance: a named-path decision, secret scan, retention rationale, and explicit approval record exist before any destructive change. <!-- task-id:TODO-570aaf580e3d -->
+- [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Added `docs/SQLITE_WAL_SHARED_MEMORY_RETENTION_REVIEW_2026-08-28.md` with exact-path inventory, SHA-256 metadata, privacy-safe secret scan, retain decisions, recovery requirements, and an explicit no-destructive-approval gate; no runtime data was deleted or modified. Focused TODO automation validation: 12 passed. <!-- task-id:TODO-570aaf580e3d -->
 
 - [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
 

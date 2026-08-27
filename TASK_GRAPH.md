@@ -1515,3 +1515,12 @@ The record is append-only JSONL, stores prompt hashes rather than raw prompts, r
 | TODO-745d5e6b79eb | Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks | Verification Agent / Code Synthesis Agent | 21.4 evaluation registry and existing project/test contracts | completed-local | `config/repository-coding-evaluations.json`, `tools/run_repository_coding_evaluations.py`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, `tests/test_repository_coding_evaluations.py`; two baseline-failing fixtures, offline dependency installation, patch dry-run/apply, focused tests, compilation, and regression checks pass |
 
 The evaluator uses disposable workspaces, forbids network and external side effects, redacts temporary paths in evidence, and does not claim production readiness or substitute for isolated software evaluation.
+
+
+## Worker cycle — SQLite WAL/shared-memory retention review — 2026-08-28
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-570aaf580e3d | Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically | Orchestration / Security / Verification Agents | Existing named-path cleanup procedure and approval checkpoint contract | completed-local | `docs/SQLITE_WAL_SHARED_MEMORY_RETENTION_REVIEW_2026-08-28.md`; four exact tracked paths inventoried, hashes recorded, privacy-safe scan performed, all paths retained, no deletion or runtime-data mutation, and 12 TODO automation tests passed |
+
+The review is inspection-only. Destructive approval was not granted; any future deletion, archive, quarantine, or database lifecycle change must name exact paths and provide a verified checkpoint/backup, restore method, reviewer, expiry, and rollback plan.
