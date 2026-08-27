@@ -13,7 +13,6 @@
 - Full repository regression: **818 tests and 6 subtests passed**.
 - Windows-native executable rebuild remains open and requires a Windows runner.
 
-
 ## 2026-08-28 — Local-model GUI controls
 
 ### Changed
@@ -45,7 +44,6 @@
 - Expanded GUI acceptance: **52 tests and 1 subtest passed**.
 - Compilation, project checks, visual-regression baseline, and packaged web smoke checks passed.
 - Three existing packaged-web contrast warnings remain non-blocking. Windows-native executable packaging requires a Windows runner and was not claimed from this Linux sandbox.
-
 
 ## 2026-08-28 — Recovery, event history, memory, and idempotency closeout
 

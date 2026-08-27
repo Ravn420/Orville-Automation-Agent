@@ -1007,3 +1007,8 @@ The selected reusable-template item is complete locally. The Standard Execution 
 ## 21.2 model and local-file security checkpoint — 2026-08-28
 
 The local model lifecycle now has a closed asset taxonomy, safe/unsafe serialization classification, non-executing directory inspection, persisted sidecar inventory, mandatory license and provenance checks at activation, and deterministic adapter compatibility diagnostics. Existing sandbox and local-execution boundaries continue to provide least-privilege, bounded-path, filtered-environment, and fail-closed execution behavior. `ResourceScheduler` adds non-oversubscribing admission across CPU, RAM, GPU count, VRAM, disk, context length, concurrency, thermal, and power budgets. Focused 21.2 coverage plus the full regression suite passed: **794 passed, 1 warning, 6 subtests passed**. The remaining limitations are live Linux/GPU isolation verification, provider-specific model loading, production attestation ceremony, and deployment-owned hardware telemetry.
+
+
+## 21.3 threat-model checkpoint — 2026-08-28
+
+The next eligible TODO, `TODO-500f367e0031`, is complete locally. `docs/THREAT_MODEL_21_3.md` covers prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access across Orville’s trust boundaries. Each category has an abuse case, mitigation family, detection/evidence path, and residual-risk statement, with explicit untrusted-content and high-impact approval boundaries. Focused threat-model tests passed 3; the full regression suite passed **803 tests, 1 warning, and 6 subtests**. Live provider, deployment, browser, and production credential exercises remain environment-owned.

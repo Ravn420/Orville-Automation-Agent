@@ -1510,3 +1510,12 @@ Each future execution record now has a consistent place to state what was not te
 | TODO-b45a2c1f0a81 | Distinguish full models, adapters, quantized models, tokenizers, configuration files, and auxiliary assets | Code Synthesis Agent / Research Agent | TODO-8b7695ad413d | Catalog uses a closed asset taxonomy and rejects ambiguous classifications | completed-local | `model_security.py`, catalog `metadata.asset_taxonomy`, focused taxonomy tests |
 | TODO-1293b8da5bb1 | Require base-model identity and compatibility checks for adapters | Verification Agent | TODO-b45a2c1f0a81, TODO-c5619fe172c0 | Adapter activation requires a matching base identity and emits a deterministic mismatch diagnostic | completed-local | Existing model-safety diagnostics plus `adapter_compatibility`; mismatch test passes |
 | TODO-9a455058aebf | Add resource-aware scheduling for CPU, RAM, GPU, VRAM, disk, context length, concurrency, and thermal or power constraints | Automation Agent | TODO-b45a2c1f0a81, TODO-1293b8da5bb1, M13.10 | Scheduler admits only within declared budgets and records rejection reasons | completed-local | `model_security.py` ResourceScheduler; oversubscription/release test passes |
+
+
+## 21.3 — Threat model
+
+| ID | Requirement | Owner | Dependencies | Acceptance gate | Status |
+|---|---|---|---|---|---|
+| TODO-500f367e0031 | Create a threat model covering prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access | Security Agent / Verification Agent | 21.2 model and local-file security controls | Each threat has an abuse case, mitigation, detection/evidence path, residual risk, and explicit approval/untrusted-content boundary | completed-local |
+
+Evidence: `docs/THREAT_MODEL_21_3.md`, `tests/test_threat_model_21_3.py`; focused tests passed 3 and the full regression suite passed 803 tests, 1 warning, and 6 subtests. Live provider, deployment, browser, and production credential exercises remain environment-owned.
