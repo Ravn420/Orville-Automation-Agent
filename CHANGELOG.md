@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Coverage-stable performance boundary
+
+### Changed
+
+- Updated `tests/test_performance_boundaries.py` so the normal runtime budget remains 5 seconds while coverage instrumentation uses an explicit 15-second budget for tracing overhead.
+- Preserved the production performance contract; the adjustment applies only to the timing assertion under instrumentation.
+
+### Validation
+
+- Corrected full coverage run: **821 tests and 6 subtests passed**.
+- Line coverage: **78.63%**; branch coverage: **62.72%**.
+- Plain full regression remains green; the generated reports are in `reports/coverage/`.
+
+
 ## 2026-08-28 — Connector catalog and coverage checkpoint
 
 ### Changed
