@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-08-28 — Task-specific evaluation datasets
+
+### Changed
+
+- Added the credential-free `config/evaluation-datasets.json` catalog with seven task categories and 14 synthetic golden cases covering planning, code generation, debugging, refactoring, research, GUI workflows, and model import.
+- Added `orville_core.evaluation_datasets` for fail-closed schema validation and typed catalog loading.
+- Added `docs/TASK_SPECIFIC_EVALUATION_DATASETS.md` with governance, scoring, operational, and maintenance guidance.
+
+### Validation
+
+- Focused evaluation tests: **9 passed**.
+- Python compilation passed for the changed dataset loader, catalog tests, and documentation contract.
+- No provider calls, credentials, personal data, or external mutations were used; stronger runtime isolation remains deployment-owned.
+
+
+
 ## 2026-08-28 — Walkthrough-video archival limitation
 
 ### Changed

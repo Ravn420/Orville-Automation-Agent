@@ -1535,3 +1535,18 @@ Evidence: `docs/THREAT_MODEL_21_3.md`, `tests/test_threat_model_21_3.py`; focuse
 | Limitations | This is an inspection-only review. The tracked runtime-state hygiene issue remains open for a future approval-gated cleanup or migration decision; no live process-lock or production-runtime assessment was performed. The broader repository gate remains non-green on unrelated performance-boundary and Windows-path baseline tests |
 
 The TODO acceptance criteria are satisfied by the named-path decision, retention rationale, secret-scan result, and explicit record that destructive approval was not granted and no destructive change occurred.
+
+
+## Task-specific evaluation dataset checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-37bc97abee20` — define task-specific evaluation datasets and golden cases |
+| Owner | Verification Agent and Orchestration Agent |
+| Status | completed-local |
+| Evidence | `config/evaluation-datasets.json`, `orville_core/evaluation_datasets.py`, `docs/TASK_SPECIFIC_EVALUATION_DATASETS.md`, `tests/test_evaluation_datasets.py` |
+| Coverage | Seven required task types with 14 synthetic cases; each case defines required behaviors, prohibited behaviors, and an oracle artifact/evidence contract |
+| Validation | 9 focused evaluation tests passed; Python compilation passed; catalog parsing is fail-closed and performs no provider calls or external mutations |
+| Limitations | Cases are declarative and credential-free. Runtime isolation, dependency provisioning, live provider behavior, and production-scale evaluation remain environment-owned |
+
+The catalog is maintained as a stable acceptance contract: published case IDs and semantics require focused fixture validation and changelog evidence when changed.

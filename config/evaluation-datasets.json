@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "orville-task-evaluation-golden-cases",
+  "purpose": "Credential-free, deterministic golden cases for comparing Orville outputs across core task types.",
+  "governance": {
+    "source_policy": "Synthetic prompts and oracle expectations only; no external credentials, personal data, or provider calls.",
+    "execution_policy": "Cases describe observable acceptance checks. Executable evaluation must use an isolated temporary workspace and bounded resources.",
+    "scoring_policy": "A case passes only when required behaviors are present and prohibited behaviors are absent; uncertain evidence is not a pass."
+  },
+  "datasets": [
+    {
+      "id": "planning",
+      "task_type": "planning",
+      "description": "Dependency-aware planning with explicit assumptions, ownership, approvals, and verification.",
+      "golden_cases": [
+        {
+          "id": "planning-001",
+          "prompt": "Plan a local-first feature that imports a model, validates its capabilities, and exposes a safe generation action.",
+          "required_behaviors": ["ordered tasks with dependencies", "explicit assumptions", "owner for every task", "validation method", "approval gate for generation"],
+          "prohibited_behaviors": ["implicit cloud upload", "unbounded parallel execution", "missing dependency", "silent credential request"],
+          "oracle": {"artifact": "task_graph", "must_include": ["import", "validate", "generate", "verify"]}
+        },
+        {
+          "id": "planning-002",
+          "prompt": "Plan recovery for a failed task graph while preserving the last verified checkpoint.",
+          "required_behaviors": ["identify failed task", "block or re-evaluate dependents", "resume from verified checkpoint", "bounded retry", "recovery verification"],
+          "prohibited_behaviors": ["resetting all state", "discarding evidence", "retry loop without limit"],
+          "oracle": {"artifact": "recovery_plan", "must_include": ["checkpoint", "retry_limit", "verification"]}
+        }
+      ]
+    },
+    {
+      "id": "code-generation",
+      "task_type": "code_generation",
+      "description": "Complete, runnable code with interfaces, tests, configuration, and known limitations.",
+      "golden_cases": [
+        {
+          "id": "code-generation-001",
+          "prompt": "Implement a bounded JSONL event recorder with redacted attributes and a read method.",
+          "required_behaviors": ["complete source files", "typed public interface", "atomic or safe persistence", "secret redaction", "unit tests"],
+          "prohibited_behaviors": ["logging raw bearer values", "unbounded event size", "placeholder implementation", "network dependency"],
+          "oracle": {"artifact": "source_tree", "must_include": ["implementation", "tests", "documentation", "known_limitations"]}
+        },
+        {
+          "id": "code-generation-002",
+          "prompt": "Create a local-only CLI that validates a task specification and returns stable machine-readable errors.",
+          "required_behaviors": ["argument validation", "stable error shape", "non-zero failure status", "help text", "offline execution"],
+          "prohibited_behaviors": ["shell interpolation", "credential output", "silent invalid-input acceptance"],
+          "oracle": {"artifact": "executable_cli", "must_include": ["success_case", "invalid_input_case", "error_contract"]}
+        }
+      ]
+    },
+    {
+      "id": "debugging",
+      "task_type": "debugging",
+      "description": "Reproduce, isolate, correct, and regress-test a defect without masking unrelated failures.",
+      "golden_cases": [
+        {
+          "id": "debugging-001",
+          "prompt": "A retryable task is incorrectly marked complete after a transient provider timeout. Diagnose and fix it.",
+          "required_behaviors": ["minimal reproduction", "failure classification", "state-transition correction", "regression test", "bounded retry evidence"],
+          "prohibited_behaviors": ["catch-all exception suppression", "unrelated refactor", "removing the timeout"],
+          "oracle": {"artifact": "debug_report_and_patch", "must_include": ["root_cause", "changed_paths", "regression_test", "validation"]}
+        },
+        {
+          "id": "debugging-002",
+          "prompt": "A path validator accepts mixed-separator traversal input on Windows. Harden the boundary.",
+          "required_behaviors": ["reproduce mixed separators", "reject traversal", "preserve valid relative paths", "cross-platform test"],
+          "prohibited_behaviors": ["normalizing into an escape", "trusting absolute paths", "platform-only assertion"],
+          "oracle": {"artifact": "boundary_patch", "must_include": ["rejected_inputs", "accepted_input", "focused_test"]}
+        }
+      ]
+    },
+    {
+      "id": "refactoring",
+      "task_type": "refactoring",
+      "description": "Improve structure while preserving public behavior and compatibility.",
+      "golden_cases": [
+        {
+          "id": "refactoring-001",
+          "prompt": "Extract duplicate provider health normalization into one shared helper without changing API responses.",
+          "required_behaviors": ["single implementation", "preserved public contract", "compatibility evidence", "updated callers", "focused regression tests", "diff limited to scope"],
+          "prohibited_behaviors": ["breaking response fields", "behavioral change without acceptance update", "dead duplicate helper"],
+          "oracle": {"artifact": "refactor_patch", "must_include": ["compatibility_note", "caller_inventory", "tests"]}
+        },
+        {
+          "id": "refactoring-002",
+          "prompt": "Simplify a task-status mapper while retaining unknown-status fail-closed behavior.",
+          "required_behaviors": ["same known mappings", "explicit unknown handling", "property or table-driven tests", "no credential changes"],
+          "prohibited_behaviors": ["defaulting unknown to success", "removing validation", "unrelated formatting churn"],
+          "oracle": {"artifact": "refactor_patch", "must_include": ["before_after_behavior", "unknown_status_test"]}
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "task_type": "research",
+      "description": "Evidence-grounded research separated into facts, analysis, assumptions, recommendations, and uncertainties.",
+      "golden_cases": [
+        {
+          "id": "research-001",
+          "prompt": "Compare local and hosted model runtimes for an enterprise deployment decision using current, traceable sources.",
+          "required_behaviors": ["source register", "traceable claims", "fact/analysis separation", "uncertainties", "date and currentness noted"],
+          "prohibited_behaviors": ["uncited material claim", "invented source", "presenting recommendation as fact"],
+          "oracle": {"artifact": "research_output", "must_include": ["findings", "citations", "limitations", "recommendation"]}
+        },
+        {
+          "id": "research-002",
+          "prompt": "Investigate a reported connector capability and state whether it is verified locally or remains provider-dependent.",
+          "required_behaviors": ["primary evidence preference", "verification status", "scope boundaries", "open questions", "no external mutation"],
+          "prohibited_behaviors": ["claiming live access without evidence", "using secrets", "conflating documentation with execution"],
+          "oracle": {"artifact": "evidence_summary", "must_include": ["evidence_class", "verification_result", "limitations"]}
+        }
+      ]
+    },
+    {
+      "id": "gui-workflows",
+      "task_type": "gui_workflows",
+      "description": "Accessible, deterministic GUI workflow behavior with safe degraded states and preserved user work.",
+      "golden_cases": [
+        {
+          "id": "gui-workflows-001",
+          "prompt": "Design a local model activation flow that works by keyboard and explains unavailable runtime recovery.",
+          "required_behaviors": ["semantic control names", "accessibility evidence", "visible focus", "keyboard path", "status announcement", "local draft preservation", "recovery action"],
+          "prohibited_behaviors": ["hidden destructive action", "credential display", "dead-end unavailable state", "motion-only feedback"],
+          "oracle": {"artifact": "workflow_spec_and_smoke", "must_include": ["states", "transitions", "accessibility_checks", "degraded_path"]}
+        },
+        {
+          "id": "gui-workflows-002",
+          "prompt": "Specify a preview submission flow for a selected local text file with confirmation before any external connector action.",
+          "required_behaviors": ["safe file selection", "path containment", "preview before submit", "explicit approval", "error recovery", "deep link stability"],
+          "prohibited_behaviors": ["silent upload", "arbitrary path read", "destructive overwrite", "lost unsaved work"],
+          "oracle": {"artifact": "workflow_spec_and_smoke", "must_include": ["local_preview", "approval_gate", "failure_state"]}
+        }
+      ]
+    },
+    {
+      "id": "model-import",
+      "task_type": "model_import",
+      "description": "Safe local model import with provenance, integrity, compatibility, and lifecycle evidence.",
+      "golden_cases": [
+        {
+          "id": "model-import-001",
+          "prompt": "Import a local model asset from an approved directory and make it selectable only after integrity and capability validation.",
+          "required_behaviors": ["approved-root containment", "format validation", "checksum capture", "metadata preservation", "capability diagnostics", "activation gate"],
+          "prohibited_behaviors": ["executing model-supplied code", "path traversal", "silent overwrite", "claiming attestation without evidence"],
+          "oracle": {"artifact": "model_record_and_validation", "must_include": ["source_path", "checksum", "capabilities", "validation_result"]}
+        },
+        {
+          "id": "model-import-002",
+          "prompt": "Reject an imported model whose runtime requirements exceed the available local hardware and explain a safe next step.",
+          "required_behaviors": ["deterministic mismatch", "non-activation", "actionable diagnostic", "preserved metadata", "no destructive cleanup"],
+          "prohibited_behaviors": ["silently falling back to unsafe runtime", "deleting the asset", "misreporting readiness"],
+          "oracle": {"artifact": "rejection_record", "must_include": ["required", "available", "mismatch", "recovery_action"]}
+        }
+      ]
+    }
+  ]
+}

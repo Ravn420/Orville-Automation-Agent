@@ -46,7 +46,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Completed inspection-only review with named-path retention decisions, SHA-256 metadata, Git provenance, bounded secret scan, retention rationale, and explicit no-approval/no-deletion record in `docs/SQLITE_ARTIFACT_RETENTION_REVIEW_2026-08-28.md`; all four sidecars were retained and no data was deleted. Focused project-control tests and compilation passed; broader regression has two unrelated baseline failures documented in the review. <!-- task-id:TODO-570aaf580e3d -->
 
-- [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
+- [-] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
 
 ## 4. Initial Baseline
 
@@ -1083,7 +1083,7 @@ The following requirements were added after reviewing primary documentation and 
 
 ### 21.4 Evaluation and observability
 
-- [ ] Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import. <!-- task-id:TODO-37bc97abee20 -->
+- [x] Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import. Implemented the credential-free catalog at `config/evaluation-datasets.json`, documented its schema and governance in `docs/TASK_SPECIFIC_EVALUATION_DATASETS.md`, and added validated loading plus focused coverage for all seven task types and 14 cases. <!-- task-id:TODO-37bc97abee20 -->
 
 - [ ] Evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria rather than text similarity alone. <!-- task-id:TODO-06227efe167c -->
 
