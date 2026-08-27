@@ -36,8 +36,18 @@ The inventory below contains known candidates and protected examples from the cu
 | C-16 | Any connector configuration path discovered by the inventory command | Connector configuration | Retain until owner confirms obsolete | Record connector UID/category without exposing tokens; obtain owner and dependency review |
 | C-17 | Any instruction/skill file discovered by the inventory command | Project instruction | Retain until replacement is accepted | Trace references and confirm no task or agent relies on the file |
 | C-18 | Any generated artifact not listed above | Generated evidence | Retain by default | Identify producer, consumers, retention period, and recoverability |
+| C-19 | `data/.orville/` | Persistent Orville application data directory | **Retain** | Contains the live local database and session state; no deletion or quarantine without an approved data migration and restore test |
+| C-20 | `data/.orville/browser-sessions.json` | Browser session state | **Retain and protect** | Treat as sensitive application state; do not print or inspect contents in cleanup output; delete only through a separate approved session-reset procedure |
+| C-21 | `data/.orville/orville.db-shm` | SQLite shared-memory file | **Retain while the database is active** | Confirm no Orville process is using the database; remove only as part of an approved SQLite lifecycle/recovery procedure after a verified checkpoint |
+| C-22 | `data/.orville/orville.db-wal` | SQLite write-ahead log | **Retain while the database is active** | Preserve pending transactions; checkpoint/backup and verify restore before any approved cleanup |
 
 The wildcard rows C-01 through C-03 and C-16 through C-18 are collection scopes only. They must be expanded into exact absolute or repository-relative paths in the signed inventory before any deletion approval.
+
+## 2.1 Observed data-directory decision
+
+The current checkout contains exactly these observed data paths: `data/`, `data/.orville/`, `data/.orville/browser-sessions.json`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal`. The data directory is therefore **not a cleanup target** in the current review. The directory and all three observed files are retained. In particular, the browser-session file is sensitive state, while the SQLite shared-memory and write-ahead-log files may represent an active or recoverable database lifecycle. Their presence is not evidence of obsolescence.
+
+Before any future change to this decision, the operator must identify the owning process, establish a consistent database checkpoint or backup, verify that the browser-session state is no longer needed, and obtain separate approval naming the exact path. The current dry run must report metadata only and must never print the contents of `browser-sessions.json`.
 
 ## 3. Inventory collection procedure
 
