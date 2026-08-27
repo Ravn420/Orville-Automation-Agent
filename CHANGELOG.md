@@ -16,7 +16,8 @@
 - The preview-runtime readiness test passed in ten consecutive iterations.
 - The focused Browser Operator extension and local relay pytest suite passed: **10 tests in 1.70 seconds**. It covers browser session handling, persistence, relay pairing/actions, connector bridge behavior, and extension boundaries.
 - The focused API unittest coverage passed: **13 tests in 2.835 seconds**, including authentication, objective intake, redacted project state, task/event lifecycle, provider policy, usage limits, previews, security routes, and safe API error handling.
-- The combined API and browser pytest invocation collected 28 tests and passed 27. One shell-control-plane expectation remains open: it expects the internal allowlist term in an API `detail` string, while the current operation-aware error handler returns the generic safe message `post_research_fetch failed: the operation could not be completed.` The open mismatch is recorded as a contract-alignment follow-up and does not affect the passing browser-extension readiness suite.
+- The combined API and browser pytest invocation passed: **28 tests in 5.06 seconds**, with one non-blocking Starlette/httpx deprecation warning. The shell-control-plane contract now verifies both an operation-aware response and the safe, non-host-specific allowlist reason.
+- The final full pytest integration suite passed: **789 tests and 6 subtests in 22.27 seconds**, with the same non-blocking Starlette/httpx deprecation warning. It exercises core orchestration, authenticated API, local relay, Browser Operator, extension, GUI, and sandbox contracts together.
 
 ### Release note
 
