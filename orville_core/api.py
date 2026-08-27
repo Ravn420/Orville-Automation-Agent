@@ -50,6 +50,7 @@ from .hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient,
 from .model_runtime import probe_runtime_capabilities
 from .local_models import LocalModelCatalog
 from .connector_bridge import ConnectorBridge, ConnectorBridgeError, connector_uid_is_valid
+from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, reject_credential_values, safe_authorization_record
 from .connector_connections import ConnectorConnectionError, ConnectorConnectionStore
 from .connector_defaults import ConnectorDefaultsError, ConnectorDefaultsStore
 from .provider_presets import provider_presets
@@ -106,11 +107,19 @@ class ConnectorInvokePayload(BaseModel):
     operation: str = Field(min_length=1, max_length=120)
     arguments: dict[str, Any] = Field(default_factory=dict)
     approved: bool = False
+    approval_reference: str | None = Field(default=None, max_length=200)
     run_id: str | None = Field(default=None, max_length=120)
+    user_id: str = Field(default="local", max_length=200)
+    task_id: str | None = Field(default=None, max_length=200)
+    provider_id: str | None = Field(default=None, max_length=200)
+    scopes: list[str] = Field(default_factory=list)
+    dry_run: bool = False
 
 
 class ConnectorManualConnectionPayload(BaseModel):
     project_requirement: str = Field(default="", max_length=500)
+    user_id: str = Field(default="local", max_length=200)
+    task_id: str | None = Field(default=None, max_length=200)
     approved: bool = False
     approval_reference: str = Field(default="", max_length=200)
     display_name: str = Field(default="", max_length=240)
@@ -124,6 +133,8 @@ class ConnectorManualConnectionPayload(BaseModel):
 
 class ConnectorOAuthStartPayload(BaseModel):
     project_requirement: str = Field(default="", max_length=500)
+    user_id: str = Field(default="local", max_length=200)
+    task_id: str | None = Field(default=None, max_length=200)
     approved: bool = False
     approval_reference: str = Field(default="", max_length=200)
     display_name: str = Field(default="", max_length=240)
@@ -720,7 +731,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=400, detail="invalid connector UID")
         try:
             connector_mutation_policy.validate(ConnectorMutationRequest(connector_uid, "connect", payload.project_requirement, payload.approved, payload.approval_reference))
-            connection = connection_store.connect_manual(uid=connector_uid, display_name=payload.display_name, auth_type=payload.auth_type, credential_header=payload.credential_header, base_url=payload.base_url, credential=payload.credential, scopes=payload.scopes, allow_local=payload.allow_local)
+            connection = connection_store.connect_manual(uid=connector_uid, display_name=payload.display_name, auth_type=payload.auth_type, credential_header=payload.credential_header, base_url=payload.base_url, credential=payload.credential, scopes=payload.scopes, allow_local=payload.allow_local, owner_id=payload.user_id, task_id=payload.task_id)
         except (ConnectorConnectionError, ConnectorGovernanceError) as exc:
             raise HTTPException(status_code=403 if isinstance(exc, ConnectorGovernanceError) else 400, detail=str(exc)) from exc
         audit_store.append("local", "connector.connect.manual", connector_uid, "completed", metadata={"auth_type": payload.auth_type, "approval_reference": payload.approval_reference})
@@ -732,7 +743,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=400, detail="invalid connector UID")
         try:
             connector_mutation_policy.validate(ConnectorMutationRequest(connector_uid, "connect", payload.project_requirement, payload.approved, payload.approval_reference))
-            result = connection_store.begin_oauth(uid=connector_uid, display_name=payload.display_name, base_url=payload.base_url, auth_url=payload.authorization_url, token_url=payload.token_url, client_id=payload.client_id, client_secret=payload.client_secret, scopes=payload.scopes, redirect_uri=payload.redirect_uri, revoke_url=payload.revoke_url, allow_local=payload.allow_local)
+            result = connection_store.begin_oauth(uid=connector_uid, display_name=payload.display_name, base_url=payload.base_url, auth_url=payload.authorization_url, token_url=payload.token_url, client_id=payload.client_id, client_secret=payload.client_secret, scopes=payload.scopes, redirect_uri=payload.redirect_uri, revoke_url=payload.revoke_url, allow_local=payload.allow_local, owner_id=payload.user_id, task_id=payload.task_id)
         except (ConnectorConnectionError, ConnectorGovernanceError) as exc:
             raise HTTPException(status_code=403 if isinstance(exc, ConnectorGovernanceError) else 400, detail=str(exc)) from exc
         audit_store.append("local", "connector.connect.oauth.start", connector_uid, "completed", metadata={"scopes": payload.scopes, "approval_reference": payload.approval_reference})
@@ -809,7 +820,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             record, credential = connection_store.credential(connector_uid)
             auth_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
             request = UrlRequest(f"{record.base_url}/operations", headers={"Accept": "application/json", record.credential_header: auth_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="GET")
-            with urlopen(request, timeout=10) as response:
+            with no_redirect_opener().open(request, timeout=10) as response:
                 raw = response.read(200_001)
             if len(raw) > 200_000:
                 raise ConnectorConnectionError("connector operation catalog exceeded the safety limit")
@@ -832,25 +843,44 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     def invoke_connector(connector_uid: str, payload: ConnectorInvokePayload) -> dict[str, Any]:
         if not connector_uid_is_valid(connector_uid):
             raise HTTPException(status_code=400, detail="invalid connector UID")
+        if payload.provider_id is not None and payload.provider_id != connector_uid:
+            raise HTTPException(status_code=403, detail="provider does not match connector invocation")
+        try:
+            reject_credential_values(payload.arguments)
+        except ProviderMcpSecurityError as exc:
+            audit_store.append("local", "authorization.decision", connector_uid, "blocked", metadata={"action": payload.operation, "reason": str(exc)[:200], "user_id": payload.user_id, "task_id": payload.task_id})
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        if payload.dry_run:
+            audit_store.append("local", "authorization.decision", connector_uid, "blocked", metadata={"action": payload.operation, "reason": "dry-run", "user_id": payload.user_id, "task_id": payload.task_id})
+            raise HTTPException(status_code=409, detail="external connector actions are disabled in dry-run mode")
         if not payload.approved:
+            audit_store.append("local", "authorization.decision", connector_uid, "blocked", metadata={"action": payload.operation, "reason": "explicit approval required", "user_id": payload.user_id, "task_id": payload.task_id})
             audit_store.append("local", "connector.invoke", connector_uid, "blocked", metadata={"operation": payload.operation, "run_id": payload.run_id})
             raise HTTPException(status_code=409, detail="connector invocation requires explicit approval")
+        security_context = None
+        if payload.task_id or payload.provider_id or payload.scopes or payload.approval_reference or payload.user_id != "local":
+            try:
+                security_context = InvocationSecurityContext(user_id=payload.user_id, task_id=payload.task_id, provider_id=connector_uid, scopes=frozenset(payload.scopes), allowed_tools=frozenset({payload.operation}), dry_run=False, approved=True, approval_reference=payload.approval_reference)
+            except ProviderMcpSecurityError as exc:
+                raise HTTPException(status_code=403, detail=str(exc)) from exc
+        if security_context is not None:
+            audit_store.append("local", "authorization.decision", connector_uid, "allowed", metadata=safe_authorization_record(outcome="allowed", action=payload.operation, context=security_context))
         if connection_store.get(connector_uid) is None and connector_bridge is None:
             raise HTTPException(status_code=503, detail="connector bridge is not configured and this connector has no local sign-in")
         try:
             if connection_store.get(connector_uid) is not None:
-                record, credential = connection_store.credential(connector_uid)
+                record, credential = connection_store.credential(connector_uid, owner_id=payload.user_id, task_id=payload.task_id, required_scopes=frozenset(payload.scopes))
                 auth_scheme = "Bearer" if record.auth_type == "bearer" else credential
                 credential_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
                 request = UrlRequest(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
-                with urlopen(request, timeout=30) as response:
+                with no_redirect_opener().open(request, timeout=30) as response:
                     raw = response.read(2_000_001)
                 if len(raw) > 2_000_000:
                     raise ConnectorConnectionError("connector response exceeded the safety limit")
                 result = json.loads(raw.decode("utf-8"))
                 connection_store.mark_operation(connector_uid)
             elif connector_bridge is not None:
-                result = connector_bridge.invoke(connector_uid, payload.operation, payload.arguments, run_id=payload.run_id)
+                result = connector_bridge.invoke(connector_uid, payload.operation, payload.arguments, run_id=payload.run_id, security_context=security_context)
             else:
                 raise ConnectorConnectionError("connector requires sign-in or a configured bridge")
         except (ConnectorBridgeError, ConnectorConnectionError) as exc:

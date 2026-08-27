@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
+
+from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
 from urllib.request import Request, urlopen
 
 
@@ -39,8 +41,11 @@ class ConnectorBridge:
         if not raw:
             return None
         parsed = urlparse(raw)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password or parsed.fragment:
-            raise ConnectorBridgeError("ORVILLE_CONNECTOR_BRIDGE_URL must be a credential-free HTTP(S) URL")
+        local_target = (parsed.hostname or "").lower() in {"localhost", "127.0.0.1", "::1"}
+        try:
+            raw = validate_remote_endpoint(raw, allow_private=local_target, allowed_ports=frozenset(range(1, 65536)) if local_target else frozenset({80, 443}))
+        except (ProviderMcpSecurityError, ValueError) as exc:
+            raise ConnectorBridgeError(str(exc)) from exc
         try:
             timeout = min(30.0, max(1.0, float(os.getenv("ORVILLE_CONNECTOR_BRIDGE_TIMEOUT", "10"))))
         except ValueError as exc:
@@ -62,7 +67,7 @@ class ConnectorBridge:
             headers["Authorization"] = f"Bearer {self.token}"
         request = Request(url, data=body, headers=headers, method=method)
         try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
+            with no_redirect_opener().open(request, timeout=self.timeout_seconds) as response:
                 raw = response.read(self.max_response_bytes + 1)
         except HTTPError as exc:
             detail = exc.read(512).decode("utf-8", "replace")
@@ -83,14 +88,30 @@ class ConnectorBridge:
         result = self._request("GET", "/health")
         return {"ok": bool(result.get("ok", True)), "status": result.get("status", "unknown"), "bridge": self.base_url}
 
-    def invoke(self, connector_uid: str, operation: str, arguments: dict[str, Any], *, run_id: str | None = None) -> dict[str, Any]:
+    def invoke(self, connector_uid: str, operation: str, arguments: dict[str, Any], *, run_id: str | None = None, security_context: InvocationSecurityContext | None = None) -> dict[str, Any]:
         if not _UID_RE.fullmatch(connector_uid):
             raise ConnectorBridgeError("invalid connector UID")
         if not _OPERATION_RE.fullmatch(operation):
             raise ConnectorBridgeError("invalid connector operation")
         if len(json.dumps(arguments, ensure_ascii=False, default=str)) > 200_000:
             raise ConnectorBridgeError("connector arguments exceed the safety limit")
-        return self._request("POST", "/invoke", {"connector_uid": connector_uid, "operation": operation, "arguments": arguments, "run_id": run_id})
+        if security_context is not None:
+            try:
+                security_context.check_provider(connector_uid)
+                security_context.require_external_action(operation)
+            except ProviderMcpSecurityError as exc:
+                raise ConnectorBridgeError(str(exc)) from exc
+        payload: dict[str, Any] = {"connector_uid": connector_uid, "operation": operation, "arguments": arguments, "run_id": run_id}
+        if security_context is not None:
+            payload["security_context"] = {
+                "user_id": security_context.user_id,
+                "task_id": security_context.task_id,
+                "provider_id": security_context.provider_id,
+                "credential_reference": security_context.credential_reference,
+                "scopes": sorted(security_context.scopes),
+                "approval_reference": security_context.approval_reference,
+            }
+        return self._request("POST", "/invoke", payload)
 
 
 def connector_uid_is_valid(value: str) -> bool:

@@ -7,6 +7,8 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 
+from .provider_mcp_security import ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
+
 
 @dataclass(frozen=True)
 class EndpointProbeResult:
@@ -19,13 +21,16 @@ class EndpointProbeResult:
         return {"endpoint_url": self.endpoint_url, "reachable": self.reachable, "status_code": self.status_code, "detail": self.detail}
 
 
-def validate_endpoint_url(endpoint_url: str) -> str:
+def validate_endpoint_url(endpoint_url: str, *, allowed_hosts: frozenset[str] = frozenset(), allow_private: bool = False, allowed_ports: frozenset[int] | None = None) -> str:
     parsed = urlparse(endpoint_url)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.fragment:
-        raise ValueError("endpoint must be an HTTP(S) URL with a host and no fragment")
     if parsed.username or parsed.password:
         raise ValueError("endpoint must not contain embedded credentials")
-    return endpoint_url.rstrip("/")
+    if parsed.fragment:
+        raise ValueError("endpoint must not contain a fragment")
+    try:
+        return validate_remote_endpoint(endpoint_url, allowed_hosts=allowed_hosts, allow_private=allow_private, allowed_ports=allowed_ports or frozenset({80, 443}))
+    except (ProviderMcpSecurityError, ValueError) as exc:
+        raise ValueError(str(exc)) from exc
 
 
 def probe_endpoint(endpoint_url: str, *, timeout_seconds: float = 5.0, transport: Callable[..., Any] | None = None) -> EndpointProbeResult:
@@ -33,7 +38,7 @@ def probe_endpoint(endpoint_url: str, *, timeout_seconds: float = 5.0, transport
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
     request = Request(endpoint, method="HEAD")
-    opener = transport or urlopen
+    opener = transport or no_redirect_opener().open
     try:
         response = opener(request, timeout=timeout_seconds)
         return EndpointProbeResult(endpoint, True, getattr(response, "status", None), "endpoint reachable")

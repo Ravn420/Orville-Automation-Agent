@@ -32,7 +32,11 @@ def test_connector_bridge_health_and_approved_invocation_are_audited():
             return FakeResponse({"ok": True, "status": "ready"})
         return FakeResponse({"ok": True, "data": {"id": "result-1"}})
 
-    with TemporaryDirectory() as directory, patch.dict("os.environ", {"ORVILLE_CONNECTOR_BRIDGE_URL": "http://127.0.0.1:9999", "ORVILLE_CONNECTOR_BRIDGE_TOKEN": "bridge-secret"}, clear=False), patch("orville_core.connector_bridge.urlopen", fake_urlopen):
+    class FakeOpener:
+        def open(self, request, timeout):
+            return fake_urlopen(request, timeout)
+
+    with TemporaryDirectory() as directory, patch.dict("os.environ", {"ORVILLE_CONNECTOR_BRIDGE_URL": "http://127.0.0.1:9999", "ORVILLE_CONNECTOR_BRIDGE_TOKEN": "bridge-secret"}, clear=False), patch("orville_core.connector_bridge.no_redirect_opener", return_value=FakeOpener()):
         app = create_app(api_token="orville-token", storage="json", checkpoint_dir=Path(directory) / ".orville")
         client = TestClient(app)
         headers = {"Authorization": "Bearer orville-token"}

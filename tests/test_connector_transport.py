@@ -11,7 +11,7 @@ def test_pagination_metadata_is_normalized(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): return False
         def read(self, limit): return json.dumps({"items": [1], "next_cursor": "abc", "has_more": True, "total": 4}).encode()
-    monkeypatch.setattr("orville_core.connector_adapters.urlopen", lambda request, timeout: Response())
+    monkeypatch.setattr("orville_core.connector_adapters._open_connector_request", lambda request, timeout: Response())
     adapter = GenericHttpAdapter("https://api.example.com", {}, allowed_hosts={"api.example.com"})
     operation = OperationSpec("list", "List", pagination={"cursor_param": "cursor", "item_path": "items"})
     result = adapter(operation, {"limit": 10})
@@ -33,7 +33,7 @@ def test_retryable_http_error_retries_then_succeeds(monkeypatch):
         if calls["count"] == 1:
             raise HTTPError(request.full_url, 503, "temporary", {}, None)
         return Response()
-    monkeypatch.setattr("orville_core.connector_adapters.urlopen", fake_urlopen)
+    monkeypatch.setattr("orville_core.connector_adapters._open_connector_request", fake_urlopen)
     monkeypatch.setattr("orville_core.connector_adapters.time.sleep", lambda _: None)
     adapter = GenericHttpAdapter("https://api.example.com", {}, allowed_hosts={"api.example.com"}, max_retries=2)
     result = adapter(OperationSpec("health", "Health"), {})
@@ -45,7 +45,7 @@ def test_retryable_http_error_retries_then_succeeds(monkeypatch):
 def test_non_retryable_error_returns_bounded_failure(monkeypatch):
     def fake_urlopen(request, timeout):
         raise HTTPError(request.full_url, 401, "unauthorized", {}, None)
-    monkeypatch.setattr("orville_core.connector_adapters.urlopen", fake_urlopen)
+    monkeypatch.setattr("orville_core.connector_adapters._open_connector_request", fake_urlopen)
     adapter = GenericHttpAdapter("https://api.example.com", {}, allowed_hosts={"api.example.com"}, max_retries=3)
     result = adapter(OperationSpec("health", "Health"), {})
     assert result.success is False
@@ -67,7 +67,7 @@ def test_upload_is_rooted_and_transmits_bytes(monkeypatch, tmp_path):
         seen["body"] = request.data
         seen["content_type"] = request.headers.get("Content-type")
         return Response()
-    monkeypatch.setattr("orville_core.connector_adapters.urlopen", fake_urlopen)
+    monkeypatch.setattr("orville_core.connector_adapters._open_connector_request", fake_urlopen)
     adapter = GenericHttpAdapter("https://api.example.com", {}, allowed_hosts={"api.example.com"}, file_policy=FileTransferPolicy(tmp_path))
     operation = OperationSpec("upload", "Upload", method="POST", path="/upload", risk_class="sensitive", transfer={"direction": "upload"})
     result = adapter(operation, {"file_path": str(upload)})
@@ -83,7 +83,7 @@ def test_download_is_atomic_and_contained(monkeypatch, tmp_path):
         def __enter__(self): return self
         def __exit__(self, *args): return False
         def read(self, limit): return b"downloaded"
-    monkeypatch.setattr("orville_core.connector_adapters.urlopen", lambda request, timeout: Response())
+    monkeypatch.setattr("orville_core.connector_adapters._open_connector_request", lambda request, timeout: Response())
     adapter = GenericHttpAdapter("https://api.example.com", {}, allowed_hosts={"api.example.com"}, file_policy=FileTransferPolicy(tmp_path))
     destination = tmp_path / "result.bin"
     operation = OperationSpec("download", "Download", transfer={"direction": "download"})

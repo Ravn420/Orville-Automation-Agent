@@ -23,6 +23,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from .provider_mcp_security import ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
+
 
 class ConnectorConnectionError(RuntimeError):
     """Raised for invalid or unsafe connector connection operations."""
@@ -121,13 +123,14 @@ def _valid_uid(uid: str) -> bool:
 
 
 def _safe_http_url(value: str, *, allow_local: bool = False) -> str:
-    parsed = urllib.parse.urlparse(value.strip())
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password or parsed.fragment:
-        raise ConnectorConnectionError("Connector URLs must be credential-free HTTP(S) URLs")
-    host = (parsed.hostname or "").lower()
-    if not allow_local and host in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
-        raise ConnectorConnectionError("Local connector URLs require explicit local approval")
-    return value.strip().rstrip("/")
+    try:
+        return validate_remote_endpoint(
+            value,
+            allow_private=allow_local,
+            allowed_ports=frozenset(range(1, 65536)) if allow_local else frozenset({80, 443}),
+        )
+    except (ProviderMcpSecurityError, ValueError) as exc:
+        raise ConnectorConnectionError(str(exc)) from exc
 
 
 @dataclass
@@ -153,6 +156,8 @@ class ConnectorConnection:
     code_verifier: str | None = None
     refresh_token: str | None = None
     revoke_url: str | None = None
+    owner_id: str = "local"
+    task_id: str | None = None
 
     def public(self) -> dict[str, Any]:
         result = asdict(self)
@@ -199,7 +204,7 @@ class ConnectorConnectionStore:
         with self._lock:
             return self._records.get(uid)
 
-    def connect_manual(self, *, uid: str, display_name: str, auth_type: str, credential_header: str, base_url: str, credential: str, scopes: list[str], allow_local: bool = False) -> dict[str, Any]:
+    def connect_manual(self, *, uid: str, display_name: str, auth_type: str, credential_header: str, base_url: str, credential: str, scopes: list[str], allow_local: bool = False, owner_id: str = "local", task_id: str | None = None) -> dict[str, Any]:
         if not _valid_uid(uid):
             raise ConnectorConnectionError("invalid connector UID")
         if auth_type not in {"api_key", "bearer"}:
@@ -211,12 +216,12 @@ class ConnectorConnectionStore:
         normalized_url = _safe_http_url(base_url, allow_local=allow_local)
         with self._lock:
             current = self._records.get(uid)
-            record = ConnectorConnection(uid, display_name.strip() or uid, auth_type, credential_header.strip(), normalized_url, "connected", list(scopes), time.time(), _secret=_protect(credential.strip()), operation_count=current.operation_count if current else 0)
+            record = ConnectorConnection(uid, display_name.strip() or uid, auth_type, credential_header.strip(), normalized_url, "connected", list(scopes), time.time(), _secret=_protect(credential.strip()), operation_count=current.operation_count if current else 0, owner_id=owner_id.strip() or "local", task_id=task_id.strip() if isinstance(task_id, str) and task_id.strip() else None)
             self._records[uid] = record
             self._save()
             return record.public()
 
-    def begin_oauth(self, *, uid: str, display_name: str, base_url: str, auth_url: str, token_url: str, client_id: str, client_secret: str | None, scopes: list[str], redirect_uri: str, revoke_url: str | None = None, allow_local: bool = False) -> dict[str, Any]:
+    def begin_oauth(self, *, uid: str, display_name: str, base_url: str, auth_url: str, token_url: str, client_id: str, client_secret: str | None, scopes: list[str], redirect_uri: str, revoke_url: str | None = None, allow_local: bool = False, owner_id: str = "local", task_id: str | None = None) -> dict[str, Any]:
         if not _valid_uid(uid):
             raise ConnectorConnectionError("invalid connector UID")
         if not client_id.strip():
@@ -234,7 +239,7 @@ class ConnectorConnectionStore:
         query = urllib.parse.urlencode({"response_type": "code", "client_id": client_id.strip(), "redirect_uri": redirect_uri, "scope": " ".join(scopes), "state": state, "code_challenge": challenge, "code_challenge_method": "S256"})
         authorization_url = f"{normalized_auth}{'&' if '?' in normalized_auth else '?'}{query}"
         with self._lock:
-            record = ConnectorConnection(uid=uid, display_name=display_name.strip() or uid, auth_type="oauth2", credential_header="Authorization", base_url=normalized_base, status="authorization_required", scopes=list(scopes), client_id=client_id.strip(), client_secret=_protect(client_secret.strip()) if client_secret else None, token_url=normalized_token, auth_url=normalized_auth, redirect_uri=redirect_uri, state=state, code_verifier=verifier, revoke_url=normalized_revoke)
+            record = ConnectorConnection(uid=uid, display_name=display_name.strip() or uid, auth_type="oauth2", credential_header="Authorization", base_url=normalized_base, status="authorization_required", scopes=list(scopes), client_id=client_id.strip(), client_secret=_protect(client_secret.strip()) if client_secret else None, token_url=normalized_token, auth_url=normalized_auth, redirect_uri=redirect_uri, state=state, code_verifier=verifier, revoke_url=normalized_revoke, owner_id=owner_id.strip() or "local", task_id=task_id.strip() if isinstance(task_id, str) and task_id.strip() else None)
             self._records[uid] = record
             self._save()
             return {"connection": record.public(), "authorization_url": authorization_url}
@@ -246,13 +251,16 @@ class ConnectorConnectionStore:
                 raise ConnectorConnectionError("OAuth connection was not started")
             if not record.state or not secrets.compare_digest(record.state, state):
                 raise ConnectorConnectionError("OAuth state validation failed")
+            # Consume state before any network request so failed exchanges cannot replay it.
+            record.state = None
+            self._save()
             client_secret = _unprotect(record.client_secret) if record.client_secret else ""
             payload = {"grant_type": "authorization_code", "code": code, "redirect_uri": record.redirect_uri, "client_id": record.client_id, "code_verifier": record.code_verifier}
             if client_secret:
                 payload["client_secret"] = client_secret
             request = urllib.request.Request(record.token_url or "", data=urllib.parse.urlencode(payload).encode(), headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
             try:
-                with urllib.request.urlopen(request, timeout=20) as response:
+                with no_redirect_opener().open(request, timeout=20) as response:
                     token_payload = json.loads(response.read(100_000).decode("utf-8"))
             except Exception as exc:
                 record.status = "error"
@@ -287,7 +295,7 @@ class ConnectorConnectionStore:
                 payload["client_secret"] = client_secret
             request = urllib.request.Request(record.token_url or "", data=urllib.parse.urlencode(payload).encode(), headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
             try:
-                with urllib.request.urlopen(request, timeout=20) as response:
+                with no_redirect_opener().open(request, timeout=20) as response:
                     token_payload = json.loads(response.read(100_000).decode("utf-8"))
             except Exception as exc:
                 record.status = "reauthorization_required"
@@ -319,7 +327,7 @@ class ConnectorConnectionStore:
                     payload["client_secret"] = _unprotect(record.client_secret)
                 request = urllib.request.Request(record.revoke_url, data=urllib.parse.urlencode(payload).encode(), headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
                 try:
-                    with urllib.request.urlopen(request, timeout=20):
+                    with no_redirect_opener().open(request, timeout=20):
                         pass
                 except Exception as exc:
                     record.last_error = f"provider revocation failed: {type(exc).__name__}"
@@ -337,11 +345,18 @@ class ConnectorConnectionStore:
             self._save()
             return True
 
-    def credential(self, uid: str) -> tuple[ConnectorConnection, str]:
+    def credential(self, uid: str, *, owner_id: str | None = None, task_id: str | None = None, required_scopes: set[str] | frozenset[str] = frozenset()) -> tuple[ConnectorConnection, str]:
         with self._lock:
             record = self._records.get(uid)
             if record is None or record.status != "connected" or not record._secret:
                 raise ConnectorConnectionError("connector requires sign-in before invocation")
+            if owner_id is not None and record.owner_id != owner_id:
+                raise ConnectorConnectionError("connector credential owner does not match invocation owner")
+            if record.task_id is not None and record.task_id != task_id:
+                raise ConnectorConnectionError("connector credential is bound to a different task")
+            missing = set(required_scopes) - set(record.scopes)
+            if missing:
+                raise ConnectorConnectionError(f"connector credential scopes are insufficient: {sorted(missing)}")
             return record, _unprotect(record._secret)
 
     def mark_operation(self, uid: str) -> None:

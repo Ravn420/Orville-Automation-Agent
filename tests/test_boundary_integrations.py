@@ -66,7 +66,11 @@ def test_github_connector_boundary_uses_local_stub_and_approval_gate() -> None:
         calls.append((request.full_url, request.get_method()))  # type: ignore[attr-defined]
         return FakeResponse({"ok": True, "data": {"id": "fixture-result"}})
 
-    with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"ORVILLE_CONNECTOR_BRIDGE_URL": "http://127.0.0.1:9999", "ORVILLE_CONNECTOR_BRIDGE_TOKEN": "synthetic-bridge-token"}, clear=False), patch("orville_core.connector_bridge.urlopen", fake_urlopen):
+    class FakeOpener:
+        def open(self, request, timeout):
+            return fake_urlopen(request, timeout)
+
+    with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"ORVILLE_CONNECTOR_BRIDGE_URL": "http://127.0.0.1:9999", "ORVILLE_CONNECTOR_BRIDGE_TOKEN": "synthetic-bridge-token"}, clear=False), patch("orville_core.connector_bridge.no_redirect_opener", return_value=FakeOpener()):
         app = create_app(api_token="synthetic-orville-token", storage="json", checkpoint_dir=Path(directory) / ".orville")
         client = TestClient(app)
         headers = {"Authorization": "Bearer synthetic-orville-token"}

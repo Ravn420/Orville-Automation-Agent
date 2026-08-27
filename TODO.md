@@ -1065,21 +1065,21 @@ The following requirements were added after reviewing primary documentation and 
 
 ### 21.3 Provider and MCP security
 
-- [ ] Create a threat model covering prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access. <!-- task-id:TODO-500f367e0031 -->
+- [x] Create a threat model covering prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access. Implemented in `docs/PROVIDER_MCP_THREAT_MODEL.md`, with trust boundaries, abuse cases, invariants, residual risks, and control mappings. <!-- task-id:TODO-500f367e0031 -->
 
-- [ ] Apply least-privilege permissions, tool allowlists, filesystem boundaries, network egress policies, and per-task credentials. <!-- task-id:TODO-ab2076f7c0e6 -->
+- [x] Apply least-privilege permissions, tool allowlists, filesystem boundaries, network egress policies, and per-task credentials. Added invocation security contexts, provider/task/owner/scope credential binding, tool and host allowlists, adapter filesystem containment, and no-credential argument enforcement. Focused validation included 34 tests. <!-- task-id:TODO-ab2076f7c0e6 -->
 
-- [ ] Add prompt and output boundary markers, untrusted-content labels, and explicit separation between instructions, retrieved data, tool results, and user approvals. <!-- task-id:TODO-988f288cebb2 -->
+- [x] Add prompt and output boundary markers, untrusted-content labels, and explicit separation between instructions, retrieved data, tool results, and user approvals. Added typed untrusted-content/tool-output wrappers and MCP response boundaries; approval remains an independent request field and is never inferred from retrieved text. <!-- task-id:TODO-988f288cebb2 -->
 
-- [ ] Validate remote endpoint schemes, hosts, ports, redirects, authorization servers, and localhost callback handling to reduce SSRF and OAuth risks. <!-- task-id:TODO-abcbe26e0762 -->
+- [x] Validate remote endpoint schemes, hosts, ports, redirects, authorization servers, and localhost callback handling to reduce SSRF and OAuth risks. Added HTTP(S)/credential/fragment checks, private-host and port policy, no-redirect transport for bridge/provider/OAuth requests, and retained PKCE plus localhost callback validation. <!-- task-id:TODO-abcbe26e0762 -->
 
-- [ ] Prevent token passthrough and confused-deputy behavior by binding credentials to the intended provider, user, task, and scope. <!-- task-id:TODO-e11c4a172a38 -->
+- [x] Prevent token passthrough and confused-deputy behavior by binding credentials to the intended provider, user, task, and scope. Credential-shaped tool arguments are rejected; stored connection credentials support owner/task binding and required-scope checks; bridge metadata contains references, never credential values. <!-- task-id:TODO-e11c4a172a38 -->
 
-- [ ] Protect MCP state handles from fixation, replay, cross-user access, and tampering. <!-- task-id:TODO-1e30b1226bc0 -->
+- [x] Protect MCP state handles from fixation, replay, cross-user access, and tampering. Added signed expiring nonce handles with constant-time HMAC validation, user/task/provider binding, and single-use consumption. <!-- task-id:TODO-1e30b1226bc0 -->
 
-- [ ] Add authorization-decision logs without storing secret values or unnecessary sensitive content. <!-- task-id:TODO-60bf891a57a5 -->
+- [x] Add authorization-decision logs without storing secret values or unnecessary sensitive content. Connector API decisions now record bounded actor/task/action/outcome metadata through the existing secret-redacting audit store. <!-- task-id:TODO-60bf891a57a5 -->
 
-- [ ] Add dry-run and approval modes for every external action that can publish, delete, purchase, transfer, modify accounts, or change production state. <!-- task-id:TODO-2d201b75cc07 -->
+- [x] Add dry-run and approval modes for every external action that can publish, delete, purchase, transfer, modify accounts, or change production state. MCP and connector paths now fail closed in dry-run mode and require explicit approval; adapter risk classes require approval for sensitive/critical operations. <!-- task-id:TODO-2d201b75cc07 -->
 
 ### 21.4 Evaluation and observability
 

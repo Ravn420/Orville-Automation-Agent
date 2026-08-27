@@ -11,8 +11,13 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 from .security import NetworkPolicy, SecretRedactor
+from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, reject_credential_values, validate_remote_endpoint
 
 _EMPTY_SCHEMA = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
+
+
+def _open_connector_request(request: Request, *, timeout: float):
+    return no_redirect_opener().open(request, timeout=timeout)
 
 @dataclass(frozen=True)
 class OperationSpec:
@@ -162,13 +167,23 @@ class ConnectorAdapterRegistry:
     def operations(self, connector_id: str) -> tuple[OperationSpec, ...]:
         return self.get(connector_id).operations
 
-    def invoke(self, connector_id: str, operation_id: str, arguments: dict[str, Any], *, approved: bool = False) -> AdapterResult:
+    def invoke(self, connector_id: str, operation_id: str, arguments: dict[str, Any], *, approved: bool = False, security_context: InvocationSecurityContext | None = None) -> AdapterResult:
         manifest = self.get(connector_id)
         operation = next((item for item in manifest.operations if item.operation_id == operation_id and item.enabled), None)
         if operation is None:
             raise ConnectorAdapterError(f"operation not available: {connector_id}/{operation_id}")
         if operation.risk_class in {"sensitive", "critical"} and not approved:
             raise PermissionError(f"operation requires explicit approval: {operation_id}")
+        reject_credential_values(arguments)
+        if security_context is not None:
+            try:
+                security_context.check_provider(connector_id)
+                if operation.risk_class in {"write", "sensitive", "critical"}:
+                    security_context.require_external_action(operation_id)
+                else:
+                    security_context.check_tool(operation_id)
+            except ProviderMcpSecurityError as exc:
+                raise PermissionError(str(exc)) from exc
         handler = self._handlers.get(connector_id)
         if handler is None:
             return AdapterResult(False, None, None, "provider-specific adapter is not configured")
@@ -176,7 +191,10 @@ class ConnectorAdapterRegistry:
 
 class GenericHttpAdapter:
     def __init__(self, base_url: str, headers: dict[str, str], *, allowed_hosts: set[str] | frozenset[str], allow_private: bool = False, timeout_seconds: float = 30, max_response_bytes: int = 5_000_000, max_retries: int = 2, backoff_seconds: float = 0.25, file_policy: FileTransferPolicy | None = None) -> None:
-        self.base_url = base_url.rstrip("/")
+        try:
+            self.base_url = validate_remote_endpoint(base_url, allowed_hosts=frozenset(allowed_hosts), allow_private=allow_private, allowed_ports=frozenset(range(1, 65536)) if allow_private else frozenset({80, 443}))
+        except (ProviderMcpSecurityError, ValueError) as exc:
+            raise ConnectorAdapterError(str(exc)) from exc
         self.headers = dict(headers)
         self.timeout_seconds = timeout_seconds
         self.max_response_bytes = max_response_bytes
@@ -237,7 +255,7 @@ class GenericHttpAdapter:
             request = Request(url, data=body, headers=headers, method=method)
             for attempt in range(self.max_retries + 1):
                 try:
-                    with urlopen(request, timeout=self.timeout_seconds) as response:
+                    with _open_connector_request(request, timeout=self.timeout_seconds) as response:
                         raw = response.read(self.max_response_bytes + 1)
                         if download_target is not None:
                             if len(raw) > self.file_policy.max_bytes:  # type: ignore[union-attr]
