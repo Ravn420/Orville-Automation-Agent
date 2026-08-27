@@ -2178,3 +2178,17 @@ Added two deterministic, synthetic repository coding-evaluation fixtures coverin
 
 ## 2026-08-28 — SQLite WAL/shared-memory retention review
 Completed an inspection-only review for `TODO-570aaf580e3d`. Added `docs/SQLITE_WAL_SHARED_MEMORY_RETENTION_REVIEW_2026-08-28.md` with an exact four-path inventory, metadata and SHA-256 evidence, privacy-safe secret-scan results, retain decisions, recovery requirements, and an explicit record that destructive approval was not granted. No runtime data was deleted or modified. Exact-path/hash checks, `git diff --check`, and 12 TODO automation tests passed.
+
+## 2026-08-28 — Task-specific evaluation datasets
+
+### Added
+
+- Completed `TODO-37bc97abee20` with seven synthetic/local evaluation suites for planning, code generation, debugging, refactoring, research, GUI workflows, and model import.
+- Added stable golden-case IDs, required and prohibited behaviors, deterministic defaults, explicit approval and side-effect boundaries, privacy rules, and structured acceptance fields in `config/evaluation-datasets.json`.
+- Added `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md` covering selection, reporting, evidence, safety, and known limitations.
+
+### Validation
+
+- Focused registry contract tests: **3 passed**.
+- Python compilation: passed.
+- Broader regression: **792 passed, 1 warning, 6 subtests passed**.

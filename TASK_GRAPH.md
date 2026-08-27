@@ -1524,3 +1524,12 @@ The evaluator uses disposable workspaces, forbids network and external side effe
 | TODO-570aaf580e3d | Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically | Orchestration / Security / Verification Agents | Existing named-path cleanup procedure and approval checkpoint contract | completed-local | `docs/SQLITE_WAL_SHARED_MEMORY_RETENTION_REVIEW_2026-08-28.md`; four exact tracked paths inventoried, hashes recorded, privacy-safe scan performed, all paths retained, no deletion or runtime-data mutation, and 12 TODO automation tests passed |
 
 The review is inspection-only. Destructive approval was not granted; any future deletion, archive, quarantine, or database lifecycle change must name exact paths and provide a verified checkpoint/backup, restore method, reviewer, expiry, and rollback plan.
+
+
+## 21.4 — Evaluation datasets and golden cases
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-37bc97abee20 | Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import | Verification Agent / Research Agent | Existing task, agent, model-import, GUI, and verification contracts | completed-local | `config/evaluation-datasets.json`, `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md`, `tests/test_evaluation_datasets.py`; 3 focused tests, Python compilation, and broader regression passed |
+
+The registry is synthetic/local, deterministic by default, and safety-bounded. It does not replace isolated software evaluation, repository-level coding evaluations, trace observability, or live deployment acceptance.
