@@ -28,6 +28,41 @@ class HubModelError(RuntimeError):
     """Raised for invalid Hub requests, unavailable metadata, or unsafe downloads."""
 
 
+def resolve_download_destination(models_root: str | Path, destination: str | Path | None = None) -> Path:
+    """Resolve a user-selected model directory within the approved models root.
+
+    Both Windows and POSIX separators are normalized before validation so an
+    untrusted path cannot bypass traversal checks merely by using the separator
+    native to another operating system. Only a non-empty relative subdirectory
+    without dot segments is accepted when a destination is supplied.
+    """
+
+    root = Path(models_root).expanduser().resolve()
+    if destination is None or not str(destination).strip():
+        return root
+    raw = str(destination).strip()
+    if "\x00" in raw:
+        raise HubModelError("download destination contains a NUL byte")
+    normalized = raw.replace("\\", "/")
+    if normalized.startswith("/") or normalized.startswith("//") or re.match(r"^[A-Za-z]:($|/)", normalized):
+        raise HubModelError("download destination must be a relative directory inside Orville's models directory")
+    if normalized in {".", "./"}:
+        return root
+    parts = [part for part in normalized.split("/") if part]
+    if not parts:
+        return root
+    if any(part in {".", ".."} for part in parts):
+        raise HubModelError("download destination must not contain traversal segments")
+    candidate = root.joinpath(*parts).resolve()
+    try:
+        contained = os.path.commonpath([str(root), str(candidate)]) == str(root)
+    except ValueError as exc:
+        raise HubModelError("download destination must remain inside Orville's models directory") from exc
+    if not contained:
+        raise HubModelError("download destination must remain inside Orville's models directory")
+    return candidate
+
+
 @dataclass(frozen=True)
 class MachineCapabilities:
     platform: str
@@ -427,9 +462,7 @@ class DownloadJobManager:
             raise HubModelError("max_retries must be between 0 and 5")
         if info["size_bytes"] and info["size_bytes"] > max_bytes:
             raise HubModelError(f"model is {info['size_gb']} GB, above the configured download limit")
-        root = Path(destination or self.models_root).expanduser().resolve()
-        if os.path.commonpath([str(self.models_root), str(root)]) != str(self.models_root):
-            raise HubModelError("download destination must remain inside Orville's models directory")
+        root = resolve_download_destination(self.models_root, destination)
         root.mkdir(parents=True, exist_ok=True)
         job_id = f"download-{self._uuid4().hex[:12]}"
         now = datetime.now(UTC).isoformat()

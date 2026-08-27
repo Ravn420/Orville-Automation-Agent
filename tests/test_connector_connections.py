@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from orville_core.api import create_app
-from orville_core.connector_connections import ConnectorConnectionStore
+from orville_core.connector_connections import ConnectorConnectionError, ConnectorConnectionStore
 
 
 class FixtureHandler(BaseHTTPRequestHandler):
@@ -45,7 +48,12 @@ def fixture_server():
     return server, f"http://127.0.0.1:{server.server_port}"
 
 
-def test_manual_connection_is_redacted_and_persists_on_windows():
+def _configure_portable_master_key(monkeypatch) -> None:
+    monkeypatch.setenv("ORVILLE_CONNECTOR_MASTER_KEY", Fernet.generate_key().decode("ascii"))
+
+
+def test_manual_connection_is_redacted_and_persists_with_protected_storage(monkeypatch):
+    _configure_portable_master_key(monkeypatch)
     with TemporaryDirectory() as directory:
         path = Path(directory) / "connections.json"
         store = ConnectorConnectionStore(path)
@@ -59,7 +67,18 @@ def test_manual_connection_is_redacted_and_persists_on_windows():
         assert credential == "secret-token"
 
 
-def test_api_manual_connection_operation_discovery_invocation_and_disconnect():
+def test_non_windows_connection_requires_runtime_master_key(monkeypatch):
+    if os.name == "nt":
+        pytest.skip("Windows uses DPAPI rather than the portable runtime master key")
+    monkeypatch.delenv("ORVILLE_CONNECTOR_MASTER_KEY", raising=False)
+    with TemporaryDirectory() as directory:
+        store = ConnectorConnectionStore(Path(directory) / "connections.json")
+        with pytest.raises(ConnectorConnectionError, match="ORVILLE_CONNECTOR_MASTER_KEY"):
+            store.connect_manual(uid="fixture", display_name="Fixture", auth_type="bearer", credential_header="Authorization", base_url="https://example.test", credential="secret-token", scopes=["read"])
+
+
+def test_api_manual_connection_operation_discovery_invocation_and_disconnect(monkeypatch):
+    _configure_portable_master_key(monkeypatch)
     server, base_url = fixture_server()
     try:
         with TemporaryDirectory() as directory:

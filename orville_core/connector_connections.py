@@ -1,10 +1,12 @@
-"""Local connector connection management for the standalone Windows release.
+"""Local connector connection management with protected credential records.
 
 The catalog is descriptive metadata; provider-specific OAuth applications and
-credentials remain user-owned. Secrets are protected with Windows DPAPI and
-never returned by API responses. The store supports generic bearer/API-key
-connections and OAuth2 authorization-code + PKCE flows when the user supplies
-the provider's official endpoints.
+credentials remain user-owned. On Windows, secrets are protected with DPAPI.
+On other supported hosts, the encrypted connection record requires a Fernet
+master key supplied at runtime by a protected environment or secret manager.
+Secrets are never returned by API responses or persisted as plaintext. The
+store supports generic bearer/API-key connections and OAuth2 authorization-code
+plus PKCE flows when the user supplies the provider's official endpoints.
 """
 from __future__ import annotations
 
@@ -26,10 +28,38 @@ class ConnectorConnectionError(RuntimeError):
     """Raised for invalid or unsafe connector connection operations."""
 
 
+_PORTABLE_MASTER_KEY_ENV = "ORVILLE_CONNECTOR_MASTER_KEY"
+_PORTABLE_PREFIX = "fernet:"
+_DPAPI_PREFIX = "dpapi:"
+
+
+def _portable_fernet() -> Any:
+    """Return the runtime-only Fernet protector for non-Windows records.
+
+    The master key is deliberately never generated into, or read from, the
+    connection JSON file. Operators must inject it through an approved runtime
+    secret source so a copied record cannot be decrypted on its own.
+    """
+
+    master_key = os.environ.get(_PORTABLE_MASTER_KEY_ENV)
+    if not master_key:
+        raise ConnectorConnectionError(
+            f"Protected connector credential storage requires {_PORTABLE_MASTER_KEY_ENV} from a protected runtime secret source"
+        )
+    try:
+        from cryptography.fernet import Fernet
+    except ImportError as exc:  # pragma: no cover - guarded by package extras
+        raise ConnectorConnectionError("Portable connector credential storage requires the cryptography security dependency") from exc
+    try:
+        return Fernet(master_key.encode("ascii"))
+    except (TypeError, ValueError, UnicodeEncodeError) as exc:
+        raise ConnectorConnectionError(f"{_PORTABLE_MASTER_KEY_ENV} must be a valid Fernet key") from exc
+
+
 def _protect(value: str) -> str:
     raw = value.encode("utf-8")
     if os.name != "nt":
-        raise ConnectorConnectionError("Protected connector credential storage requires Windows DPAPI")
+        return _PORTABLE_PREFIX + _portable_fernet().encrypt(raw).decode("ascii")
     import ctypes
     from ctypes import wintypes
 
@@ -46,13 +76,25 @@ def _protect(value: str) -> str:
         protected = ctypes.string_at(target.pbData, target.cbData)
     finally:
         kernel.LocalFree(target.pbData)
-    return base64.b64encode(protected).decode("ascii")
+    return _DPAPI_PREFIX + base64.b64encode(protected).decode("ascii")
 
 
 def _unprotect(value: str) -> str:
-    raw = base64.b64decode(value.encode("ascii"), validate=True)
     if os.name != "nt":
-        raise ConnectorConnectionError("Protected connector credential storage requires Windows DPAPI")
+        if not value.startswith(_PORTABLE_PREFIX):
+            raise ConnectorConnectionError("connector credential was protected for Windows DPAPI and cannot be unlocked on this platform")
+        try:
+            from cryptography.fernet import InvalidToken
+            return _portable_fernet().decrypt(value[len(_PORTABLE_PREFIX):].encode("ascii")).decode("utf-8")
+        except InvalidToken as exc:
+            raise ConnectorConnectionError("connector credential could not be decrypted with the configured runtime master key") from exc
+        except UnicodeDecodeError as exc:
+            raise ConnectorConnectionError("connector credential contains invalid protected text") from exc
+    encoded = value[len(_DPAPI_PREFIX):] if value.startswith(_DPAPI_PREFIX) else value
+    try:
+        raw = base64.b64decode(encoded.encode("ascii"), validate=True)
+    except (UnicodeEncodeError, ValueError) as exc:
+        raise ConnectorConnectionError("Windows DPAPI credential record is malformed") from exc
     import ctypes
     from ctypes import wintypes
 

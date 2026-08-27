@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-27 — First remediation increment: protected persistence and path containment
+
+### Changed
+
+- Added portable Fernet encryption for connector, Blackbox API-key, access-token, refresh-token, and OAuth client-secret records on non-Windows hosts. The runtime-only `ORVILLE_CONNECTOR_MASTER_KEY` must be supplied by a protected process environment or external secret manager; it is never generated into or saved beside the connection record. Windows DPAPI remains the Windows implementation.
+- Corrected the local API’s outbound HTTP request-class collision, restoring protected connector operation discovery and approved invocation after credential persistence succeeds.
+- Added a single hub-download destination resolver that normalizes Windows and POSIX separators, rejects traversal, absolute, drive-qualified, UNC, and NUL-containing values, and is enforced by both the API and direct download-manager paths.
+- Added non-Windows missing-master-key, encrypted reload/redaction, Blackbox API-key, connector invocation, and mixed-separator traversal regression coverage. Added `cryptography` to the API optional dependency group and documented protected master-key configuration.
+- Completed the corresponding cross-platform credential-persistence and hub-download remediation tasks in `TODO.md`; the audit queue and control documents now record 15 remaining full-suite failures.
+
+### Validation
+
+`python3 -m compileall -q orville_core tests` passed. The focused secret-persistence and path-validation suite completed with **21 passed and 1 upstream HTTP-client deprecation warning**. The full suite improved from 760 passed / 20 failed to **767 passed / 15 failed / 1 warning**. The remaining failures are outside this increment’s scoped contracts.
+
 ## 2026-08-27 — Repository audit and remediation queue
 
 ### Changed

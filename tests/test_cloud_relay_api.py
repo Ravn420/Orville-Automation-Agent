@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from cryptography.fernet import Fernet
 
 try:
     from fastapi.testclient import TestClient
@@ -13,6 +14,10 @@ except ImportError:  # pragma: no cover
 
 
 pytestmark = pytest.mark.skipif(TestClient is None, reason="FastAPI API extras are not installed")
+
+
+def _configure_portable_master_key(monkeypatch) -> None:
+    monkeypatch.setenv("ORVILLE_CONNECTOR_MASTER_KEY", Fernet.generate_key().decode("ascii"))
 
 
 def test_cloud_status_reports_managed_and_user_access_separately(monkeypatch):
@@ -59,6 +64,7 @@ def test_cloud_admission_returns_unavailable_when_relay_not_configured(monkeypat
 
 
 def test_user_blackbox_api_key_connection_is_redacted_and_disconnectable(monkeypatch):
+    _configure_portable_master_key(monkeypatch)
     with tempfile.TemporaryDirectory() as directory:
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_URL", "https://relay.example.test/v1")
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_ALLOWED_HOSTS", "relay.example.test")
@@ -81,6 +87,7 @@ def test_user_blackbox_api_key_connection_is_redacted_and_disconnectable(monkeyp
 
 
 def test_user_blackbox_api_key_test_and_credential_delete_are_safe(monkeypatch):
+    _configure_portable_master_key(monkeypatch)
     with tempfile.TemporaryDirectory() as directory:
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_URL", "https://relay.example.test/v1")
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_ALLOWED_HOSTS", "relay.example.test")

@@ -14,8 +14,9 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from time import monotonic
 from threading import Thread
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import Request as UrlRequest, urlopen
 from uuid import uuid4
 
 from .checkpoint import CheckpointStore
@@ -44,7 +45,7 @@ from .readiness import ProductionReadiness
 from .config import RuntimeConfig
 from .workspace import WorkspaceError, WorkspaceSession
 from .browser import BrowserSessionManager
-from .hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient, check_runtime_compatibility, detect_machine_capabilities
+from .hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient, check_runtime_compatibility, detect_machine_capabilities, resolve_download_destination
 from .model_runtime import probe_runtime_capabilities
 from .local_models import LocalModelCatalog
 from .connector_bridge import ConnectorBridge, ConnectorBridgeError, connector_uid_is_valid
@@ -805,7 +806,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         try:
             record, credential = connection_store.credential(connector_uid)
             auth_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
-            request = Request(f"{record.base_url}/operations", headers={"Accept": "application/json", record.credential_header: auth_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="GET")
+            request = UrlRequest(f"{record.base_url}/operations", headers={"Accept": "application/json", record.credential_header: auth_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="GET")
             with urlopen(request, timeout=10) as response:
                 raw = response.read(200_001)
             if len(raw) > 200_000:
@@ -839,7 +840,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
                 record, credential = connection_store.credential(connector_uid)
                 auth_scheme = "Bearer" if record.auth_type == "bearer" else credential
                 credential_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
-                request = Request(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
+                request = UrlRequest(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
                 with urlopen(request, timeout=30) as response:
                     raw = response.read(2_000_001)
                 if len(raw) > 2_000_000:
@@ -1294,7 +1295,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=400, detail="research locator must be an http(s) URL")
         try:
             research_network_policy.check_host(parsed.hostname)
-            request = Request(locator, headers={"User-Agent": "OrvilleResearch/1.0"})
+            request = UrlRequest(locator, headers={"User-Agent": "OrvilleResearch/1.0"})
             with urlopen(request, timeout=15) as response:
                 content_type = response.headers.get("Content-Type", "")
                 body = response.read(2_000_001)
@@ -1659,13 +1660,11 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=409, detail="model download requires explicit approval")
         root = (checkpoint_root.parent / "models").resolve()
         root.mkdir(parents=True, exist_ok=True)
-        destination = (root / payload.destination).resolve() if payload.destination else root
         try:
-            if os.path.commonpath([str(root), str(destination)]) != str(root):
-                raise HubModelError("download destination must remain inside Orville's models directory")
+            destination = resolve_download_destination(root, payload.destination)
             token = next((provider.config.api_key for provider in provider_registry.providers() if provider.config.provider_type in {"huggingface", "hugging-face", "hf-inference"} and provider.config.api_key), hub_client.token)
             hub_client.token = token
-            job = download_manager.start(payload.repo_id, destination=destination, revision=payload.revision, max_bytes=payload.max_bytes, max_retries=payload.max_retries)
+            job = download_manager.start(payload.repo_id, destination=destination.relative_to(root), revision=payload.revision, max_bytes=payload.max_bytes, max_retries=payload.max_retries)
             return {"download": job.to_dict(), "status": "queued"}
         except (HubModelError, FileNotFoundError, ValueError, OSError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

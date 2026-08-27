@@ -13,7 +13,7 @@ The default access path is **Orville-managed Blackbox access**. A separate **use
 | `managed` | Yes | Orville service | Cloud access without user-managed Blackbox credentials |
 | `user_connected` | No | User | Personal Blackbox quota, plan, model access, and usage identity |
 
-A user-connected Blackbox credential must never replace or expose the Orville-managed credential. Disconnecting the user connection must leave managed access unchanged. API keys, access tokens, refresh tokens, and OAuth client secrets are protected by the operating-system credential boundary (Windows DPAPI in the desktop deployment) and are never persisted as plaintext in the connection record.
+A user-connected Blackbox credential must never replace or expose the Orville-managed credential. Disconnecting the user connection must leave managed access unchanged. On Windows, API keys, access tokens, refresh tokens, and OAuth client secrets are protected with Windows DPAPI. On other supported hosts, they are encrypted with Fernet using the runtime-only `ORVILLE_CONNECTOR_MASTER_KEY`; the master key must be injected by a protected environment or secret manager and must never be saved beside the encrypted connection record. Credentials are never persisted as plaintext or returned in API responses.
 
 ## Runtime Configuration
 
@@ -26,9 +26,12 @@ ORVILLE_BLACKBOX_RELAY_MODEL=blackboxai/openai/gpt-5.5
 ORVILLE_BLACKBOX_RELAY_ENABLED=1
 ORVILLE_BLACKBOX_RELAY_PLAN=managed
 ORVILLE_RELAY_SUBJECT=device-or-session-id
+# Required only for user-connected credentials on non-Windows hosts.
+# Inject from a protected runtime secret source; never commit this value.
+ORVILLE_CONNECTOR_MASTER_KEY=<Fernet key>
 ```
 
-`ORVILLE_BLACKBOX_RELAY_URL` is a client-visible relay URL, not a Blackbox provider credential. Provider credentials must be stored and used by the deployed relay service. Do not put the Blackbox key in the desktop `.env` file, installer, executable, or frontend configuration.
+`ORVILLE_BLACKBOX_RELAY_URL` is a client-visible relay URL, not a Blackbox provider credential. Provider credentials must be stored and used by the deployed relay service. Do not put the Blackbox key in the desktop `.env` file, installer, executable, or frontend configuration. On non-Windows hosts, configure `ORVILLE_CONNECTOR_MASTER_KEY` separately in the protected process environment or external secret manager; the application rejects user-connected credential persistence when it is absent or invalid rather than writing an unprotected record.
 
 ## API Endpoints
 

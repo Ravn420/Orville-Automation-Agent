@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-api = ["fastapi>=0.110", "uvicorn>=0.29"]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "cryptography>=42"]
 browser = ["playwright>=1.62"]
 media = ["huggingface-hub>=0.34"]
 security = ["cryptography>=42", "tuf>=6"]

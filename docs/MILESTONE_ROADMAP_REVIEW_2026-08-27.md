@@ -6,7 +6,7 @@
 
 ## Review outcome
 
-The current milestone has established a substantial standalone control-plane foundation. Recent work covers task intake and templates, orchestration and graph validation, approvals and untrusted-content boundaries, structured logs and operational reports, deployment preflight and smoke checks, standalone examples, operator recovery procedures, and canonical project terminology. The milestone is **locally evidence-bearing but not production-ready** because the current full regression suite completes with 20 failures after collection, while live provider, identity, browser, infrastructure, and hosted-observability gates remain environment-owned. The formerly reported `task_status` worker collection defect is resolved; its focused suite now passes.
+The current milestone has established a substantial standalone control-plane foundation. Recent work covers task intake and templates, orchestration and graph validation, approvals and untrusted-content boundaries, structured logs and operational reports, deployment preflight and smoke checks, standalone examples, operator recovery procedures, and canonical project terminology. The milestone is **locally evidence-bearing but not production-ready** because the current full regression suite completes with 15 failures after the first remediation increment, while live provider, identity, browser, infrastructure, and hosted-observability gates remain environment-owned. The formerly reported `task_status` worker collection defect is resolved; its focused suite now passes.
 
 ## Progress summary
 
@@ -23,8 +23,8 @@ The current milestone has established a substantial standalone control-plane fou
 
 | Priority | Next work | Impact | Dependencies | Risk |
 |---|---|---|---|---|
-| P0 | Restore the full regression release gate and triage the 20 verified failures | Restores the release feedback loop | Authoritative repository-audit queue | High until a clean run and per-failure evidence are retained |
-| P0 | Preserve approval, secret, untrusted-content, and path-safety gates during adapter integration | Prevents unauthorized or unsafe side effects | Adapter contracts and integration tests | High if bypassed |
+| P0 | Restore the full regression release gate and triage the 15 verified failures | Restores the release feedback loop | Authoritative repository-audit queue | High until a clean run and per-failure evidence are retained |
+| P0 | Preserve approval, secret, untrusted-content, and path-safety gates during adapter integration | Prevents unauthorized or unsafe side effects | Adapter contracts and integration tests | High if bypassed; the first increment now provides portable encrypted connector records and mixed-separator model-download path containment |
 | P1 | Resolve the cleanup item with explicit confirmation and a named-path retention review | Reduces obsolete material without deleting retained evidence | Approval and path-by-path inventory | High if broad deletion is attempted |
 | P1 | Complete deployment-owned identity, secret management, TLS, monitoring, backup, and rollback evidence | Enables controlled hosted or persistent deployment | Environment owner and authorized infrastructure | High and environment-specific |
 | P2 | Add coverage measurement and expand integration/GUI smoke evidence | Quantifies untested paths and improves release confidence | Working test collection and coverage tooling | Medium |

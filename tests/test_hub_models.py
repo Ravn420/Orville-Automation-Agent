@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from orville_core.hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient, MachineCapabilities, check_runtime_compatibility
+from orville_core.hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient, MachineCapabilities, check_runtime_compatibility, resolve_download_destination
 from orville_core.local_models import LocalModelCatalog, LocalModelRecord
 
 
@@ -27,6 +27,15 @@ class FakeHub(HuggingFaceHubClient):
 class HubModelTests(unittest.TestCase):
     def setUp(self):
         self.machine = MachineCapabilities("test", 8, 32 * 1024**3, 100 * 1024**3)
+
+    def test_download_destination_rejects_cross_platform_escape_paths(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "models"
+            root.mkdir()
+            for destination in ("../outside", "..\\outside", "nested/../../outside", "nested\\..\\..\\outside", "/tmp/outside", "C:\\outside", "\\\\server\\share"):
+                with self.assertRaises(HubModelError):
+                    resolve_download_destination(root, destination)
+            self.assertEqual(resolve_download_destination(root, "nested\\models"), (root / "nested" / "models").resolve())
 
     def test_search_infers_capabilities_and_supported_filter(self):
         payload = [{"id": "org/CodeModel", "pipeline_tag": "text-generation", "tags": ["code"], "safetensors": {"total": 4 * 1024**3}, "cardData": {"license": "apache-2.0"}}]

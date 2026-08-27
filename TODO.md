@@ -30,7 +30,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [ ] Restore the full regression release gate and attach triaged results for every failure. Acceptance: a clean full-suite run has no untriaged failure and release evidence records the command, environment, totals, and residual warning status. <!-- task-id:TODO-cff928829702 -->
 
-- [ ] Provide secure credential persistence or clear platform skips for non-Windows local development. Acceptance: manual connector and Blackbox API-key routes have an explicit, tested cross-platform contract and never serialize credentials in plaintext. <!-- task-id:TODO-54d8ec6f80b9 -->
+- [x] Provide secure credential persistence or clear platform skips for non-Windows local development. Implemented Fernet-encrypted connection records on non-Windows hosts using a runtime-only `ORVILLE_CONNECTOR_MASTER_KEY`, while retaining Windows DPAPI; added ephemeral-key, missing-key, Blackbox API-key, reloading, redaction, connector discovery, and invocation coverage. The master key is never stored in the connection record. Focused validation: 21 passed with 1 upstream HTTP-client deprecation warning. <!-- task-id:TODO-54d8ec6f80b9 -->
 
 - [ ] Create and review the committed visual-regression baseline required by the checker. Acceptance: `artifacts/visual_regression_baseline.json` is reviewed, source-controlled where appropriate, and both visual-regression tests pass. <!-- task-id:TODO-25105284c9fc -->
 
@@ -40,7 +40,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [ ] Make orchestration timeout evidence and preview-runtime readiness tests deterministic. Acceptance: checkpoint schema expectations match the current format, timeout assertions target the correct event, and preview tests wait for a bounded ready state. <!-- task-id:TODO-1f336418c5a4 -->
 
-- [ ] Resolve hub-download response and temporary-file cleanup regression. Acceptance: the hub-download contract returns the documented status and temporary test resources are released before cleanup. <!-- task-id:TODO-3d2f46e3bd16 -->
+- [x] Resolve hub-download response and temporary-file cleanup regression. Added a shared destination resolver that normalizes Windows and POSIX separators, rejects traversal, absolute, drive-qualified, UNC, and NUL-containing paths, and is enforced by both the API and download manager. Restored the default root destination and added direct mixed-separator coverage. Focused validation: 21 passed with 1 upstream HTTP-client deprecation warning. <!-- task-id:TODO-3d2f46e3bd16 -->
 
 - [ ] Reconcile release-state documents with the current test baseline and current worker status. Acceptance: `STATE.md`, readiness reporting, and milestone review agree on current evidence, blockers, and next gates. <!-- task-id:TODO-ac288c7cbdfb -->
 
