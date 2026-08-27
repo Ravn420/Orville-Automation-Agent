@@ -59,7 +59,7 @@ class ReadinessReportTests(unittest.TestCase):
             "tools/deployment_validation.py",
             "tests/test_readiness.py",
         ):
-            self.assertTrue((ROOT / relative_path.replace("/", "\\")).is_file(), relative_path)
+            self.assertTrue((ROOT / relative_path).is_file(), relative_path)
         for command in (
             "python tools\\project_checks.py test",
             "python tools\\project_checks.py preview",

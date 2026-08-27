@@ -1211,7 +1211,7 @@ The dispatcher now runs preflight before target actions and local HTTP smoke che
 | Implementation | `docs/READINESS_REPORT.md`, `tests/test_readiness_report.py` |
 | Coverage | Current architecture, local checks, target readiness, security, observability, deployment gates, and known blockers |
 | Validation | 4 focused readiness-report tests passed; Python compilation and precise secret-pattern scan passed |
-| Known blockers | Full regression collection fails on `task_status` default binding; cleanup remains approval-blocked |
+| Known blockers | The previously reported `task_status` collection finding is stale: the focused worker suite now collects and passes. The current full-suite failure ledger is recorded in `docs/FULL_REGRESSION_TRIAGE_2026-08-27.md`; cleanup remains approval-blocked. |
 | Limitations | Production readiness, provider authorization, live infrastructure, hosted monitoring, and external recovery remain environment-owned |
 
 
