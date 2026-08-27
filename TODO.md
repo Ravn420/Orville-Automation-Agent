@@ -1589,17 +1589,17 @@ Implemented browser file attachment selection with bounded readable-file submiss
 
 ## Current Task — Use the Manus Connector Catalog
 
-- [ ] Record the supplied 372-connector catalog and distinguish enabled connectors from catalog-only entries. <!-- task-id:TODO-493876d2190e -->
+- [x] Record the supplied 372-connector catalog and distinguish enabled connectors from catalog-only entries. Verified the 372-entry catalog and enabled-state gating in `orville_core/connector_catalog.json`, `orville_core/catalog_adapters.py`, and `GET /api/v1/connectors`; documented in `docs/CONNECTOR_CATALOG_IMPLEMENTATION_STATUS.md`. <!-- task-id:TODO-493876d2190e -->
 
-- [ ] Define a safe standalone connector-bridge boundary; do not execute arbitrary connector commands or expose secrets. <!-- task-id:TODO-cdbb0d95ea01 -->
+- [x] Define a safe standalone connector-bridge boundary; do not execute arbitrary connector commands or expose secrets. Verified loopback/bounded transport, redaction, and non-arbitrary execution boundaries in `orville_core/connector_bridge.py` and `docs/PYTHON_MCP_BRIDGE.md`. <!-- task-id:TODO-cdbb0d95ea01 -->
 
-- [ ] Add backend connector catalog, bridge configuration, health, invocation, approval, audit, and failure routes. <!-- task-id:TODO-b238580024b2 -->
+- [x] Add backend connector catalog, bridge configuration, health, invocation, approval, audit, and failure routes. Verified authenticated catalog, health, discovery, approved invocation, and redacted audit routes in `orville_core/api.py`. <!-- task-id:TODO-b238580024b2 -->
 
-- [ ] Add per-run connector invocation controls to the Signal Room. <!-- task-id:TODO-cb11e9ef3474 -->
+- [x] Add per-run connector invocation controls to the Signal Room. Existing Signal Room connector operation, arguments, bridge-health, and explicit approval/invocation controls are covered by the connector execution contract. <!-- task-id:TODO-cb11e9ef3474 -->
 
-- [ ] Preserve connector IDs in objective context and keep authentication outside task state. <!-- task-id:TODO-68dee3845c58 -->
+- [x] Preserve connector IDs in objective context and keep authentication outside task state. Verified connector identifiers are carried as metadata while credentials remain in protected connection storage and redacted audit boundaries. <!-- task-id:TODO-68dee3845c58 -->
 
-- [ ] Add backend regression tests using a local fake connector bridge. <!-- task-id:TODO-ef91ddd3a6e0 -->
+- [x] Add backend regression tests using a local fake connector bridge. `tests/test_connector_bridge.py` covers catalog count, health, blocked invocation, approved invocation, audit, and secret non-disclosure. <!-- task-id:TODO-ef91ddd3a6e0 -->
 
 - [ ] Rebuild and validate the Windows executable and connector execution smoke flow. <!-- task-id:TODO-2ff572f86602 -->
 

@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Connector catalog and coverage checkpoint
+
+### Changed
+
+- Verified the 372-entry connector catalog, enabled-state distinction, safe bridge boundary, authenticated catalog/health/discovery/invocation routes, explicit approval, redacted audit records, and local fake-bridge regression coverage.
+- Added `docs/CONNECTOR_CATALOG_IMPLEMENTATION_STATUS.md` as the connector execution status record.
+- Attempted the documented Windows build path; PowerShell, Wine, and PyInstaller are unavailable in this Linux sandbox, so the Windows executable and connector smoke flow remain open.
+
+### Validation
+
+- Plain full regression: **818 tests and 6 subtests passed**.
+- Branch/line coverage report generated under `reports/coverage/`: **62.72% branch coverage** and **78.63% line coverage**. Coverage instrumentation caused one performance-boundary timing failure; the non-instrumented suite remained green.
+
+
 ## 2026-08-28 — Hub transfer retry checkpoint
 
 ### Changed
