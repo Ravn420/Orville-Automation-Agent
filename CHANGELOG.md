@@ -1,5 +1,27 @@
 # Orville Changelog
 
+## 2026-08-27 — Release readiness: portable test repairs and API/browser validation
+
+### Fixed
+
+- Extracted safe display projection, dependency/workflow state classification, recovery-copy formatting, and bounded dashboard aggregation into `orville_core/gui_state.py`. This removes the non-rendering test and measurement paths’ unnecessary import-time dependency on Tkinter while preserving the desktop UI’s behavior.
+- Added bounded preview-server readiness polling, early-exit diagnostics, and shared child-process cleanup. A returned local preview record now represents a listener that accepts connections rather than a process that has only been spawned.
+- Corrected cross-platform repository-reference validation so documentation and configuration paths remain portable across POSIX and Windows separators.
+- Generated and committed the reviewed deterministic visual-regression baseline from the design-system configuration and control-center mockup.
+- Updated stale or brittle monitor and orchestration assertions to check safe offline-state behavior, checkpoint schema version 2, and the named timeout failure event instead of presentation literals or incidental event order.
+
+### Validation
+
+- The complete configured unittest discovery suite passed: **455 tests in 8.351 seconds**.
+- The preview-runtime readiness test passed in ten consecutive iterations.
+- The focused Browser Operator extension and local relay pytest suite passed: **10 tests in 1.70 seconds**. It covers browser session handling, persistence, relay pairing/actions, connector bridge behavior, and extension boundaries.
+- The focused API unittest coverage passed: **13 tests in 2.835 seconds**, including authentication, objective intake, redacted project state, task/event lifecycle, provider policy, usage limits, previews, security routes, and safe API error handling.
+- The combined API and browser pytest invocation collected 28 tests and passed 27. One shell-control-plane expectation remains open: it expects the internal allowlist term in an API `detail` string, while the current operation-aware error handler returns the generic safe message `post_research_fetch failed: the operation could not be completed.` The open mismatch is recorded as a contract-alignment follow-up and does not affect the passing browser-extension readiness suite.
+
+### Release note
+
+The Browser Operator extension and local relay are validated for the tested local contract. The API’s core authenticated routes are validated by the passing focused suite. Production exposure, provider authorization, external browser sessions, TLS termination, and live connector credentials continue to require separately configured and authorized deployment environments.
+
 ## 2026-08-27 — Second remediation increment: portable references and reviewed visual baseline
 
 ### Changed
