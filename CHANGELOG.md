@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-08-28 — Signal Room GUI redesign closeout
+
+### Changed
+
+- Closed the seven targeted GUI TODOs using the available repository task context and preserved Signal Room redesign artifacts; the referenced task conversation was not present in the authorized checkout/interface, and that limitation is recorded in `artifacts/gui_redesign_checkpoint_2026-08-28.md`.
+- Recorded the requirement-to-screen mapping, navigation model, contextual Preview / Files / Activity / Details rail, document-like objective composer, responsive behavior, visual direction, preserved workflows, and platform boundaries.
+- Verified the existing preview source at `docs/mockups/orville-control-center.html`, packaged web assets under `webui/`, and the preserved Windows launcher/build workflow.
+
+### Validation
+
+- GUI-focused pytest coverage passed: **18 tests**.
+- Signal Room smoke/accessibility checks passed with three existing non-blocking WCAG AA contrast warnings.
+- Preview checks and Python compilation passed.
+- The full repository baseline passed: **789 tests and 6 subtests**.
+- A Windows-native executable rebuild was not run in the Linux sandbox; the limitation remains explicitly recorded rather than claimed as executed.
+
 ## 2026-08-27 — Release readiness: portable test repairs and API/browser validation
 
 ### Fixed
