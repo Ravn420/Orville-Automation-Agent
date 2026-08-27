@@ -1,0 +1,21 @@
+test_health_and_failure_commands_are_documented (tests.test_operator_runbook.OperatorRunbookTests.test_health_and_failure_commands_are_documented) ... ok
+test_referenced_procedures_exist_and_no_secrets_are_embedded (tests.test_operator_runbook.OperatorRunbookTests.test_referenced_procedures_exist_and_no_secrets_are_embedded) ... ok
+test_runbook_covers_required_operator_domains (tests.test_operator_runbook.OperatorRunbookTests.test_runbook_covers_required_operator_domains) ... ok
+test_runbook_requires_safe_recovery_and_connector_boundaries (tests.test_operator_runbook.OperatorRunbookTests.test_runbook_requires_safe_recovery_and_connector_boundaries) ... ok
+test_each_matrix_row_references_existing_test_modules (tests.test_orchestration_test_matrix.OrchestrationTestMatrixTests.test_each_matrix_row_references_existing_test_modules) ... ok
+test_matrix_does_not_claim_live_external_validation (tests.test_orchestration_test_matrix.OrchestrationTestMatrixTests.test_matrix_does_not_claim_live_external_validation) ... ok
+test_matrix_has_deterministic_execution_and_safety_gates (tests.test_orchestration_test_matrix.OrchestrationTestMatrixTests.test_matrix_has_deterministic_execution_and_safety_gates) ... ok
+test_required_capabilities_are_present (tests.test_orchestration_test_matrix.OrchestrationTestMatrixTests.test_required_capabilities_are_present) ... ok
+test_catalog_is_versioned_and_documented (tests.test_reusable_fixes.ReusableFixesTests.test_catalog_is_versioned_and_documented) ... ok
+test_each_fix_has_problem_assets_and_reuse_rule (tests.test_reusable_fixes.ReusableFixesTests.test_each_fix_has_problem_assets_and_reuse_rule) ... ok
+test_recurring_fix_categories_are_present (tests.test_reusable_fixes.ReusableFixesTests.test_recurring_fix_categories_are_present) ... ok
+test_reuse_preserves_security_boundaries (tests.test_reusable_fixes.ReusableFixesTests.test_reuse_preserves_security_boundaries) ... ok
+test_readme_contains_runnable_local_commands (tests.test_standalone_readme.StandaloneReadmeTests.test_readme_contains_runnable_local_commands) ... ok
+test_readme_preserves_security_and_standalone_boundaries (tests.test_standalone_readme.StandaloneReadmeTests.test_readme_preserves_security_and_standalone_boundaries) ... ok
+test_referenced_local_contracts_exist (tests.test_standalone_readme.StandaloneReadmeTests.test_referenced_local_contracts_exist) ... ok
+test_required_standalone_sections_are_present (tests.test_standalone_readme.StandaloneReadmeTests.test_required_standalone_sections_are_present) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+
+OK
