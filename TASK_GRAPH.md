@@ -1518,4 +1518,4 @@ Each future execution record now has a consistent place to state what was not te
 |---|---|---|---|---|---|
 | TODO-500f367e0031 | Create a threat model covering prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access | Security Agent / Verification Agent | 21.2 model and local-file security controls | Each threat has an abuse case, mitigation, detection/evidence path, residual risk, and explicit approval/untrusted-content boundary | completed-local |
 
-Evidence: `docs/THREAT_MODEL_21_3.md`, `tests/test_threat_model_21_3.py`; focused tests passed 3 and the full regression suite passed 803 tests, 1 warning, and 6 subtests. Live provider, deployment, browser, and production credential exercises remain environment-owned.
+Evidence: `docs/THREAT_MODEL_21_3.md`, `tests/test_threat_model_21_3.py`; focused tests passed 3 and the post-rebase full regression suite passed 821 tests, 1 warning, and 6 subtests. Live provider, deployment, browser, and production credential exercises remain environment-owned.
