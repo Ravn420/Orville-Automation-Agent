@@ -1,0 +1,100 @@
+--- iteration 1 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.094s
+
+OK
+--- iteration 2 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+OK
+--- iteration 3 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.093s
+
+OK
+--- iteration 4 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+OK
+--- iteration 5 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+OK
+--- iteration 6 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.094s
+
+OK
+--- iteration 7 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.093s
+
+OK
+--- iteration 8 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+OK
+--- iteration 9 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+OK
+--- iteration 10 ---
+test_start_status_http_and_stop (tests.test_preview_runtime.PreviewRuntimeTests.test_start_status_http_and_stop) ... /usr/lib/python3.12/unittest/case.py:589: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='UTF-8'>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.096s
+
+OK
