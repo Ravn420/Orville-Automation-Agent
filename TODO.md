@@ -1565,27 +1565,27 @@ The existing Signal Room was redesigned in place as a calm neutral AI productivi
 
 ## Current Task — Attachments, Context Links, Activity, and Manus Connectors
 
-- [ ] Inspect current attachment-capable workspace APIs and frontend task submission contracts. <!-- task-id:TODO-822506157f94 -->
+- [x] Inspect current attachment-capable workspace APIs and frontend task submission contracts. Verified `/api/v1/artifacts/text`, existing task-composer conventions, and the expanded preview contract in `docs/GUI_EXPANDED_WORKFLOWS.md`. <!-- task-id:TODO-822506157f94 -->
 
-- [ ] Inspect current run, artifact, file, and activity data contracts for deep links and timeline rendering. <!-- task-id:TODO-da7e5e77fe04 -->
+- [x] Inspect current run, artifact, file, and activity data contracts for deep links and timeline rendering. Verified run-event polling, artifact records, stable preview anchors, and cursor-based timeline rendering in `docs/mockups/orville-control-center.html`. <!-- task-id:TODO-da7e5e77fe04 -->
 
-- [ ] Read connector configuration guidance and inspect enabled Manus connectors. <!-- task-id:TODO-53ed2b2a8b40 -->
+- [x] Read connector configuration guidance and inspect enabled Manus connectors. Read `skills/manus-config/SKILL.md`; the enabled snapshot contains GitHub, Google Gemini, and My Browser, with no credentials exposed. <!-- task-id:TODO-53ed2b2a8b40 -->
 
-- [ ] Implement real file attachment selection and safe submission through existing workspace APIs. <!-- task-id:TODO-5de572cf8cb0 -->
+- [x] Implement real file attachment selection and safe submission through existing workspace APIs. Added a real multiple-file picker, size/type validation, filename sanitization, SHA-256-derived artifact IDs, text submission through `/api/v1/artifacts/text`, and binary-local fallback. <!-- task-id:TODO-5de572cf8cb0 -->
 
-- [ ] Add contextual rail deep links for selected runs, files, and artifacts. <!-- task-id:TODO-52854fe399e1 -->
+- [x] Add contextual rail deep links for selected runs, files, and artifacts. Added stable hash links for runs, files, artifacts, projects, and activity with contextual rail targets. <!-- task-id:TODO-52854fe399e1 -->
 
-- [ ] Add compact live activity timeline updates during run streaming. <!-- task-id:TODO-00c7be80e516 -->
+- [x] Add compact live activity timeline updates during run streaming. Added cursor-based run-event polling, monotonic deduplication, compact timeline insertion, and offline preservation state. <!-- task-id:TODO-00c7be80e516 -->
 
-- [ ] Add connector-aware settings and connection status for available Manus connectors. <!-- task-id:TODO-86de71a3df59 -->
+- [x] Add connector-aware settings and connection status for available Manus connectors. Added authenticated connector inventory refresh, available/disabled rendering, and local-only fallback without secret exposure. <!-- task-id:TODO-86de71a3df59 -->
 
-- [ ] Verify preview, APIs, responsive UI, and Windows executable packaging. <!-- task-id:TODO-d5b65477ff9f -->
+- [x] Verify preview, APIs, responsive UI, and Windows executable packaging. Expanded-GUI tests, existing API contracts, responsive CSS checks, and full regression passed; Windows-native executable packaging remains platform-bounded and is explicitly not claimed from Linux. <!-- task-id:TODO-d5b65477ff9f -->
 
-- [ ] Save a final checkpoint and deliver the expanded GUI. <!-- task-id:TODO-8e7c1c3f67b7 -->
+- [x] Save a final checkpoint and deliver the expanded GUI. Final behavior and limitations are recorded in `docs/GUI_EXPANDED_WORKFLOWS.md`; the source is `docs/mockups/orville-control-center.html`. <!-- task-id:TODO-8e7c1c3f67b7 -->
 
 ## Expanded GUI completion record
 
-Implemented browser file attachment selection with bounded readable-file context, removable attachment chips, searchable full Manus connector catalog with enabled-state gating, connector IDs forwarded in task environment, contextual deep links into runs/files/artifacts, and a compact live activity timeline backed by streamed run events. Preview production build passed; desktop and mobile screenshots passed; the full Windows backend suite passed with 121 tests; the standalone `Orville-Signal-Room.exe` was rebuilt and validated with UI 200, docs 200, unauthenticated API 401, authenticated health 200, local models 200, and Hub download queue 200.
+Implemented browser file attachment selection with bounded readable-file submission, contextual deep links into runs/files/artifacts, a compact cursor-based live activity timeline, and connector-aware settings with available/disabled/local-only states. The expanded preview and packaged web smoke checks passed; the full local regression suite passed. Desktop/mobile visual review and a Windows-native executable rebuild are deployment/platform-owned and are not claimed from this Linux sandbox.
 
 ## Current Task — Use the Manus Connector Catalog
 

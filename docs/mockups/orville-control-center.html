@@ -7,26 +7,30 @@
   <style>
     :root { --canvas:#f4f0ea; --surface:#fffdf9; --surface-2:#eee8df; --text:#211e1c; --muted:#6d6560; --border:#d8cfc5; --accent:#6546d7; --focus:#bb43bb; --success:#1e8a61; --warning:#a96800; --danger:#ad3b48; --radius:14px; --shadow:0 12px 30px rgba(40,30,20,.10); }
     * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
     body { margin:0; background:var(--canvas); color:var(--text); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
-    button, input { font:inherit; }
-    button:focus-visible, a:focus-visible, input:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+    button, input, textarea { font:inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
     [data-theme="dark"] { --canvas:#171717; --surface:#222222; --surface-2:#30302d; --text:#f5f5f2; --muted:#b7b7b0; --border:#464640; --accent:#a79bff; --focus:#9fc0ff; --success:#73d39a; --warning:#f1bd68; --danger:#ff8a80; }
     [data-theme="dark"] nav { background:#111113; }
-    .shell { display:grid; grid-template-columns:220px minmax(0,1fr) 280px; min-height:100vh; }
+    .shell { display:grid; grid-template-columns:220px minmax(0,1fr) 300px; min-height:100vh; }
     nav { padding:28px 18px; background:#27232b; color:#f9f6f1; }
     .brand { margin:0 10px 30px; font-size:22px; font-weight:750; letter-spacing:-.04em; }
     .nav-group { display:grid; gap:5px; margin-bottom:22px; }
     .nav-label { margin:10px 10px 5px; color:#bfb6c4; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
     nav a { padding:10px 12px; border-radius:9px; color:#eee8f0; text-decoration:none; }
     nav a[aria-current="page"], nav a:hover { background:#40384c; color:#fff; }
-    main { padding:28px clamp(20px,4vw,52px); }
+    main { padding:28px clamp(20px,4vw,52px); min-width:0; }
     .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:28px; }
     .crumbs { color:var(--muted); font-size:13px; }
     .crumbs strong { color:var(--text); }
-    .actions { display:flex; gap:10px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; }
     button { min-height:44px; min-width:44px; border:1px solid var(--border); border-radius:9px; padding:10px 14px; background:var(--surface); color:var(--text); cursor:pointer; }
+    button:hover { border-color:var(--accent); }
+    button:disabled { cursor:not-allowed; opacity:.55; }
     .primary { border-color:var(--accent); background:var(--accent); color:#fff; font-weight:700; }
     h1 { margin:0 0 5px; font-size:32px; letter-spacing:-.04em; }
+    h2 { margin:0; font-size:18px; }
     .subtitle { margin:0 0 24px; color:var(--muted); }
     .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:22px; }
     .card { border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); box-shadow:var(--shadow); }
@@ -35,13 +39,28 @@
     .metric-value { margin-top:5px; font-size:27px; font-weight:750; }
     .status { display:inline-flex; align-items:center; gap:6px; color:var(--success); font-size:13px; font-weight:700; }
     .status::before { width:8px; height:8px; border-radius:50%; background:currentColor; content:""; }
-    .section { padding:20px; }
-    .section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-    h2 { margin:0; font-size:18px; }
+    .section { padding:20px; margin-bottom:18px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
     table { width:100%; border-collapse:collapse; }
-    th, td { padding:12px 8px; border-bottom:1px solid var(--border); text-align:left; }
+    th, td { padding:12px 8px; border-bottom:1px solid var(--border); text-align:left; vertical-align:middle; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
     .tag { display:inline-block; padding:4px 8px; border-radius:999px; background:#e6ddff; color:#5231ba; font-size:12px; font-weight:700; }
+    .tag.success { background:#d9f3e5; color:#176c4b; }
+    .link-card { display:inline-flex; align-items:center; gap:7px; color:var(--accent); font-weight:700; text-decoration:none; }
+    .link-card:hover { text-decoration:underline; }
+    .composer { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:end; }
+    .composer textarea { width:100%; min-height:72px; resize:vertical; border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--surface); color:var(--text); }
+    .attachment-panel { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .attachment-panel input[type=file] { max-width:100%; }
+    .file-list { display:flex; flex-wrap:wrap; gap:7px; width:100%; }
+    .file-chip { padding:5px 9px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:12px; }
+    .notice { margin-top:10px; color:var(--muted); font-size:13px; }
+    .timeline { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+    .timeline li { display:grid; grid-template-columns:10px minmax(0,1fr) auto; gap:10px; align-items:start; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .timeline li::before { width:8px; height:8px; margin-top:7px; border-radius:50%; background:var(--accent); content:""; }
+    .timeline time { color:var(--muted); font-size:12px; white-space:nowrap; }
+    .muted { color:var(--muted); }
+    .setting-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
     aside { padding:28px 20px; border-left:1px solid var(--border); background:var(--surface); }
     .rail-title { margin:0 0 18px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
     .rail-block { padding:14px 0; border-bottom:1px solid var(--border); }
@@ -49,8 +68,9 @@
     .rail-block p { margin:0; color:var(--muted); font-size:13px; }
     .progress { height:8px; margin:12px 0 5px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
     .progress span { display:block; width:68%; height:100%; background:var(--accent); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
     @media (max-width:980px) { .shell { grid-template-columns:190px minmax(0,1fr); } aside { display:none; } }
-    @media (max-width:790px) { .shell { display:block; } nav { padding:14px; } .brand { display:inline-block; margin:0 16px 0 0; } .nav-group { display:flex; flex-wrap:wrap; margin:0; } .nav-label { display:none; } nav a { padding:7px 9px; font-size:13px; } main { padding:22px 16px; } .topbar { align-items:flex-start; flex-direction:column; } .grid { grid-template-columns:1fr; } .actions { width:100%; } .actions button { flex:1; } }
+    @media (max-width:790px) { .shell { display:block; } nav { padding:14px; } .brand { display:inline-block; margin:0 16px 0 0; } .nav-group { display:flex; flex-wrap:wrap; margin:0; } .nav-label { display:none; } nav a { padding:7px 9px; font-size:13px; } main { padding:22px 16px; } .topbar { align-items:flex-start; flex-direction:column; } .grid { grid-template-columns:1fr; } .actions { width:100%; } .actions button { flex:1; } .composer { grid-template-columns:1fr; } table { display:block; overflow-x:auto; white-space:nowrap; } }
     @media (prefers-reduced-motion:reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
   </style>
 </head>
@@ -59,44 +79,82 @@
     <nav aria-label="Primary navigation">
       <div class="brand">orville</div>
       <div class="nav-label">Workspace</div>
-      <div class="nav-group">
-        <a href="#home" aria-current="page">Home</a><a href="#projects">Projects</a><a href="#new-objective">New objective</a><a href="#activity">Activity</a>
-      </div>
+      <div class="nav-group"><a href="#home" aria-current="page">Home</a><a href="#projects">Projects</a><a href="#new-objective">New objective</a><a href="#activity">Activity</a></div>
       <div class="nav-label">Operations</div>
       <div class="nav-group"><a href="#providers">Providers</a><a href="#settings">Settings</a><a href="#help">Help</a></div>
     </nav>
     <main id="home">
-      <div class="topbar"><div class="crumbs">Workspace / <strong>Home</strong></div><div class="actions"><button id="theme-toggle" type="button" aria-pressed="false">Use dark theme</button><button>View activity</button><button class="primary">New objective</button></div></div>
+      <div class="topbar"><div class="crumbs">Workspace / <strong>Home</strong></div><div class="actions"><button id="theme-toggle" type="button" aria-pressed="false">Use dark theme</button><button id="activity-link" type="button">View activity</button><a class="link-card" href="#new-objective">New objective</a></div></div>
       <h1>Good morning, Builder</h1>
       <p class="subtitle">Review active work, approvals, and local readiness before your next run.</p>
       <div class="grid">
-        <article class="card metric"><div class="metric-label">Active runs</div><div class="metric-value">03</div><div class="status">All systems responding</div></article>
+        <article class="card metric"><div class="metric-label">Active runs</div><div class="metric-value"><a class="link-card" href="#run/run-042">03</a></div><div class="status">All systems responding</div></article>
         <article class="card metric"><div class="metric-label">Needs approval</div><div class="metric-value">02</div><div class="status" style="color:var(--warning)">Review required</div></article>
         <article class="card metric"><div class="metric-label">Local readiness</div><div class="metric-value">94%</div><div class="status">Ready for local work</div></article>
       </div>
-      <section class="card section" id="projects" aria-labelledby="projects-title"><div class="section-head"><h2 id="projects-title">Recent projects</h2><button>View all</button></div><table><thead><tr><th>Project</th><th>Checkpoint</th><th>Owner</th><th>Status</th><th>Next action</th></tr></thead><tbody><tr><td><strong>Signal Room</strong></td><td>Verification · v14</td><td>Reviewer</td><td><span class="tag">Needs review</span></td><td><button>Open evidence</button></td></tr><tr><td><strong>Provider catalog</strong></td><td>Build · v08</td><td>Operator</td><td><span class="status">Ready</span></td><td><button>View run</button></td></tr><tr><td><strong>Website brief</strong></td><td>Intake · v02</td><td>Builder</td><td><span class="tag">Draft</span></td><td><button>Continue</button></td></tr></tbody></table></section>
+      <section class="card section" id="projects" aria-labelledby="projects-title"><div class="section-head"><h2 id="projects-title">Recent projects</h2><a class="link-card" href="#project/signal-room">View all</a></div><table><thead><tr><th>Project</th><th>Checkpoint</th><th>Owner</th><th>Status</th><th>Next action</th></tr></thead><tbody><tr><td><a class="link-card" href="#project/signal-room">Signal Room</a></td><td><a class="link-card" href="#artifact/checkpoint-v14">Verification · v14</a></td><td>Reviewer</td><td><span class="tag">Needs review</span></td><td><a class="link-card" href="#artifact/checkpoint-v14">Open evidence</a></td></tr><tr><td><strong>Provider catalog</strong></td><td><a class="link-card" href="#run/run-041">Build · v08</a></td><td>Operator</td><td><span class="tag success">Ready</span></td><td><a class="link-card" href="#run/run-041">View run</a></td></tr><tr><td><strong>Website brief</strong></td><td>Intake · v02</td><td>Builder</td><td><span class="tag">Draft</span></td><td><a class="link-card" href="#new-objective">Continue</a></td></tr></tbody></table></section>
+      <section class="card section" id="new-objective" aria-labelledby="objective-title"><div class="section-head"><h2 id="objective-title">Start a safe objective</h2><span class="muted">Draft first · approval before external effects</span></div><form id="objective-form"><label class="sr-only" for="objective">Objective</label><div class="composer"><textarea id="objective" required placeholder="Describe what you want Orville to accomplish…"></textarea><button class="primary" type="submit">Review task graph</button></div><div class="attachment-panel"><label for="attachments"><strong>Attach local files</strong></label><input id="attachments" type="file" multiple><span class="muted">Text files up to 5 MB are submitted as local artifacts; binary files remain local metadata.</span><div id="file-list" class="file-list" aria-live="polite"></div></div><p id="submission-status" class="notice" role="status">No files selected. No external request has been made.</p></form><pre id="objective-payload" class="notice" hidden></pre></section>
+      <section class="card section" id="activity" aria-labelledby="activity-title"><div class="section-head"><h2 id="activity-title">Live activity · <a class="link-card" href="#run/run-042">run-042</a></h2><span id="stream-status" class="status">Polling connected</span></div><ul id="timeline" class="timeline" aria-live="polite"><li><span><strong>Task graph ready</strong><br><span class="muted">Dependency order confirmed</span></span><time datetime="2026-08-28T09:41:00Z">09:41</time></li><li><span><strong>Artifact verified</strong><br><span class="muted"><a class="link-card" href="#artifact/checkpoint-v14">checkpoint-v14</a> checksum recorded</span></span><time datetime="2026-08-28T09:42:00Z">09:42</time></li></ul></section>
+      <section class="card section" id="settings" aria-labelledby="settings-title"><div class="section-head"><h2 id="settings-title">Connections</h2><button id="refresh-connectors" type="button">Refresh status</button></div><div id="connector-list"><div class="setting-row"><span>Manus connectors</span><span class="muted">Checking…</span></div></div><p class="notice">Credentials stay in the authenticated workspace session. This preview never asks for or displays secrets.</p></section>
     </main>
-    <aside aria-label="Context rail"><p class="rail-title">Current context</p><div class="rail-block"><strong>Signal Room</strong><p>Verification checkpoint · v14</p><div class="progress" aria-label="Verification progress"><span></span></div><p>4 of 6 acceptance checks complete</p></div><div class="rail-block"><strong>Next safe action</strong><p>Review two visual warnings before approving the checkpoint.</p></div><div class="rail-block"><strong>Evidence</strong><p>12 files · 3 tests · 2 approvals</p></div><div class="rail-block"><strong>Privacy mode</strong><p>Local-only · no external publication configured</p></div></aside>
+    <aside aria-label="Context rail"><p class="rail-title">Current context</p><div class="rail-block" id="run/run-042"><strong><a class="link-card" href="#run/run-042">Signal Room · run-042</a></strong><p>Verification checkpoint · v14</p><div class="progress" aria-label="Verification progress"><span></span></div><p>4 of 6 acceptance checks complete</p></div><div class="rail-block" id="files/signal-room"><strong><a class="link-card" href="#files/signal-room">Selected files</a></strong><p><a class="link-card" href="#artifact/checkpoint-v14">12 artifacts</a> · local-only references</p></div><div class="rail-block" id="artifact/checkpoint-v14"><strong><a class="link-card" href="#artifact/checkpoint-v14">Evidence</a></strong><p>Checkpoint v14 · checksum verified · <a class="link-card" href="#activity">timeline</a></p></div><div class="rail-block" id="providers"><strong>Connector readiness</strong><p id="rail-connector-status">Available connectors are checked from the workspace API.</p></div><div class="rail-block" id="help"><strong>Privacy mode</strong><p>Local-only · no external publication configured</p></div></aside>
   </div>
   <script>
     (() => {
-      const key = "orville-theme";
       const root = document.documentElement;
-      const toggle = document.getElementById("theme-toggle");
-      const saved = window.localStorage.getItem(key);
-      const initial = saved === "dark" || saved === "light" ? saved : "light";
-      const apply = (theme) => {
-        root.dataset.theme = theme;
-        const dark = theme === "dark";
-        toggle.textContent = dark ? "Use light theme" : "Use dark theme";
-        toggle.setAttribute("aria-pressed", String(dark));
+      const themeToggle = document.getElementById("theme-toggle");
+      const saved = window.localStorage.getItem("orville-theme");
+      const applyTheme = theme => { root.dataset.theme = theme; const dark = theme === "dark"; themeToggle.textContent = dark ? "Use light theme" : "Use dark theme"; themeToggle.setAttribute("aria-pressed", String(dark)); };
+      applyTheme(saved === "dark" || saved === "light" ? saved : "light");
+      themeToggle.addEventListener("click", () => { const next = root.dataset.theme === "dark" ? "light" : "dark"; window.localStorage.setItem("orville-theme", next); applyTheme(next); });
+
+      const apiBase = window.ORVILLE_API_BASE || "";
+      const apiHeaders = () => { const token = window.sessionStorage.getItem("orville-api-token"); return token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" }; };
+      const filesInput = document.getElementById("attachments");
+      const fileList = document.getElementById("file-list");
+      const submissionStatus = document.getElementById("submission-status");
+      const selectedFiles = () => [...filesInput.files];
+      const renderFiles = () => { fileList.replaceChildren(...selectedFiles().map(file => { const chip = document.createElement("span"); chip.className = "file-chip"; chip.textContent = `${file.name} · ${Math.ceil(file.size / 1024)} KB`; return chip; })); submissionStatus.textContent = selectedFiles().length ? `${selectedFiles().length} file(s) selected. They will be validated before local artifact submission.` : "No files selected. No external request has been made."; };
+      filesInput.addEventListener("change", renderFiles);
+
+      const digest = async file => { const bytes = await crypto.subtle.digest("SHA-256", await file.arrayBuffer()); return [...new Uint8Array(bytes)].map(value => value.toString(16).padStart(2, "0")).join(""); };
+      const submitFiles = async () => {
+        const refs = [];
+        for (const file of selectedFiles()) {
+          if (file.size > 5_000_000) throw new Error(`${file.name} exceeds the 5 MB safety limit`);
+          const isText = file.type.startsWith("text/") || /\.(md|json|txt|csv|log|py|js|ts|tsx|html|css)$/i.test(file.name);
+          if (!isText) { refs.push({ name: file.name, size: file.size, media_type: file.type || "application/octet-stream", submitted: false, reason: "binary file remains local" }); continue; }
+          const response = await fetch(`${apiBase}/api/v1/artifacts/text`, { method: "POST", headers: apiHeaders(), body: JSON.stringify({ name: file.name.replace(/[^a-zA-Z0-9._-]/g, "_"), content: await file.text(), artifact_id: (await digest(file)).slice(0, 16) }) });
+          if (!response.ok) throw new Error(`workspace artifact submission failed for ${file.name}`);
+          const body = await response.json(); refs.push({ name: file.name, artifact: body.artifact, submitted: true });
+        }
+        return refs;
       };
-      apply(initial);
-      toggle.addEventListener("click", () => {
-        const next = root.dataset.theme === "dark" ? "light" : "dark";
-        window.localStorage.setItem(key, next);
-        apply(next);
+
+      document.getElementById("objective-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const objective = document.getElementById("objective").value.trim();
+        if (!objective) { submissionStatus.textContent = "Add an objective before review."; return; }
+        const button = event.currentTarget.querySelector("button[type=submit]"); button.disabled = true; submissionStatus.textContent = "Validating files and preparing a safe local submission…";
+        try {
+          const attachments = await submitFiles();
+          const payload = { objective, attachment_refs: attachments, submission_mode: "review_only", external_effects: "approval_required" };
+          const preview = document.getElementById("objective-payload"); preview.hidden = false; preview.textContent = JSON.stringify(payload, null, 2); submissionStatus.textContent = "Ready for task-graph review. Files were handled through the workspace artifact API; no run was started.";
+        } catch (error) { submissionStatus.textContent = error instanceof Error ? error.message : "Safe submission could not be completed."; }
+        finally { button.disabled = false; }
       });
+
+      const timeline = document.getElementById("timeline");
+      const streamStatus = document.getElementById("stream-status");
+      let lastSequence = 2;
+      const addEvent = (title, detail, sequence) => { if (sequence <= lastSequence) return; lastSequence = sequence; const item = document.createElement("li"); const text = document.createElement("span"); const strong = document.createElement("strong"); strong.textContent = title; const description = document.createElement("span"); description.className = "muted"; description.textContent = detail; text.append(strong, document.createElement("br"), description); const time = document.createElement("time"); time.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); item.append(text, time); timeline.prepend(item); };
+      const pollActivity = async () => { try { const response = await fetch(`${apiBase}/api/v1/runs/run-042/events?after=${lastSequence}`, { headers: apiHeaders() }); if (!response.ok) throw new Error("event polling unavailable"); const body = await response.json(); (body.events || []).forEach(event => addEvent(event.event_type || "Run event", event.status || "Event received", Number(event.sequence || 0))); streamStatus.textContent = "Polling connected"; } catch (_) { streamStatus.textContent = "Offline · preserving last activity"; } };
+      setInterval(pollActivity, 5000); pollActivity();
+      document.getElementById("activity-link").addEventListener("click", () => document.getElementById("activity").scrollIntoView({ behavior: "smooth" }));
+
+      const connectorList = document.getElementById("connector-list");
+      const refreshConnectors = async () => { connectorList.replaceChildren(); try { const response = await fetch(`${apiBase}/api/v1/connectors`, { headers: apiHeaders() }); if (!response.ok) throw new Error("connector inventory unavailable"); const body = await response.json(); const items = body.connectors || body.adapters || []; if (!items.length) throw new Error("no connectors configured"); items.slice(0, 8).forEach(connector => { const row = document.createElement("div"); row.className = "setting-row"; const name = document.createElement("span"); name.textContent = connector.name || connector.connector_id || "Configured connector"; const state = document.createElement("span"); state.className = connector.enabled === false ? "muted" : "status"; state.textContent = connector.enabled === false ? "Disabled" : "Available"; row.append(name, state); connectorList.append(row); }); document.getElementById("rail-connector-status").textContent = `${items.length} connector(s) available to this workspace.`; } catch (_) { const row = document.createElement("div"); row.className = "setting-row"; const name = document.createElement("span"); name.textContent = "Manus connectors"; const state = document.createElement("span"); state.className = "muted"; state.textContent = "Not configured · local mode"; row.append(name, state); connectorList.append(row); document.getElementById("rail-connector-status").textContent = "No connector inventory available; local-only mode remains active."; } };
+      document.getElementById("refresh-connectors").addEventListener("click", refreshConnectors); refreshConnectors();
     })();
   </script>
 </body>

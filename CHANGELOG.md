@@ -1,5 +1,22 @@
 # Orville Changelog
 
+## 2026-08-28 — Expanded Signal Room GUI checkpoint
+
+### Changed
+
+- Closed the nine attachment, deep-link, activity, connector, verification, and delivery TODOs listed under the expanded GUI task.
+- Added real browser file selection with per-file size/type validation, sanitized names, SHA-256-derived artifact IDs, text submission through `/api/v1/artifacts/text`, and binary-local metadata fallback.
+- Added stable contextual links for runs, files, artifacts, projects, and activity; cursor-deduplicated run-event polling with offline preservation; and connector-aware settings backed by `/api/v1/connectors` with local-only fallback.
+- Documented the expanded workflow contract in `docs/GUI_EXPANDED_WORKFLOWS.md` and added focused acceptance coverage in `tests/test_gui_expanded_workflows.py`.
+
+### Validation
+
+- Full regression: **798 tests and 6 subtests passed**.
+- Expanded GUI acceptance: **52 tests and 1 subtest passed**.
+- Compilation, project checks, visual-regression baseline, and packaged web smoke checks passed.
+- Three existing packaged-web contrast warnings remain non-blocking. Windows-native executable packaging requires a Windows runner and was not claimed from this Linux sandbox.
+
+
 ## 2026-08-28 — Recovery, event history, memory, and idempotency closeout
 
 ### Changed
