@@ -1,0 +1,14 @@
+diff --git a/case_app/exporter.py b/case_app/exporter.py
+--- a/case_app/exporter.py
++++ b/case_app/exporter.py
+@@ -7,6 +7,9 @@
+ def export_text(root: Path, relative_name: str, content: str) -> Path:
+     """Write text beneath root and return the destination."""
+-    destination = root / relative_name
++    resolved_root = root.resolve()
++    destination = (resolved_root / relative_name).resolve()
++    if not destination.is_relative_to(resolved_root):
++        raise ValueError("export path escapes approved root")
+     destination.parent.mkdir(parents=True, exist_ok=True)
+     destination.write_text(content, encoding="utf-8")
+     return destination

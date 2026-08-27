@@ -2172,3 +2172,6 @@ Five focused operation-checkpoint tests, four existing automation tests, and 18 
 ## 2026-08-27 — Execution-record known limitations
 
 Added structured limitation categories to the reusable Standard Execution Record Template: scope, environment/provider, validation, and unresolved risks/follow-up dependencies. Added `tests/test_execution_record_template.py`; two focused tests and Python compilation passed. The checklist remains a template placeholder for future records and is not treated as a product milestone.
+
+## 2026-08-28 — Repository coding evaluations
+Added two deterministic, synthetic repository coding-evaluation fixtures covering a cache-key collision and a path-boundary defect, with realistic issue statements, golden patches, offline requirements, focused tests, baseline-failure checks, patch dry-run/apply, compilation, and regression validation. Added `tools/run_repository_coding_evaluations.py`, `config/repository-coding-evaluations.json`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, and focused tests. The evaluator uses disposable workspaces and does not access networks, credentials, production resources, or external side effects.

@@ -1,0 +1,7 @@
+--- a/case_app/cache.py
++++ b/case_app/cache.py
+@@ -6,2 +6,2 @@
+-    # Intentional issue: callers from different namespaces collide.
+-    return key
++
++    return f"{namespace}:{key}"

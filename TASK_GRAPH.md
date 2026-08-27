@@ -1506,3 +1506,12 @@ Each future execution record now has a consistent place to state what was not te
 | TODO-f452603d4f34 | Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures | Observability / Security / Verification Agents | Existing trace, telemetry, checkpoint, approval, artifact, and redaction contracts | completed-local | `orville_core/run_observability.py`, `tests/test_run_observability.py`, `docs/PER_RUN_OBSERVABILITY.md`; 3 focused tests, Python compilation, and broader regression passed |
 
 The record is append-only JSONL, stores prompt hashes rather than raw prompts, redacts nested sensitive metadata, omits tool arguments and artifact bytes, validates non-negative usage/latency values, and leaves distributed trace export, provider billing reconciliation, and production retention enforcement as follow-up work.
+
+
+## 21.4A — Repository-level coding evaluations
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-745d5e6b79eb | Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks | Verification Agent / Code Synthesis Agent | 21.4 evaluation registry and existing project/test contracts | completed-local | `config/repository-coding-evaluations.json`, `tools/run_repository_coding_evaluations.py`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, `tests/test_repository_coding_evaluations.py`; two baseline-failing fixtures, offline dependency installation, patch dry-run/apply, focused tests, compilation, and regression checks pass |
+
+The evaluator uses disposable workspaces, forbids network and external side effects, redacts temporary paths in evidence, and does not claim production readiness or substitute for isolated software evaluation.
