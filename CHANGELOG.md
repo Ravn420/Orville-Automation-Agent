@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Per-run observability records
+
+### Added
+
+- Completed `TODO-f452603d4f34` with a privacy-safe run record for provider/model/version, prompt hashing, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache status, cost metadata, and failures.
+- Added append-only JSONL persistence, nested secret redaction, bounded numeric validation, and a public package API without raw prompt, tool-argument, or artifact-byte capture.
+- Added `docs/PER_RUN_OBSERVABILITY.md` and focused privacy/persistence tests.
+
+### Validation
+
+- Focused observability tests: **3 passed**.
+- Python compilation: passed.
+- Broader regression: **798 passed, 1 warning, 6 subtests passed**.
+
 ## 2026-08-28 — Repository-level coding evaluations
 
 ### Added

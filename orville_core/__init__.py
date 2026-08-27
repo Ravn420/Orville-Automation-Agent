@@ -16,6 +16,7 @@ from .supply_chain import SupplyChainReview, review_downloaded_file
 from .recovery import RecoveryVerification, build_rollback_plan, verify_recovery_evidence
 from .failure_patterns import FailurePattern, review_completed_task_graphs
 from .observability import JsonlTraceRecorder, TraceRecord
+from .run_observability import RunObservabilityRecord, RunObservabilityRecorder, elapsed_ms
 from .sandbox import SandboxError, SandboxExecutor, SandboxPlan, SandboxPolicy, SandboxResult, SandboxUnavailable, UnavailableSandboxExecutor
 from .sandbox_adapters import LinuxBubblewrapExecutor, WindowsSandboxExecutor, discover_sandbox_adapters
 from .tuf_metadata import TufRepositoryVerifier, TufVerificationError
@@ -153,6 +154,9 @@ __all__ = [
     "create_app",
     "JsonlTraceRecorder",
     "TraceRecord",
+    "RunObservabilityRecord",
+    "RunObservabilityRecorder",
+    "elapsed_ms",
     "SandboxError",
     "SandboxExecutor",
     "SandboxPlan",
