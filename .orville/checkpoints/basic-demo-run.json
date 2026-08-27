@@ -1,0 +1,129 @@
+{
+  "context": {
+    "project": "Orville"
+  },
+  "events": [
+    {
+      "details": {
+        "graph_id": "basic-demo",
+        "timestamp": "2026-08-23T21:17:43.837131+00:00"
+      },
+      "event_type": "run_created",
+      "sequence": 1,
+      "task_id": null
+    },
+    {
+      "details": {
+        "timestamp": "2026-08-23T21:17:43.840183+00:00"
+      },
+      "event_type": "run_started",
+      "sequence": 2,
+      "task_id": null
+    },
+    {
+      "details": {
+        "timestamp": "2026-08-23T21:17:43.841189+00:00"
+      },
+      "event_type": "task_ready",
+      "sequence": 3,
+      "task_id": "prepare"
+    },
+    {
+      "details": {
+        "attempt": 1,
+        "timestamp": "2026-08-23T21:17:43.842626+00:00"
+      },
+      "event_type": "task_started",
+      "sequence": 4,
+      "task_id": "prepare"
+    },
+    {
+      "details": {
+        "attempt": 1,
+        "timestamp": "2026-08-23T21:17:43.843888+00:00"
+      },
+      "event_type": "task_verified",
+      "sequence": 5,
+      "task_id": "prepare"
+    },
+    {
+      "details": {
+        "timestamp": "2026-08-23T21:17:43.845023+00:00"
+      },
+      "event_type": "task_ready",
+      "sequence": 6,
+      "task_id": "finish"
+    },
+    {
+      "details": {
+        "attempt": 1,
+        "timestamp": "2026-08-23T21:17:43.846026+00:00"
+      },
+      "event_type": "task_started",
+      "sequence": 7,
+      "task_id": "finish"
+    },
+    {
+      "details": {
+        "attempt": 1,
+        "timestamp": "2026-08-23T21:17:43.848026+00:00"
+      },
+      "event_type": "task_verified",
+      "sequence": 8,
+      "task_id": "finish"
+    },
+    {
+      "details": {
+        "timestamp": "2026-08-23T21:17:43.849403+00:00"
+      },
+      "event_type": "run_completed",
+      "sequence": 9,
+      "task_id": null
+    }
+  ],
+  "graph": {
+    "graph_id": "basic-demo",
+    "name": "Basic Orville demonstration",
+    "tasks": [
+      {
+        "attempts": 1,
+        "depends_on": [],
+        "error": null,
+        "handler": "echo",
+        "inputs": {
+          "message": "workspace ready"
+        },
+        "max_attempts": 1,
+        "output": {
+          "message": "workspace ready",
+          "project": "Orville"
+        },
+        "status": "verified",
+        "task_id": "prepare",
+        "title": "Prepare workspace"
+      },
+      {
+        "attempts": 1,
+        "depends_on": [
+          "prepare"
+        ],
+        "error": null,
+        "handler": "echo",
+        "inputs": {
+          "message": "run complete"
+        },
+        "max_attempts": 1,
+        "output": {
+          "message": "run complete",
+          "project": "Orville"
+        },
+        "status": "verified",
+        "task_id": "finish",
+        "title": "Finish run"
+      }
+    ]
+  },
+  "run_id": "basic-demo-run",
+  "run_status": "completed",
+  "schema_version": 1
+}

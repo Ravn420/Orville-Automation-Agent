@@ -1,0 +1,22 @@
+{
+  "schema": "orville.visual-design-system",
+  "version": "1.0",
+  "font": {
+    "family_ui": "Inter, Segoe UI, sans-serif",
+    "family_mono": "ui-monospace, SFMono-Regular, Consolas, monospace",
+    "sizes_px": {"xs": 12, "sm": 14, "md": 16, "lg": 20, "xl": 28, "display": 36},
+    "line_heights": {"tight": 1.2, "body": 1.5, "loose": 1.7},
+    "weights": {"regular": 400, "medium": 500, "semibold": 600, "bold": 700}
+  },
+  "color": {
+    "light": {"canvas": "#F7F7F5", "surface": "#FFFFFF", "text": "#171717", "muted": "#626262", "border": "#D9D9D4", "accent": "#6D5CE7", "accent_hover": "#5948D0", "success": "#197A4B", "warning": "#9A5B00", "danger": "#B3261E", "focus": "#2859C5"},
+    "dark": {"canvas": "#171717", "surface": "#222222", "text": "#F5F5F2", "muted": "#B7B7B0", "border": "#464640", "accent": "#A79BFF", "accent_hover": "#C0B8FF", "success": "#73D39A", "warning": "#F1BD68", "danger": "#FF8A80", "focus": "#9FC0FF"}
+  },
+  "spacing_px": {"1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "10": 40, "12": 48, "16": 64},
+  "radius_px": {"sm": 6, "md": 10, "lg": 16, "pill": 999},
+  "elevation": {"none": "none", "sm": "0 1px 2px rgba(0,0,0,0.08)", "md": "0 4px 12px rgba(0,0,0,0.12)", "lg": "0 12px 32px rgba(0,0,0,0.16)"},
+  "icon": {"size_px": {"sm": 16, "md": 20, "lg": 24}, "stroke_px": 1.75, "decorative_requires_label": false},
+  "control": {"min_touch_target_px": 44, "button_height_px": 40, "input_height_px": 40, "focus_ring_px": 3},
+  "motion": {"duration_ms": {"fast": 120, "standard": 200, "slow": 320}, "reduced_motion": "disable_nonessential_motion"},
+  "breakpoints_px": {"compact": 790, "contextual_panel": 980, "desktop": 1280}
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "orville.frontend-backend.environment",
+  "environment": "local",
+  "api": {
+    "base_url": "http://127.0.0.1:8787",
+    "api_prefix": "/api/v1",
+    "request_timeout_seconds": 10,
+    "retry_attempts": 2,
+    "send_request_id": true
+  },
+  "frontend": {
+    "runtime_config_file": "/config.json",
+    "token_storage": "memory-only",
+    "provider_credentials_exposed": false
+  },
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "required_environment_variables": ["ORVILLE_API_TOKEN"],
+    "allowed_origins": ["http://127.0.0.1:3000"],
+    "tls_termination": "deployment-owned"
+  },
+  "error_contract": {
+    "envelope": "error",
+    "required_fields": ["code", "message", "operation", "retryable"],
+    "message_must_be_secret_free": true,
+    "allowed_operation_pattern": "^[a-z][a-z0-9_]{1,63}$"
+  }
+}

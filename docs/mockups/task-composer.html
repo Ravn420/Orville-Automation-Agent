@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orville Task Composer Mockup</title>
+  <style>
+    :root { --canvas:#f4f0ea; --surface:#fffdf9; --text:#211e1c; --muted:#6d6560; --border:#d8cfc5; --accent:#6546d7; --focus:#bb43bb; --danger:#ad3b48; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--canvas); color:var(--text); font:15px/1.5 system-ui,sans-serif; }
+    .page { max-width:900px; margin:0 auto; padding:32px 20px 60px; } .header { display:flex; justify-content:space-between; gap:16px; align-items:start; margin-bottom:24px; }
+    h1 { margin:0; font-size:32px; letter-spacing:-.04em; } .muted { color:var(--muted); } .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:16px; }
+    label { display:block; margin:0 0 6px; font-weight:700; } input, textarea, select { width:100%; min-height:44px; border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:var(--surface); color:var(--text); font:inherit; } textarea { min-height:130px; resize:vertical; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline:3px solid var(--focus); outline-offset:2px; } .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .field { margin-bottom:16px; }
+    .drop { border:2px dashed var(--border); border-radius:10px; padding:18px; text-align:center; } .drop input { border:0; padding:10px 0; } .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; } .chip { padding:5px 9px; border-radius:99px; background:#e6ddff; color:#5231ba; font-size:13px; }
+    .actions { display:flex; justify-content:flex-end; gap:10px; } button { min-height:44px; border:1px solid var(--border); border-radius:8px; padding:10px 15px; background:var(--surface); color:var(--text); cursor:pointer; } .primary { border-color:var(--accent); background:var(--accent); color:#fff; font-weight:700; }
+    .criteria { display:flex; gap:8px; } .criteria input { flex:1; } .criteria button { flex:0 0 auto; } ul { margin:10px 0 0; padding-left:20px; } .notice { padding:12px; border-left:4px solid var(--accent); background:#eee8ff; } pre { white-space:pre-wrap; overflow:auto; background:#242129; color:#f9f6f1; padding:16px; border-radius:8px; }
+    @media (max-width:700px) { .grid { grid-template-columns:1fr; } .header { display:block; } .header .actions { margin-top:14px; } }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation:none !important; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header"><div><p class="muted">Workspace / New objective</p><h1>Compose a task</h1><p class="muted">Describe the outcome, define the boundaries, and review the plan before execution.</p></div><div class="actions"><button id="save" type="button">Save draft</button><button id="reset" type="button">Reset</button></div></header>
+    <form id="composer" novalidate>
+      <section class="card" aria-labelledby="requirements-title"><h2 id="requirements-title">Requirements</h2><div class="field"><label for="objective">Software objective</label><textarea id="objective" required placeholder="What should Orville build or change?"></textarea></div><div class="field"><label for="deliverables">Deliverables</label><input id="deliverables" placeholder="One deliverable per line"></div></section>
+      <section class="card" aria-labelledby="inputs-title"><h2 id="inputs-title">Context and files</h2><div class="field"><label for="context">Existing context</label><textarea id="context" placeholder="Repository, runtime, or domain context"></textarea></div><div class="field drop"><label for="files">Attach local files</label><p class="muted">Files are referenced locally for this draft; no upload occurs in this mockup.</p><input id="files" type="file" multiple></div><div id="file-list" class="chips" aria-live="polite"></div></section>
+      <section class="card" aria-labelledby="constraints-title"><h2 id="constraints-title">Constraints and model</h2><div class="grid"><div class="field"><label for="environment">Target environment</label><select id="environment"><option>Local standalone</option><option>Windows desktop</option><option>Container</option><option>Cloud deployment (approval required)</option></select></div><div class="field"><label for="model">Model preference</label><select id="model"><option>Automatic — capability aware</option><option>Local model only</option><option>Configured cloud provider</option><option>Manual model selection</option></select></div></div><div class="field"><label for="constraints">Constraints</label><textarea id="constraints" placeholder="Privacy, runtime, budget, deadline, or implementation limits"></textarea></div><div class="notice">Provider credentials remain outside this draft. External execution, publication, and deployment require separate approval.</div></section>
+      <section class="card" aria-labelledby="acceptance-title"><h2 id="acceptance-title">Acceptance criteria</h2><p class="muted">Add observable conditions that determine whether the result is complete.</p><div class="criteria"><input id="criterion" placeholder="Example: tests pass in a clean environment"><button id="add-criterion" type="button">Add criterion</button></div><ul id="criteria-list"></ul></section>
+      <section class="card" aria-labelledby="review-title"><h2 id="review-title">Review before execution</h2><p class="muted">The next step records assumptions, generates a task graph, and shows approval gates before any task runs.</p><div id="validation" class="muted" aria-live="polite">Complete the objective and at least one acceptance criterion.</div><div class="actions"><button id="review" class="primary" type="submit">Review task graph</button></div></section>
+    </form>
+    <section id="draft-preview" class="card" hidden aria-labelledby="draft-title"><h2 id="draft-title">Draft payload</h2><pre id="payload"></pre></section>
+  </main>
+  <script>
+    const key = "orville-task-composer-draft";
+    const form = document.getElementById("composer"); const criteria = []; const list = document.getElementById("criteria-list");
+    const value = id => document.getElementById(id).value.trim();
+    const renderCriteria = () => { list.innerHTML = criteria.map((item, index) => `<li>${item} <button type="button" data-index="${index}" aria-label="Remove ${item}">Remove</button></li>`).join(""); };
+    document.getElementById("add-criterion").addEventListener("click", () => { const input = document.getElementById("criterion"); if (input.value.trim()) { criteria.push(input.value.trim()); input.value = ""; renderCriteria(); } });
+    list.addEventListener("click", event => { if (event.target.dataset.index !== undefined) { criteria.splice(Number(event.target.dataset.index), 1); renderCriteria(); } });
+    document.getElementById("files").addEventListener("change", event => { document.getElementById("file-list").innerHTML = [...event.target.files].map(file => `<span class="chip">${file.name}</span>`).join(""); });
+    const draft = () => ({ objective:value("objective"), deliverables:value("deliverables").split(/\n|,/).map(s=>s.trim()).filter(Boolean), context:value("context"), constraints:value("constraints"), environment:value("environment"), model:value("model"), acceptance_criteria:[...criteria] });
+    document.getElementById("save").addEventListener("click", () => { localStorage.setItem(key, JSON.stringify(draft())); document.getElementById("validation").textContent = "Draft saved locally. No external request was made."; });
+    document.getElementById("reset").addEventListener("click", () => { localStorage.removeItem(key); form.reset(); criteria.length = 0; renderCriteria(); document.getElementById("file-list").innerHTML = ""; document.getElementById("validation").textContent = "Complete the objective and at least one acceptance criterion."; });
+    form.addEventListener("submit", event => { event.preventDefault(); if (!value("objective") || !criteria.length) { document.getElementById("validation").textContent = "Add an objective and at least one acceptance criterion before review."; return; } document.getElementById("payload").textContent = JSON.stringify(draft(), null, 2); document.getElementById("draft-preview").hidden = false; document.getElementById("validation").textContent = "Ready for task-graph review. No task has executed."; });
+  </script>
+</body>
+</html>

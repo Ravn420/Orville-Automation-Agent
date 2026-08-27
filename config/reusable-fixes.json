@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "fixes": {
+    "release-validation": {
+      "problem": "Repeated manual build, test, preview, triage, and smoke validation",
+      "assets": ["tools/project_checks.py", "tools/test_triage.py", "tools/deployment_validation.py", "tests/test_deployment_validation.py"],
+      "reuse": "Run the project-check or deployment-validation entry point before release and retain sanitized evidence."
+    },
+    "sensitive-operation-safety": {
+      "problem": "Repeated approval, untrusted-content, secret-redaction, and destructive-action checks",
+      "assets": ["orville_core/confirmations.py", "orville_core/untrusted_content.py", "docs/DESTRUCTIVE_ACTION_CONFIRMATIONS.md", "docs/SECRET_HANDLING_RULES.md", "tests/test_confirmations.py", "tests/test_untrusted_content.py"],
+      "reuse": "Route every sensitive or externally influenced operation through the existing fail-closed contracts."
+    },
+    "operator-recovery": {
+      "problem": "Repeated health, connector, incident, credential, and recovery procedures",
+      "assets": ["docs/OPERATOR_RUNBOOK.md", "docs/INCIDENT_RESPONSE_CREDENTIAL_ROTATION_RECOVERY.md", "tests/test_operator_runbook.py"],
+      "reuse": "Start from the operator runbook, preserve sanitized correlation evidence, and escalate live actions to the environment owner."
+    },
+    "standalone-delivery": {
+      "problem": "Repeated need for no-Manus examples, task templates, and local operational reports",
+      "assets": ["examples/README.md", "examples/basic_run.py", "examples/local_operational_report.py", "config/task-templates.json", "docs/TASK_TEMPLATES.md", "tools/operational_report.py"],
+      "reuse": "Use local deterministic examples and versioned templates as the default starting point outside Manus."
+    },
+    "terminology-and-observability": {
+      "problem": "Repeated ambiguity in task, execution, artifact, connector, and event terminology",
+      "assets": ["docs/GLOSSARY.md", "orville_core/structured_logging.py", "docs/OPERATIONAL_DASHBOARDS_AND_REPORTS.md", "tests/test_glossary.py", "tests/test_structured_logging.py"],
+      "reuse": "Use canonical terms and correlation-safe structured events in new contracts, tests, and reports."
+    }
+  }
+}

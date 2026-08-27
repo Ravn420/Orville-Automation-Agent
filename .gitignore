@@ -1,0 +1,54 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python caches and local tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Orville runtime state and credentials
+.orville_manus_worker_state.json
+.orville_manus_worker_state.json.*
+.orville_manus_worker.lock
+.orville_manus_worker.log
+*.sqlite
+*.sqlite3
+*.db
+
+# Local logs and temporary diagnostics
+logs/
+tmp/
+*.log
+
+# Generated/build output
+dist/
+build/
+release/
+artifacts/
+webui/node_modules/
+webui/dist/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated archives and downloaded installers
+*.exe
+*.dll
+*.zip
+*.7z
+*.bak

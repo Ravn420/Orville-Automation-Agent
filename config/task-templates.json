@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "templates": {
+    "research": {
+      "objective": "State the research question and decision context.",
+      "deliverables": ["evidence summary", "source register", "uncertainties and limitations"],
+      "constraints": ["cite material findings", "separate fact, analysis, assumption, and recommendation"],
+      "acceptance_criteria": ["sources are traceable", "claims are cross-checked where material", "open questions are explicit"],
+      "verification": "independent source and citation review"
+    },
+    "coding": {
+      "objective": "Describe the behavior, interface, or defect to implement or fix.",
+      "deliverables": ["complete source changes", "configuration", "documentation", "tests"],
+      "constraints": ["preserve compatible behavior unless specified", "avoid secrets and unsafe commands"],
+      "acceptance_criteria": ["focused tests pass", "runtime and setup commands are documented", "known limitations are recorded"],
+      "verification": "independent test and code review"
+    },
+    "automation": {
+      "objective": "Describe the trigger, workflow steps, and desired outcome.",
+      "deliverables": ["workflow definition", "retry and idempotency policy", "health and recovery evidence"],
+      "constraints": ["sensitive actions require approval", "external effects default to dry run"],
+      "acceptance_criteria": ["trigger and ownership are explicit", "retries are bounded", "failure and rollback behavior are defined"],
+      "verification": "deterministic fixture run and safety review"
+    },
+    "web_development": {
+      "objective": "Describe users, journeys, pages, data boundaries, and runtime target.",
+      "deliverables": ["runnable web application", "responsive UI", "API and configuration", "tests"],
+      "constraints": ["keep secrets server-side", "validate external inputs", "define deployment target"],
+      "acceptance_criteria": ["primary journey works", "accessible states are covered", "build and preview checks pass"],
+      "verification": "component, workflow, accessibility, responsive, and end-to-end review"
+    },
+    "media": {
+      "objective": "Describe medium, message, audience, dimensions or duration, and style.",
+      "deliverables": ["editable source where available", "exported media", "asset and rights manifest"],
+      "constraints": ["record provenance and license state", "preserve source formats", "review sensitive content"],
+      "acceptance_criteria": ["technical format checks pass", "visual or auditory review passes", "rights evidence is complete"],
+      "verification": "artifact-specific quality and rights review"
+    },
+    "documents": {
+      "objective": "Describe audience, purpose, structure, tone, evidence, and output format.",
+      "deliverables": ["editable source", "requested export", "citation and evidence record"],
+      "constraints": ["use the applicable document template", "keep claims and assumptions distinct", "redact sensitive data"],
+      "acceptance_criteria": ["required sections are present", "citations are traceable", "rendered output is reviewed"],
+      "verification": "content, citation, accessibility, and rendered-output review"
+    },
+    "deployments": {
+      "objective": "Describe release, target environment, audience, change scope, and rollback route.",
+      "deliverables": ["deployment configuration", "preflight evidence", "post-deployment smoke evidence", "rollback instructions"],
+      "constraints": ["dry run first", "no credentials in source or logs", "publishing and account changes require confirmation"],
+      "acceptance_criteria": ["target prerequisites pass", "health checks pass", "rollback and recovery are verified or explicitly limited"],
+      "verification": "release-gate, smoke, security, and operator review"
+    }
+  }
+}

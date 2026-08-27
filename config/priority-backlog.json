@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.1",
+  "scoring": {
+    "impact": "1=low, 2=moderate, 3=high, 4=critical",
+    "effort": "1=less than one day, 2=one to three days, 3=three to seven days, 4=more than one week",
+    "risk": "1=low, 2=moderate, 3=high, 4=critical",
+    "priority_rule": "Order by impact plus risk minus effort; dependencies and blockers override the score."
+  },
+  "items": [
+    {
+      "id": "roadmap.remove-obsolete-assets",
+      "todo_text": "Remove obsolete dependencies, connectors, instructions, and artifacts.",
+      "status": "blocked",
+      "owner": "Security Agent",
+      "priority": "deferred",
+      "impact": 3,
+      "effort": 2,
+      "risk": 4,
+      "dependencies": ["explicit destructive-action approval", "named-path retention review"],
+      "acceptance_test": ["review approved deletion scope", "run path-containment check", "run post-cleanup validation after approval"],
+      "acceptance_evidence": ["approved deletion scope", "path-containment check", "post-cleanup validation"],
+      "artifact_reference": ["TODO.md", "AGENTS.md", "STATE.md"],
+      "blocker": "Destructive deletion requires explicit confirmation and retention verification."
+    },
+    {
+      "id": "roadmap.readiness-report",
+      "todo_text": "Update the readiness report after material environment or architecture changes.",
+      "status": "completed",
+      "owner": "Verification Agent",
+      "priority": "high",
+      "impact": 4,
+      "effort": 2,
+      "risk": 2,
+      "dependencies": ["architecture document", "deployment-target contract", "security and recovery evidence"],
+      "acceptance_test": ["python -m pytest -q tests/test_readiness_report.py", "python -m py_compile docs/READINESS_REPORT.md"],
+      "acceptance_evidence": ["readiness report", "required-file check", "focused documentation validation"],
+      "artifact_reference": ["docs/READINESS_REPORT.md", "tests/test_readiness_report.py", "STATE.md"]
+    },
+    {
+      "id": "roadmap.quarterly-review",
+      "todo_text": "Conduct a quarterly roadmap review or an equivalent milestone review.",
+      "status": "completed",
+      "owner": "Orchestration Agent",
+      "priority": "medium",
+      "impact": 3,
+      "effort": 2,
+      "risk": 1,
+      "dependencies": ["completed task graph", "failure-pattern review", "maintenance cadence"],
+      "acceptance_test": ["python -m pytest -q tests/test_milestone_roadmap_review.py", "verify dated review and residual-risk sections"],
+      "acceptance_evidence": ["dated review record", "updated priorities", "residual-risk summary"],
+      "artifact_reference": ["docs/MILESTONE_ROADMAP_REVIEW_2026-08-27.md", "tests/test_milestone_roadmap_review.py", "TASK_GRAPH.md"]
+    },
+    {
+      "id": "roadmap.integration-readiness",
+      "todo_text": "Define the GUI-to-engine API contract for objectives, task graphs, runs, checkpoints, providers, local models, verification records, artifacts, approvals, and event streams.",
+      "status": "completed",
+      "owner": "IDE Agent",
+      "priority": "high",
+      "impact": 4,
+      "effort": 3,
+      "risk": 3,
+      "dependencies": ["readiness report", "deployment targets", "rollback verification", "connector review"],
+      "acceptance_test": ["python -m pytest -q tests/test_gui_engine_api_contract.py tests/test_gui_backend_bridge.py", "verify resource, event, approval, and redaction sections"],
+      "acceptance_evidence": ["integration checklist", "representative workflow results", "release decision record"],
+      "artifact_reference": ["docs/GUI_ENGINE_API_CONTRACT.md", "docs/GUI_BACKEND_BRIDGE.md", "tests/test_gui_engine_api_contract.py", "STATE.md"]
+    }
+  ]
+}

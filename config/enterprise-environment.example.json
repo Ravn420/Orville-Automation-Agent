@@ -1,0 +1,22 @@
+{
+  "schema": "orville.enterprise.environment",
+  "environment_id": "staging-eu-1",
+  "tenant_id": "tenant-example",
+  "region": "eu-west",
+  "platform": "linux-container",
+  "data_classes": ["internal", "restricted"],
+  "allowed_networks": ["provider-egress"],
+  "recovery": {
+    "rto_seconds": 3600,
+    "rpo_seconds": 900
+  },
+  "responsibilities": {
+    "security_owner": "security-team",
+    "platform_owner": "platform-team",
+    "deployment_owner": "release-team",
+    "data_owner": "data-owner",
+    "rollback_authority": "release-manager",
+    "escalation_channel": "oncall"
+  },
+  "production": false
+}

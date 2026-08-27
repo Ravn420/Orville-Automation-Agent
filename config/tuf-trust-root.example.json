@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "ceremony": {
+    "approval_required": true,
+    "out_of_band_review_required": true,
+    "expected_root_sha256_required": true,
+    "rotation_requires_old_and_new_root_signatures": true,
+    "revocation_requires_explicit_approval": true
+  },
+  "root_metadata_path": "REPLACE_WITH_SIGNED_ROOT_METADATA.json",
+  "trusted_store_path": "${ORVILLE_DATA_DIR}/orville-tuf-root.json",
+  "repository_metadata_path": "${ORVILLE_DATA_DIR}/model-repository/metadata",
+  "required_roles": ["root", "timestamp", "snapshot", "targets"],
+  "policy": "required_tuf",
+  "notes": "Do not put private keys in this file. Generate and review root metadata through an offline ceremony, then run tools/tuf_root_ceremony.py with --approve and a pinned --expected-sha256."
+}

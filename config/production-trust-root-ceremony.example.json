@@ -1,0 +1,12 @@
+{
+  "schema": "orville.production-trust-root-ceremony",
+  "environment_id": "production-eu-1",
+  "tenant_id": "tenant-example",
+  "trust_store": "${ORVILLE_DATA_DIR}/trust/tuf-root.json",
+  "evidence_path": "${ORVILLE_DATA_DIR}/audit/trust-root-ceremony.json",
+  "approval_required": true,
+  "out_of_band_digest_required": true,
+  "rotation_requires_increasing_version": true,
+  "revocation_requires_reason": true,
+  "production_operator_review": true
+}

@@ -1,0 +1,16 @@
+{
+  "repository": ".",
+  "agent_command": "python tools/local_agent.py --repo {repo} --prompt {prompt}",
+  "validation": [
+    "python -m compileall -q orville_core tools",
+    "python -m pytest -q"
+  ],
+  "continuous": false,
+  "allow_all_edits": false,
+  "interval_seconds": 5,
+  "external_actions": {
+    "push": false,
+    "pull_request": false,
+    "approval_required": true
+  }
+}

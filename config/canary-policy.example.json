@@ -1,0 +1,34 @@
+{
+  "schema": "orville.canary.policy",
+  "policy_version": 1,
+  "policy_id": "example-canary-v1",
+  "release_id": "orville-release-2026-08-27",
+  "rollback_target": "orville-release-known-good",
+  "cohorts": [
+    {"name": "internal", "traffic_percent": 1, "hold_seconds": 300, "min_samples": 100, "selector": {"cohort": "internal"}},
+    {"name": "early", "traffic_percent": 5, "hold_seconds": 600, "min_samples": 250, "selector": {"cohort": "early"}},
+    {"name": "general", "traffic_percent": 25, "hold_seconds": 900, "min_samples": 500, "selector": {}},
+    {"name": "full", "traffic_percent": 100, "hold_seconds": 900, "min_samples": 1000, "selector": {}}
+  ],
+  "health": {
+    "min_samples": 100,
+    "max_error_rate": 0.02,
+    "max_p95_latency_ms": 1000,
+    "max_p99_latency_ms": 2000,
+    "max_saturation_ratio": 0.9,
+    "critical_security_findings": 0,
+    "min_business_health": 0.98,
+    "confidence_level": 0.95
+  },
+  "rollback": {
+    "max_attempts": 3,
+    "timeout_seconds": 300,
+    "quarantine_seconds": 3600,
+    "require_known_good_target": true,
+    "pause_on_critical_security": true
+  },
+  "max_hold_seconds": 3600,
+  "approval_mode": "per_step",
+  "observation_window_seconds": 300,
+  "require_fresh_health_decision": true
+}

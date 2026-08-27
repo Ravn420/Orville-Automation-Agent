@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "provider": "auto_local",
+    "model": "auto",
+    "privacy_routing": "local_only",
+    "artifact_path": "%LOCALAPPDATA%/Orville/artifacts",
+    "temporary_path": "%LOCALAPPDATA%/Orville/tmp",
+    "max_concurrency": 2,
+    "task_timeout_seconds": 1800,
+    "max_artifact_size_bytes": 524288000,
+    "schedule_mode": "manual",
+    "notification_events": ["failure", "approval_required"],
+    "theme": "system",
+    "motion": "respect_reduced_motion"
+  },
+  "advanced": {
+    "provider_id": null,
+    "model_id": null,
+    "endpoint_url": null,
+    "credential_reference": null,
+    "fallback_provider_id": null,
+    "resource_limits": {
+      "memory_bytes": null,
+      "vram_bytes": null,
+      "disk_bytes": null
+    },
+    "schedule_expression": null,
+    "notification_targets": [],
+    "retention_days": null,
+    "telemetry_level": "minimal"
+  },
+  "rules": {
+    "advanced_settings_hidden_by_default": true,
+    "unknown_values_fail_closed": true,
+    "secrets_excluded_from_defaults": true,
+    "external_actions_require_approval": true,
+    "reset_is_non_destructive": true,
+    "defaults_are_overridable": true
+  }
+}

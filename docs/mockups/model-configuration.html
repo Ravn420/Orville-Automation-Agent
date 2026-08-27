@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orville Model Configuration</title>
+  <style>
+    :root { --canvas:#f4f0ea; --surface:#fffdf9; --text:#211e1c; --muted:#6d6560; --border:#d8cfc5; --accent:#6546d7; --focus:#bb43bb; --danger:#ad3b48; --success:#1e8a61; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--canvas); color:var(--text); font:15px/1.5 system-ui,sans-serif; } main { max-width:760px; margin:auto; padding:32px 20px 60px; }
+    .crumb { color:var(--muted); font-size:13px; } h1 { margin:4px 0; font-size:32px; letter-spacing:-.04em; } .muted { color:var(--muted); } .card { padding:22px; margin-top:18px; border:1px solid var(--border); border-radius:14px; background:var(--surface); }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .field { margin-top:16px; } label { display:block; margin-bottom:6px; font-weight:700; } input, select { width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font:inherit; } input:focus-visible, select:focus-visible, button:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+    .actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; } button { min-height:44px; padding:10px 15px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); cursor:pointer; } .primary { border-color:var(--accent); background:var(--accent); color:#fff; font-weight:700; }
+    .notice { padding:12px; margin-top:16px; border-left:4px solid var(--accent); background:#eee8ff; } .success { color:var(--success); font-weight:700; } .error { color:var(--danger); font-weight:700; } pre { padding:15px; overflow:auto; border-radius:8px; background:#242129; color:#f9f6f1; }
+    @media (max-width:650px) { .grid { grid-template-columns:1fr; } }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation:none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="crumb">Settings / Providers / Model configuration</p>
+    <h1>Configure a model</h1>
+    <p class="muted">Add a provider endpoint and review the redacted configuration before saving it to the approved local service.</p>
+    <form id="config-form" class="card" novalidate>
+      <div class="grid"><div class="field"><label for="provider">Provider type</label><select id="provider"><option value="ollama">Ollama</option><option value="gemini">Gemini</option><option value="openai_compatible">OpenAI-compatible</option><option value="anthropic">Anthropic</option></select></div><div class="field"><label for="model">Model name</label><input id="model" required value="llama3.2" autocomplete="off"></div></div>
+      <div class="field"><label for="endpoint">Endpoint URL</label><input id="endpoint" type="url" required value="http://127.0.0.1:11434" placeholder="https://provider.example/v1" autocomplete="url"><p class="muted">Use a local or user-approved endpoint. The URL is shown for review; credentials are not.</p></div>
+      <div class="field"><label for="api-key">API credential <span class="muted">(optional)</span></label><input id="api-key" type="password" autocomplete="new-password" placeholder="Enter only in this protected session"><p class="muted">Masked while entered, never displayed after save, and never written to project files, logs, or artifacts.</p></div>
+      <div class="grid"><div class="field"><label for="timeout">Timeout (seconds)</label><input id="timeout" type="number" min="1" max="300" value="30"></div><div class="field"><label for="privacy">Privacy class</label><select id="privacy"><option>local-only</option><option>user-approved-cloud</option><option>restricted</option></select></div></div>
+      <div class="notice">Saving sends only the structured configuration to the approved local API. Health checks are explicit actions; this form does not transmit a prompt or generated content.</div>
+      <p id="message" role="status" aria-live="polite"></p>
+      <div class="actions"><button id="health" type="button">Review health check</button><button class="primary" type="submit">Save configuration</button></div>
+    </form>
+    <section id="review" class="card" hidden aria-labelledby="review-title"><h2 id="review-title">Redacted configuration review</h2><p class="muted">Credential status is shown without revealing its value.</p><pre id="payload"></pre></section>
+  </main>
+  <script>
+    const form = document.getElementById("config-form"); const message = document.getElementById("message"); const review = document.getElementById("review"); const payload = document.getElementById("payload");
+    const text = id => document.getElementById(id).value.trim();
+    const redacted = () => ({ provider_type:text("provider"), model:text("model"), endpoint:text("endpoint"), api_key_configured:Boolean(text("api-key")), timeout_seconds:Number(text("timeout")), privacy_class:text("privacy") });
+    const validate = () => { try { const url = new URL(text("endpoint")); if (!/^https?:$/.test(url.protocol)) throw new Error("Endpoint must use HTTP or HTTPS."); } catch (error) { message.className = "error"; message.textContent = error.message; return false; } if (!text("model") || !text("endpoint")) { message.className = "error"; message.textContent = "Provider, model, and endpoint are required."; return false; } return true; };
+    form.addEventListener("submit", event => { event.preventDefault(); if (!validate()) return; payload.textContent = JSON.stringify(redacted(), null, 2); review.hidden = false; document.getElementById("api-key").value = ""; message.className = "success"; message.textContent = "Configuration accepted for local API submission. Credential field cleared; no credential value is displayed."; });
+    document.getElementById("health").addEventListener("click", () => { if (!validate()) return; message.className = "success"; message.textContent = "Health check is ready for explicit execution against the configured endpoint; no request was made by this preview."; });
+    document.getElementById("provider").addEventListener("change", event => { const presets = { ollama:["http://127.0.0.1:11434","llama3.2"], gemini:["https://generativelanguage.googleapis.com","gemini-2.5-flash"], openai_compatible:["http://127.0.0.1:8000/v1","local-model"], anthropic:["https://api.anthropic.com","claude-3-5-sonnet-latest"] }; const [endpoint, model] = presets[event.target.value]; document.getElementById("endpoint").value = endpoint; document.getElementById("model").value = model; });
+  </script>
+</body>
+</html>

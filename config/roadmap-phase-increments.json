@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "phases": [
+    {
+      "id": "phase-2",
+      "label": "Agent Contracts",
+      "increments": [
+        {"id": "phase-2.7", "label": "Model Provider Integration", "scope": "Provider-neutral cloud and local model adapters, capability metadata, and routing contracts"}
+      ]
+    },
+    {
+      "id": "phase-3",
+      "label": "Environment and Integration Reliability",
+      "increments": [
+        {"id": "phase-3.1", "label": "Runtime health", "scope": "Runtime readiness and health checks"},
+        {"id": "phase-3.2", "label": "Connector management", "scope": "Connector configuration and boundary controls"},
+        {"id": "phase-3.3", "label": "Cloud and Local Model Endpoints", "scope": "Endpoint validation and environment-specific integration reliability"}
+      ]
+    },
+    {
+      "id": "phase-6",
+      "label": "Web, Mobile, Media, and Document Workflows",
+      "increments": [
+        {"id": "phase-6.2", "label": "Image, audio, and video", "scope": "Media generation, validation, provenance, and visual verification"}
+      ]
+    }
+  ],
+  "rules": [
+    "Broad phase labels describe capability families and are not implementation tasks.",
+    "Provider work is tracked under phase-2.7 and media work under phase-6.2.",
+    "Phase-3 reliability increments must not be relabeled as provider or media implementation work."
+  ]
+}

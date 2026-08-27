@@ -1,0 +1,20 @@
+{
+  "app.settings.title": "Settings",
+  "workflow.describe": "Describe what you want to accomplish",
+  "workflow.prepare": "Review the plan before starting",
+  "workflow.work": "Run the approved work",
+  "workflow.review": "Review results and evidence",
+  "status.loading": "Loading",
+  "status.empty": "Nothing to show yet",
+  "status.offline": "Offline. Check the local service and try again.",
+  "status.blocked": "This action is waiting for approval or a required dependency.",
+  "error.invalid_input": "Check the highlighted fields and try again.",
+  "error.operation_failed": "The operation failed. Retry, review diagnostics, or contact an operator.",
+  "error.secret_redacted": "Sensitive details were omitted from this message.",
+  "action.retry": "Retry",
+  "action.cancel": "Cancel",
+  "action.confirm": "Confirm",
+  "action.show_details": "Show details",
+  "notification.saved": "Saved successfully",
+  "notification.approval_required": "Approval is required before this action can continue."
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "scheduled-retry-same-slot",
+      "source": "Scheduled workflow idempotency fix",
+      "path": "scheduled-retry-same-slot.json",
+      "assertion": "A failed scheduled occurrence remains retryable under one durable occurrence key."
+    },
+    {
+      "id": "workflow-dry-run-mutation",
+      "source": "Workflow dry-run mode fix",
+      "path": "workflow-dry-run-mutation.json",
+      "assertion": "A mutating step is previewed and skipped without invoking its handler."
+    },
+    {
+      "id": "nested-secret-redaction",
+      "source": "Secret-handling rules fix",
+      "path": "nested-secret-redaction.json",
+      "assertion": "Nested credential fields, bearer values, query tokens, and token-shaped values are redacted."
+    }
+  ]
+}

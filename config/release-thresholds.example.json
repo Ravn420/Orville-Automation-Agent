@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "profile": "default",
+  "min_samples": 1,
+  "max_error_rate": 0.05,
+  "max_latency_p95_ms": 2000,
+  "max_saturation_ratio": 0.9,
+  "max_security_findings": 0,
+  "min_business_health": 0.8,
+  "min_release_quality": 0.9
+}

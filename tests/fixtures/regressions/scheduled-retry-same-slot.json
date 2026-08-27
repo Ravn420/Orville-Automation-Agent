@@ -1,0 +1,10 @@
+{
+  "schedule_id": "schedule-regression",
+  "scheduled_slot": "2026-08-27T00:00:00+00:00",
+  "expected_idempotency_key": "schedule:schedule-regression:2026-08-27T00:00:00+00:00",
+  "first_attempt": "failed",
+  "retry_attempt": "completed",
+  "expected_run_count": 1,
+  "expected_execution_record_count": 1,
+  "advance_schedule_on": "completed_only"
+}

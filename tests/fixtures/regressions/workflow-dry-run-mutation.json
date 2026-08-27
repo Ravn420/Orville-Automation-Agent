@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "step_id": "prepare",
+      "kind": "local",
+      "config": {"mutates_external_state": false},
+      "requires_approval": false
+    },
+    {
+      "step_id": "publish",
+      "kind": "publish",
+      "config": {"mutates_external_state": true},
+      "requires_approval": true
+    }
+  ],
+  "expected_preview_marker": true,
+  "expected_skipped_step": "publish",
+  "expected_handler_calls": ["local"],
+  "expected_mutation_success_field": false
+}

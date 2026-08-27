@@ -1,0 +1,20 @@
+{
+  "service": "deterministic-fixture",
+  "health": {
+    "path": "/health",
+    "status": 200,
+    "body": {"status": "ok", "service": "deterministic-fixture"}
+  },
+  "echo": {
+    "path": "/echo",
+    "status": 200,
+    "request": {"value": "fixture-input", "sequence": 1},
+    "body": {"ok": true, "echo": {"value": "fixture-input", "sequence": 1}}
+  },
+  "unavailable": {
+    "path": "/error",
+    "status": 503,
+    "body": {"error": "synthetic-unavailable"}
+  },
+  "prohibited": ["Authorization", "api_key", "token", "password"]
+}

@@ -1,0 +1,11 @@
+.git
+.venv
+__pycache__
+*.pyc
+.orville
+tests
+examples
+build
+*.egg-info
+.env*
+!.env.production.example

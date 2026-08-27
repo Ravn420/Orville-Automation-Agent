@@ -1,0 +1,53 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      ORVILLE_API_HOST: 0.0.0.0
+      ORVILLE_DB_PATH: /var/lib/orville/orville.db
+      ORVILLE_STORAGE: sqlite
+    volumes:
+      - orville-data:/var/lib/orville
+    expose:
+      - "8787"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/docs', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    networks:
+      - private
+
+  proxy:
+    env_file: .env.production
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/docs >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+networks:
+  private:
+    driver: bridge
+
+volumes:
+  orville-data:
+  caddy-data:
+  caddy-config:

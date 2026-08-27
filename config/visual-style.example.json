@@ -1,0 +1,10 @@
+{
+  "schema": "orville.visual-style",
+  "version": "1.0",
+  "voice": {"qualities": ["professional", "modern", "clear", "calm", "operational"], "avoid": ["ornamental", "playful", "dense", "alarmist"]},
+  "composition": {"primary_surface_per_view": 1, "max_content_width_px": 1440, "content_density": "compact-readable", "primary_action_per_surface": 1},
+  "visual_hierarchy": {"levels": ["page_title", "section_title", "body", "supporting", "metadata"], "emphasis_order": ["status", "next_action", "result", "context"], "status_requires_text": true},
+  "performance": {"avoid_large_background_images": true, "max_decorative_asset_kb": 100, "max_initial_font_families": 2, "prefer_css_or_native_tokens": true, "nonessential_motion_reduced": true},
+  "usability": {"minimum_touch_target_px": 44, "minimum_body_text_px": 14, "focus_ring_required": true, "preserve_layout_during_loading": true, "error_recovery_action_required": true},
+  "review_gates": ["token_consistency", "light_dark_parity", "responsive_reflow", "keyboard_and_focus", "status_semantics", "performance_budget", "visual_regression"]
+}

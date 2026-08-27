@@ -1,0 +1,26 @@
+{
+  "workload": {
+    "tasks": 1000,
+    "artifacts": 500
+  },
+  "measurements": {
+    "startup_ms": 353.553,
+    "interaction_ms": 2.185,
+    "peak_memory_bytes": 100235,
+    "serialized_bytes": 75871
+  },
+  "thresholds": {
+    "startup_ms_max": 2500,
+    "interaction_ms_max": 200,
+    "peak_memory_bytes_max": 67108864
+  },
+  "pass": {
+    "startup": true,
+    "interaction": true,
+    "memory": true
+  },
+  "notes": [
+    "Fixed local workload; repeat on the slowest supported target before release.",
+    "No GUI window, external service, credential, or provider call is used."
+  ]
+}
