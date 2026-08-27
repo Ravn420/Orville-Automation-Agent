@@ -1,5 +1,18 @@
 # Orville Changelog
 
+## 2026-08-28 — Isolated behavioral evaluation
+
+### Changed
+
+- Added `orville_core.behavioral_evaluation.evaluate_generated_software`, which evaluates generated candidates in temporary copies using declared argument-list commands, no shell execution, bounded time/output, candidate-tree SHA-256 metadata, exit-status checks, and required/forbidden filesystem postconditions.
+- Added `docs/BEHAVIORAL_EVALUATION.md` and focused tests documenting reproducibility and the boundary between local behavioral evidence and deployment-owned OS/container/network isolation.
+
+### Validation
+
+- Focused behavioral-evaluation tests: **3 passed**.
+- Python compilation passed for the evaluator and focused tests.
+- Full regression: **834 passed, 1 skipped, 2 failed, 1 warning, and 6 subtests passed**; the two failures are unrelated existing Windows-path/performance baseline failures.
+
 ## 2026-08-28 — Task-specific evaluation datasets
 
 ### Changed

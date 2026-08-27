@@ -1565,3 +1565,18 @@ The catalog is maintained as a stable acceptance contract: published case IDs an
 | Limitation | Historical 30-second/1280×720/H.264 metadata remains unverified; future source delivery or release-owner waiver is separate follow-up work |
 
 The selected item is closed through an explicit archival limitation, not an archive claim. No credentials, external services, uploads, or destructive actions were used.
+
+
+## Behavioral evaluation checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-06227efe167c` — evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria |
+| Owner | Verification Agent and Orchestration Agent |
+| Status | completed-local |
+| Evidence | `orville_core/behavioral_evaluation.py`, `tests/test_behavioral_evaluation.py`, `docs/BEHAVIORAL_EVALUATION.md` |
+| Contract | Candidate copies are evaluated in temporary directories with deterministic tree hashes, bounded no-shell commands, exit-status checks, and required/forbidden filesystem postconditions; source-text similarity is not used as acceptance evidence |
+| Validation | Focused behavioral-evaluation tests: 3 passed; Python compilation passed. Full regression: 834 passed, 1 skipped, 2 failed, 1 warning, and 6 subtests passed; failures are unrelated existing Windows-path/performance baseline failures |
+| Limitations | This local helper does not claim OS/container/network isolation, dependency provenance, adversarial sandboxing, or production-scale evaluation; those remain deployment-owned |
+
+The evaluator preserves reproducibility metadata and removes the temporary candidate copy after evaluation. No provider calls, credentials, personal data, or external mutations were used.

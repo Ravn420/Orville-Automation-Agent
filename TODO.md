@@ -1085,9 +1085,9 @@ The following requirements were added after reviewing primary documentation and 
 
 - [x] Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import. Implemented the credential-free catalog at `config/evaluation-datasets.json`, documented its schema and governance in `docs/TASK_SPECIFIC_EVALUATION_DATASETS.md`, and added validated loading plus focused coverage for all seven task types and 14 cases. <!-- task-id:TODO-37bc97abee20 -->
 
-- [ ] Evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria rather than text similarity alone. <!-- task-id:TODO-06227efe167c -->
+- [x] Evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria rather than text similarity alone. Implemented `orville_core.behavioral_evaluation.evaluate_generated_software` with temporary-copy isolation, bounded no-shell commands, deterministic candidate hashes, exit-status checks, and required/forbidden filesystem postconditions; documented the contract in `docs/BEHAVIORAL_EVALUATION.md`. Focused validation passed 3 tests and Python compilation passed; two unrelated full-regression baseline failures are recorded in `STATE.md` and `TASK_GRAPH.md`. <!-- task-id:TODO-06227efe167c -->
 
-- [ ] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. <!-- task-id:TODO-745d5e6b79eb -->
+- [-] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. <!-- task-id:TODO-745d5e6b79eb -->
 
 - [ ] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. <!-- task-id:TODO-f452603d4f34 -->
 

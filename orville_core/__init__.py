@@ -15,7 +15,7 @@ from .security import FilesystemPolicy, LeastPrivilegePolicy, NetworkPolicy, Sec
 from .supply_chain import SupplyChainReview, review_downloaded_file
 from .recovery import RecoveryVerification, build_rollback_plan, verify_recovery_evidence
 from .failure_patterns import FailurePattern, review_completed_task_graphs
-from .observability import JsonlTraceRecorder, TraceRecord
+from .observability import JsonlTraceRecorder, RunMetadata, RunMetadataRecorder, TraceRecord, hash_prompt
 from .sandbox import SandboxError, SandboxExecutor, SandboxPlan, SandboxPolicy, SandboxResult, SandboxUnavailable, UnavailableSandboxExecutor
 from .sandbox_adapters import LinuxBubblewrapExecutor, WindowsSandboxExecutor, discover_sandbox_adapters
 from .tuf_metadata import TufRepositoryVerifier, TufVerificationError
@@ -32,6 +32,8 @@ from .media_provenance import MediaAsset, MediaHistoryRecord, MediaProvenanceSto
 from .media_validation import MediaValidationPolicy, MediaValidationResult, validate_media
 from .document_verification import DocumentVerificationPolicy, DocumentVerificationResult, verify_document
 from .evaluation import EvaluationCheck, EvaluationResult, evaluate_output
+from .evaluation_datasets import EvaluationDataset, EvaluationDatasetError, GoldenCase, load_evaluation_catalog, parse_evaluation_catalog
+from .behavioral_evaluation import BehavioralAcceptanceCase, BehavioralEvaluationCheck, BehavioralEvaluationResult, CodingEvaluationSpec, evaluate_coding_change, evaluate_generated_software
 from .runtime_health import HealthCheck, RuntimeHealth
 from .connector_health import ConnectorHealth, ConnectorHealthError, ConnectorInventory
 from .connector_policy import ConnectorAuthPolicy, ConnectorPolicyError
@@ -153,7 +155,11 @@ __all__ = [
     "review_completed_task_graphs",
     "create_app",
     "JsonlTraceRecorder",
-    "TraceRecord",
+        "TraceRecord",
+    "RunMetadata",
+    "RunMetadataRecorder",
+    "hash_prompt",
+
     "SandboxError",
     "SandboxExecutor",
     "SandboxPlan",
@@ -209,7 +215,19 @@ __all__ = [
     "verify_document",
     "EvaluationCheck",
     "EvaluationResult",
-    "evaluate_output",
+        "evaluate_output",
+    "EvaluationDataset",
+    "EvaluationDatasetError",
+    "GoldenCase",
+    "load_evaluation_catalog",
+    "parse_evaluation_catalog",
+    "BehavioralAcceptanceCase",
+    "BehavioralEvaluationCheck",
+    "BehavioralEvaluationResult",
+    "evaluate_generated_software",
+    "CodingEvaluationSpec",
+    "evaluate_coding_change",
+
     "HealthCheck",
     "RuntimeHealth",
     "ConnectorHealth",

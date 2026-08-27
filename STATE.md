@@ -6,6 +6,8 @@
 **State:** In progress — local model lifecycle, runtime capability validation, streaming resume controls, and Windows Sandbox mapping/startup verification implemented; production hosting and official Blackbox OAuth remain blocked on external dependencies
 **Last updated:** 2026-08-28
 
+**Behavioral evaluation checkpoint — 2026-08-28:** Closed `TODO-06227efe167c`. `orville_core/behavioral_evaluation.py` evaluates generated candidates in temporary copies using bounded no-shell commands, candidate-tree SHA-256 metadata, exit-status checks, and required/forbidden filesystem postconditions; `docs/BEHAVIORAL_EVALUATION.md` documents the contract and limitations. Focused validation passed 3 tests and Python compilation passed. Full regression passed 834 tests, 1 skipped, 2 failed, 1 warning, and 6 subtests; the failures are unrelated existing Windows-path/performance baseline failures. OS/container/network isolation and dependency provisioning remain deployment-owned.
+
 **Task-specific evaluation dataset checkpoint — 2026-08-28:** Closed `TODO-37bc97abee20`. Added the credential-free seven-category catalog in `config/evaluation-datasets.json` with 14 synthetic golden cases, governance metadata, and observable required/prohibited behavior contracts. Added `orville_core/evaluation_datasets.py` for fail-closed schema validation and typed loading, plus focused catalog tests. Focused evaluation validation passed 9 tests and Python compilation passed. No provider calls, credentials, personal data, or external mutations were used.
 
 
