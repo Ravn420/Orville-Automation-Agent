@@ -44,7 +44,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Reconcile release-state documents with the current test baseline and current worker status. Updated `STATE.md`, `TASK_GRAPH.md`, `READINESS_REPORT.md`, and `MILESTONE_ROADMAP_REVIEW_2026-08-27.md` with the clean 788-pass gate, residual warning, completed remediation increments, and remaining external/deployment-owned blockers. <!-- task-id:TODO-ac288c7cbdfb -->
 
-- [ ] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Acceptance: a named-path decision, secret scan, retention rationale, and explicit approval record exist before any destructive change. <!-- task-id:TODO-570aaf580e3d -->
+- [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Retained `.orville/orville.db-shm`, `.orville/orville.db-wal`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal` unchanged; named-path hashes, retention rationale, explicit no-deletion approval record, and redacted secret-scan evidence are in `docs/SQLITE_WAL_SHM_RETENTION_REVIEW.md`. Focused persistence/security validation passed 7 tests. <!-- task-id:TODO-570aaf580e3d -->
 
 - [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
 
