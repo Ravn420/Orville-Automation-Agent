@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-27 — M14.8 control-plane reconciliation
+
+### Changed
+
+- Marked `TODO-45ea939505f7` (M14.8 non-production canary and rollback drill) as `in-progress-local` in the roadmap and aligned its task-graph evidence with `STATE.md`.
+- Replaced an unsupported retained-artifact claim with the verified repository condition: `tools/m13_12_fault_runner.py` is a local synthetic-drill baseline, while no retained M14.8 non-production evidence bundle is present in this clone.
+- Recorded the remaining completion gates: approved non-production execution and sanitized evidence for restart, duplicate-event, partial-failure, injected-fault, rollback-failure, and deterministic-recovery behavior.
+
+### Validation
+
+- Verified the M14.8 task identifier, status, dependencies, evidence wording, and completion gates agree across `TODO.md`, `TASK_GRAPH.md`, and `STATE.md`; `git diff --check` passed. No external environment, credential, deployment, or production operation was used.
+- The non-mutating TODO-ID validator still reports 10 pre-existing marker-normalization changes. This unrelated regression remains open and is not treated as M14.8 completion evidence.
+- Reproduction: `python3 -m pytest -q tests/test_prioritized_backlog.py tests/test_roadmap_phase_increments.py tests/test_todo_heading_normalization.py` returned 8 passed and 1 unrelated failure. `tests/test_roadmap_phase_increments.py::test_todo_item_records_the_mapping_evidence` still expects a completed, evidence-backed roadmap item to be `[-]`; the TODO correctly records it as `[x]`. Severity: non-blocking for this M14.8 state reconciliation. Corrective action: update that stale assertion under the separately drafted regression-fix patch set.
+
 ## 2026-08-27 — Guarded TODO automation
 
 ### Added
