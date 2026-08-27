@@ -131,7 +131,12 @@ class OrchestrationTests(unittest.TestCase):
             graph = TaskGraph("timeout", "timeout", [TaskNode("slow", "Slow", "slow", timeout_seconds=0.001)])
             result = OrchestrationEngine(CheckpointStore(directory), {"slow": slow}).run(graph)
             self.assertEqual(result.status, RunStatus.FAILED)
-            self.assertIn("timeout", result.events[-2].details.get("error", "").lower())
+            failure_events = [
+                event for event in result.events
+                if event.event_type == "task_failed" and event.task_id == "slow"
+            ]
+            self.assertEqual(len(failure_events), 1)
+            self.assertIn("timeout", failure_events[0].details.get("error", "").lower())
 
     def test_conditional_task_is_skipped(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -183,7 +188,7 @@ class OrchestrationTests(unittest.TestCase):
             store = CheckpointStore(directory)
             OrchestrationEngine(store, {"noop": lambda task, context: True}).run(graph, run_id="json-run")
             payload = json.loads(Path(directory, "json-run.json").read_text(encoding="utf-8"))
-            self.assertEqual(payload["schema_version"], 1)
+            self.assertEqual(payload["schema_version"], 2)
             self.assertEqual(payload["run_status"], "completed")
 
 

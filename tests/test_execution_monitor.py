@@ -5,6 +5,8 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+from orville_core.gui_state import state_message
+
 
 class ExecutionMonitorTests(unittest.TestCase):
     """Verify monitor controls and safe persisted-run coverage."""
@@ -28,7 +30,10 @@ class ExecutionMonitorTests(unittest.TestCase):
     def test_monitor_uses_safe_bounded_output(self) -> None:
         self.assertIn("never display raw errors or payloads", self.source)
         self.assertIn("events[-80:]", self.source)
-        self.assertIn("Run unavailable. Check the run ID and local API status.", self.source)
+        self.assertIn('if state == "offline":', self.source)
+        self.assertIn("write_safe(state_message(state))", self.source)
+        self.assertIn("Offline", state_message("offline"))
+        self.assertIn("Next:", state_message("offline"))
 
 
 if __name__ == "__main__":
