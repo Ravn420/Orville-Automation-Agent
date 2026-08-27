@@ -44,7 +44,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Reconcile release-state documents with the current test baseline and current worker status. Updated `STATE.md`, `TASK_GRAPH.md`, `READINESS_REPORT.md`, and `MILESTONE_ROADMAP_REVIEW_2026-08-27.md` with the clean 788-pass gate, residual warning, completed remediation increments, and remaining external/deployment-owned blockers. <!-- task-id:TODO-ac288c7cbdfb -->
 
-- [ ] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Acceptance: a named-path decision, secret scan, retention rationale, and explicit approval record exist before any destructive change. <!-- task-id:TODO-570aaf580e3d -->
+- [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Completed inspection-only review with named-path retention decisions, SHA-256 metadata, Git provenance, bounded secret scan, retention rationale, and explicit no-approval/no-deletion record in `docs/SQLITE_ARTIFACT_RETENTION_REVIEW_2026-08-28.md`; all four sidecars were retained and no data was deleted. Focused project-control tests and compilation passed; broader regression has two unrelated baseline failures documented in the review. <!-- task-id:TODO-570aaf580e3d -->
 
 - [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
 

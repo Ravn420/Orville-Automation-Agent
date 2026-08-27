@@ -1,5 +1,31 @@
 # Orville Changelog
 
+## 2026-08-28 — Walkthrough-video archival limitation
+
+### Changed
+
+- Added `artifacts/WALKTHROUGH_VIDEO_ARCHIVAL_EVIDENCE_2026-08-28.md` with reproducible search metadata and delivery status for `TODO-f8a70d13fc97`.
+- Closed the walkthrough-retention checklist through an explicit limitation: the documented source is unavailable in the attached workspace, no archive URI or checksum exists, and no external delivery was performed.
+- Updated `docs/WALKTHROUGH_VIDEO_ARCHIVAL_COMPLIANCE_NOTE.md`, `STATE.md`, and `TASK_GRAPH.md` to preserve the limitation consistently without representing the video as archived.
+
+### Validation
+
+- Bounded read-only search covered the documented source claim, repository artifact/release/log/tmp roots, common video extensions, and walkthrough/delivery naming markers.
+- No credentials, external services, uploads, publication, or destructive actions were used. Future source delivery or a release-owner waiver remains a separate follow-up decision.
+
+## 2026-08-28 — SQLite artifact retention review
+
+### Changed
+
+- Added `docs/SQLITE_ARTIFACT_RETENTION_REVIEW_2026-08-28.md`, documenting named-path decisions for the four tracked SQLite WAL/shared-memory sidecars, retention rationale, Git provenance, SHA-256 metadata, bounded secret-scan evidence, and the explicit no-approval/no-deletion record.
+- Retained `.orville/orville.db-shm`, `.orville/orville.db-wal`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal`; no data was deleted or modified.
+
+### Validation
+
+- Exact-path inventory, metadata/hash capture, Git history review, and sidecar marker scan passed.
+- Future deletion remains approval-gated and must name exact paths, scope, requester/approver, and time.
+
+
 ## 2026-08-28 — Coverage-stable performance boundary
 
 ### Changed

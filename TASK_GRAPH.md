@@ -1519,3 +1519,19 @@ Each future execution record now has a consistent place to state what was not te
 | TODO-500f367e0031 | Create a threat model covering prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access | Security Agent / Verification Agent | 21.2 model and local-file security controls | Each threat has an abuse case, mitigation, detection/evidence path, residual risk, and explicit approval/untrusted-content boundary | completed-local |
 
 Evidence: `docs/THREAT_MODEL_21_3.md`, `tests/test_threat_model_21_3.py`; focused tests passed 3 and the post-rebase full regression suite passed 821 tests, 1 warning, and 6 subtests. Live provider, deployment, browser, and production credential exercises remain environment-owned.
+
+
+## Worker Task checkpoint — SQLite WAL and shared-memory artifact retention — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data |
+| Task ID | `TODO-570aaf580e3d` |
+| Owner | Orchestration Agent |
+| Status | completed-local |
+| Dependencies | Repository operating rules, Git path inventory, secret-scan controls, and explicit destructive-action approval gate |
+| Evidence | `docs/SQLITE_ARTIFACT_RETENTION_REVIEW_2026-08-28.md`; four named paths inventoried, sizes and SHA-256 hashes captured, provenance reviewed, bounded secret scan passed, and no files modified or deleted. Focused project-control tests: 4 passed; Python compilation passed. Broader checks built the wheel but remain non-green on two unrelated baseline failures; full regression: 823 passed, 1 skipped, 2 failed, 1 warning, and 6 subtests passed |
+| Decision | Retain `.orville/orville.db-shm`, `.orville/orville.db-wal`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal` pending a separately recorded explicit approval; the review contains the no-approval/no-deletion record |
+| Limitations | This is an inspection-only review. The tracked runtime-state hygiene issue remains open for a future approval-gated cleanup or migration decision; no live process-lock or production-runtime assessment was performed. The broader repository gate remains non-green on unrelated performance-boundary and Windows-path baseline tests |
+
+The TODO acceptance criteria are satisfied by the named-path decision, retention rationale, secret-scan result, and explicit record that destructive approval was not granted and no destructive change occurred.
