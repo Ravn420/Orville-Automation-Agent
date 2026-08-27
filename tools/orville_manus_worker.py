@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import time
+import uuid
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -30,6 +31,9 @@ LOCK_FILE = ".orville_manus_worker.lock"
 STATE_FILE = ".orville_manus_worker_state.json"
 LOG_FILE = ".orville_manus_worker.log"
 DEFAULT_MAX_ACTIVE_TASKS = 10
+DEFAULT_HEARTBEAT_SECONDS = 30
+DEFAULT_LEASE_SECONDS = 600
+DEFAULT_MAX_RETRIES = 2
 WORKER_TASK_NAMES = tuple(f"Worker Task {index}" for index in range(1, 11))
 
 
@@ -83,14 +87,57 @@ def first_actionable_todo(project: Path, reserved: set[tuple[str, int]]) -> tupl
     return None
 
 
-def acquire_lock(repo: Path) -> bool:
+def _pid_alive(pid: int) -> bool:
     try:
-        fd = os.open(repo / LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def acquire_lock(repo: Path, lease_seconds: int = DEFAULT_LEASE_SECONDS) -> bool:
+    path = repo / LOCK_FILE
+    now = time.time()
+    payload = f"pid={os.getpid()}\nrun_id={uuid.uuid4().hex}\nacquired_at={now}\nheartbeat={now}\nlease_seconds={lease_seconds}\n"
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            handle.write(f"pid={os.getpid()}\n")
+            handle.write(payload)
         return True
     except FileExistsError:
-        return False
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+            values = dict(line.split("=", 1) for line in lines if "=" in line)
+            pid = int(values.get("pid", "-1"))
+            heartbeat = float(values.get("heartbeat", values.get("acquired_at", "0")))
+            lease = float(values.get("lease_seconds", str(lease_seconds)))
+        except (OSError, ValueError):
+            log(repo, "blocked: malformed worker lock retained for manual review")
+            return False
+        if _pid_alive(pid) or now - heartbeat <= lease:
+            return False
+        try:
+            path.unlink()
+        except OSError:
+            return False
+        return acquire_lock(repo, lease_seconds=lease_seconds)
+
+
+def touch_lock(repo: Path) -> None:
+    path = repo / LOCK_FILE
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        values = dict(line.split("=", 1) for line in lines if "=" in line)
+        values["heartbeat"] = str(time.time())
+        temporary = path.with_suffix(path.suffix + ".tmp")
+        temporary.write_text("".join(f"{key}={value}\\n" for key, value in values.items()), encoding="utf-8")
+        temporary.replace(path)
+    except OSError:
+        log(repo, "warning: unable to update worker heartbeat")
 
 
 def release_lock(repo: Path) -> None:
@@ -143,6 +190,32 @@ def save_state(repo: Path, state: dict[str, Any]) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
+
+
+def set_paused(repo: Path, paused: bool) -> None:
+    state = load_state(repo)
+    state["paused"] = paused
+    state["pause_changed_at"] = datetime.now(timezone.utc).isoformat()
+    save_state(repo, state)
+    log(repo, f"control: worker {'paused' if paused else 'resumed'}")
+
+
+def worker_status(repo: Path) -> dict[str, Any]:
+    state = load_state(repo)
+    return {
+        "paused": bool(state.get("paused", False)),
+        "active_task_count": len(state.get("active_tasks", [])),
+        "active_tasks": [
+            {
+                "worker_name": record.get("worker_name"),
+                "task_id": record.get("task_id"),
+                "status": record.get("status", record.get("manus_status", "unknown")),
+                "retry_count": record.get("retry_count", 0),
+                "last_heartbeat": record.get("last_heartbeat"),
+            }
+            for record in state.get("active_tasks", [])
+        ],
+    }
 
 
 def api_request(url: str, api_key: str) -> dict[str, Any]:
@@ -273,17 +346,28 @@ def run_once(
     validation_retries: int = 3,
     validation_interval_seconds: float = 5.0,
     enforce_validation_gate: bool = False,
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    lease_seconds: int = DEFAULT_LEASE_SECONDS,
 ) -> int:
     """Poll existing task threads, optionally validating scaled concurrency first."""
     if not 1 <= max_active_tasks <= 10:
         raise ValueError("max_active_tasks must be between 1 and 10")
-    if not acquire_lock(repo):
+    if max_retries < 0:
+        raise ValueError("max_retries must be non-negative")
+    if lease_seconds < 1:
+        raise ValueError("lease_seconds must be positive")
+    if not acquire_lock(repo, lease_seconds=lease_seconds):
         log(repo, "skip: another worker invocation holds the lock")
         return 0
     try:
         state = load_state(repo)
         state_needs_save = bool(state.pop("_state_needs_save", False))
+        if state.get("paused"):
+            log(repo, "paused: worker is paused; no task dispatch")
+            return 0
         persisted_tasks = state["active_tasks"]
+        run_id = uuid.uuid4().hex
+        metadata_changed = False
         active = [
             record for record in persisted_tasks
             if record.get("worker_name") in WORKER_TASK_NAMES
@@ -291,8 +375,17 @@ def run_once(
         state_was_trimmed = state_needs_save or len(active) < len(persisted_tasks)
         if state_was_trimmed:
             log(repo, f"warning: limiting persisted active tasks to {max_active_tasks}")
+        for record in active:
+            record.setdefault("attempt", 0)
+            record.setdefault("retry_count", 0)
+            record.setdefault("max_retries", max_retries)
+            record.setdefault("run_id", run_id)
+            record.setdefault("started_at", datetime.now(timezone.utc).isoformat())
+            record.setdefault("last_heartbeat", datetime.now(timezone.utc).isoformat())
+            record.setdefault("lock_expires_at", (datetime.now(timezone.utc).timestamp() + lease_seconds))
+            metadata_changed = True
         if dry_run:
-            print(json.dumps({"action": "check_existing_tasks", "active_tasks": active, "max_active_tasks": max_active_tasks}, ensure_ascii=False))
+            print(json.dumps({"action": "check_existing_tasks", "active_tasks": active, "max_active_tasks": max_active_tasks, "paused": False}, ensure_ascii=False))
             return 0
         if not active:
             log(repo, "idle: no existing task threads are configured; no new task created")
@@ -321,6 +414,8 @@ def run_once(
         for record in active:
             task_id = str(record["task_id"])
             try:
+                touch_lock(repo)
+                record["last_heartbeat"] = datetime.now(timezone.utc).isoformat()
                 status = task_status(task_id, api_key)
             except urllib.error.HTTPError as exc:
                 if exc.code == 404:
@@ -336,19 +431,37 @@ def run_once(
                 log(repo, f"idle: existing_task_id={task_id} has no unchecked actionable TODO item")
                 continue
             todo_project, line_number, item = selected
-            resume_task(repo, task_id, item, api_key)
+            try:
+                touch_lock(repo)
+                record["attempt"] = int(record.get("attempt", 0)) + 1
+                resume_task(repo, task_id, item, api_key)
+            except (OSError, UnicodeError, urllib.error.URLError, json.JSONDecodeError, RuntimeError, ValueError) as exc:
+                record["retry_count"] = int(record.get("retry_count", 0)) + 1
+                record["last_error"] = type(exc).__name__
+                record["last_heartbeat"] = datetime.now(timezone.utc).isoformat()
+                log(repo, f"retry: existing_task_id={task_id} attempt={record['attempt']} retry_count={record['retry_count']} error={type(exc).__name__}")
+                if record["retry_count"] > int(record.get("max_retries", max_retries)):
+                    record["status"] = "review"
+                    log(repo, f"review: existing_task_id={task_id} retry budget exhausted")
+                updated = True
+                continue
             record.update({
                 "worker_name": record.get("worker_name", WORKER_TASK_NAMES[active.index(record)]),
                 "todo_project": str(todo_project),
                 "todo_line": line_number,
                 "todo_item": item,
                 "resumed_at": datetime.now(timezone.utc).isoformat(),
+                "last_heartbeat": datetime.now(timezone.utc).isoformat(),
+                "status": "running",
+                "retry_count": 0,
             })
             reserved.add((str(todo_project), line_number))
             updated = True
             log(repo, f"resumed: existing_task_id={task_id} line={line_number}")
-        if updated or state_was_trimmed:
+        if updated or state_was_trimmed or metadata_changed:
             state["active_tasks"] = active
+            state["last_run_id"] = run_id
+            state["last_run_at"] = datetime.now(timezone.utc).isoformat()
             save_state(repo, state)
         return 0
     except (OSError, UnicodeError, urllib.error.URLError, json.JSONDecodeError, RuntimeError, ValueError) as exc:
@@ -382,10 +495,25 @@ def main() -> int:
     parser.add_argument("--validation-retries", type=int, default=3, help="creation-readability validation attempts (default: 3)")
     parser.add_argument("--validation-interval", type=float, default=5.0, help="seconds between creation-readability attempts (default: 5)")
     parser.add_argument("--dry-run", action="store_true", help="inspect existing task state without network calls")
+    control = parser.add_mutually_exclusive_group()
+    control.add_argument("--pause", action="store_true", help="pause dispatch without changing task records")
+    control.add_argument("--resume", action="store_true", help="resume dispatch")
+    control.add_argument("--status", action="store_true", help="print redacted worker status without network calls")
+    parser.add_argument("--max-retries", type=int, default=DEFAULT_MAX_RETRIES, help="per-task retry budget (default: 2)")
+    parser.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS, help="stale-lock lease duration (default: 600)")
     args = parser.parse_args()
     repo = args.repo.expanduser().resolve()
     if not (repo / "TODO.md").is_file():
         parser.error(f"TODO.md not found under repository path: {repo}")
+    if args.pause:
+        set_paused(repo, True)
+        return 0
+    if args.resume:
+        set_paused(repo, False)
+        return 0
+    if args.status:
+        print(json.dumps(worker_status(repo), ensure_ascii=False, indent=2))
+        return 0
     return run_once(
         repo,
         dry_run=args.dry_run,
@@ -394,6 +522,8 @@ def main() -> int:
         validation_retries=args.validation_retries,
         validation_interval_seconds=args.validation_interval,
         enforce_validation_gate=args.max_active > 3 and not args.dry_run,
+        max_retries=args.max_retries,
+        lease_seconds=args.lease_seconds,
     )
 
 
