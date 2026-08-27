@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import unittest
 
+from tests.repository_references import resolve_repository_reference
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "docs" / "ORCHESTRATION_TEST_MATRIX.md"
@@ -34,7 +36,7 @@ class OrchestrationTestMatrixTests(unittest.TestCase):
             references = re.findall(r"`(tests/[^`]+\.py)`", row)
             self.assertTrue(references, row)
             for reference in references:
-                self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+                self.assertTrue(resolve_repository_reference(ROOT, reference).is_file(), reference)
 
     def test_matrix_has_deterministic_execution_and_safety_gates(self) -> None:
         for phrase in (

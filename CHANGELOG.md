@@ -1,5 +1,18 @@
 # Orville Changelog
 
+## 2026-08-27 — Second remediation increment: portable references and reviewed visual baseline
+
+### Changed
+
+- Added `tests/repository_references.py`, a shared test-only resolver for repository-relative references. It accepts canonical POSIX and legacy Windows separators, rejects absolute, drive-qualified, and traversal forms, and does not mutate valid documentation or catalog paths.
+- Migrated operator-runbook, orchestration-test-matrix, reusable-fixes, and standalone-README contract tests to use the shared resolver. Added focused coverage for accepted separator forms and rejected unsafe references.
+- Generated, inspected, and committed `artifacts/visual_regression_baseline.json` from the current design-system tokens and canonical control-center markup. The artifact is deterministic, bounded, and contains hashes and structural metadata only.
+- Completed the corresponding visual-baseline and cross-platform reference-resolution TODOs. Updated the audit, state, readiness, and milestone records with the resulting eight-failure release-gate baseline.
+
+### Validation
+
+`python3 -m compileall -q tests tools` passed. The focused second-increment suite completed with **29 passed**. The deterministic visual check passed, including its three focused tests. The full suite improved from 767 passed / 15 failed to **780 passed / 8 failed / 1 warning**. Remaining failures are limited to runtime/contract alignment and state-reconciliation work outside this increment.
+
 ## 2026-08-27 — First remediation increment: protected persistence and path containment
 
 ### Changed

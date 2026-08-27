@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import unittest
 
+from tests.repository_references import resolve_repository_reference
+
 
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
@@ -39,7 +41,7 @@ class StandaloneReadmeTests(unittest.TestCase):
         references = re.findall(r"`((?:docs|tools|orville_core|examples)/[^\s`]+)", self.text)
         self.assertGreaterEqual(len(references), 10)
         for reference in references:
-            self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+            self.assertTrue(resolve_repository_reference(ROOT, reference).is_file(), reference)
 
     def test_readme_preserves_security_and_standalone_boundaries(self) -> None:
         for phrase in (

@@ -32,9 +32,9 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Provide secure credential persistence or clear platform skips for non-Windows local development. Implemented Fernet-encrypted connection records on non-Windows hosts using a runtime-only `ORVILLE_CONNECTOR_MASTER_KEY`, while retaining Windows DPAPI; added ephemeral-key, missing-key, Blackbox API-key, reloading, redaction, connector discovery, and invocation coverage. The master key is never stored in the connection record. Focused validation: 21 passed with 1 upstream HTTP-client deprecation warning. <!-- task-id:TODO-54d8ec6f80b9 -->
 
-- [ ] Create and review the committed visual-regression baseline required by the checker. Acceptance: `artifacts/visual_regression_baseline.json` is reviewed, source-controlled where appropriate, and both visual-regression tests pass. <!-- task-id:TODO-25105284c9fc -->
+- [x] Create and review the committed visual-regression baseline required by the checker. Generated the deterministic baseline from the current design-system and canonical control-center mockup, verified its normalized design and structure evidence is bounded and credential-free, and confirmed `python3 tools/visual_regression.py check` plus all visual regression tests pass. Focused second-increment validation: 29 passed. <!-- task-id:TODO-25105284c9fc -->
 
-- [ ] Repair cross-platform documentation-reference tests without altering documented paths. Acceptance: all documentation contract tests use platform-neutral `Path` resolution and pass on supported hosts. <!-- task-id:TODO-f7347e19331a -->
+- [x] Repair cross-platform documentation-reference tests without altering documented paths. Added one test-only resolver that normalizes legacy Windows/POSIX separators, rejects absolute and traversal forms, and retains canonical repository-relative paths; migrated operator runbook, test matrix, reusable-fixes, and standalone README contracts. Focused second-increment validation: 29 passed. <!-- task-id:TODO-f7347e19331a -->
 
 - [ ] Repair TODO marker parsing and reconcile stale checkpoint and template records. Acceptance: identifier generation is idempotent, every marker is terminal, and superseded or template-only checklist state is explicit. <!-- task-id:TODO-f83deb76611e -->
 

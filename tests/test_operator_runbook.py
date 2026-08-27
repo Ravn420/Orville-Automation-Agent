@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import unittest
 
+from tests.repository_references import resolve_repository_reference
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "docs" / "OPERATOR_RUNBOOK.md"
@@ -46,7 +48,7 @@ class OperatorRunbookTests(unittest.TestCase):
         references = re.findall(r"`(docs/[^`]+\.md)`", self.text)
         self.assertGreaterEqual(len(references), 6)
         for reference in references:
-            self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+            self.assertTrue(resolve_repository_reference(ROOT, reference).is_file(), reference)
         self.assertNotRegex(self.text, r"(?i)sk-[A-Za-z0-9]{12,}|Bearer\s+[A-Za-z0-9._-]{8,}|api[_-]?key\s*=\s*[^\s,]+")
 
 

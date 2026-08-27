@@ -4,7 +4,7 @@
 
 ## Executive assessment
 
-Orville retains a substantial local control-plane implementation, but it is **not release-ready**. The full regression gate completes collection only after the standard GUI runtime is available and now reports **767 passed and 15 failed tests** after the first remediation increment. The source compiles successfully, the base package wheel builds successfully, and the credential-free preview check passes, but the preview check reports three existing normal-text contrast warnings. The previous worker-module collection diagnosis is now obsolete: the focused roadmap-worker suite passes all 10 tests. The current blocker is therefore a post-collection regression cluster, not the former `task_status` collection error.[1] [2] [3]
+Orville retains a substantial local control-plane implementation, but it is **not release-ready**. The full regression gate completes collection only after the standard GUI runtime is available and now reports **780 passed and 8 failed tests** after the second remediation increment. The source compiles successfully, the base package wheel builds successfully, and the credential-free preview check passes, but the preview check reports three existing normal-text contrast warnings. The previous worker-module collection diagnosis is now obsolete: the focused roadmap-worker suite passes all 10 tests. The current blocker is therefore a post-collection regression cluster, not the former `task_status` collection error.[1] [2] [3]
 
 > This audit distinguishes verified local behavior from environment- or provider-dependent work. It does not claim that local contracts establish production deployment readiness.
 
@@ -12,7 +12,7 @@ Orville retains a substantial local control-plane implementation, but it is **no
 |---|---:|---|
 | Python compilation | Passed | No syntax or compilation defect was observed in the audited Python paths. |
 | Base wheel build without dependencies | Passed | The distributable base package can be built. |
-| Full regression suite | 767 passed, 15 failed, 1 warning | **Release gate blocked.** Remaining failures are grouped below. |
+| Full regression suite | 780 passed, 8 failed, 1 warning | **Release gate blocked.** Remaining failures are grouped below. |
 | Clean `.[dev]` install and collection | 6 collection errors | Development extras omit API test dependencies required by six test modules. |
 | Credential-free preview check | Passed with 3 contrast warnings | Static preview remains usable; accessibility remediation is still required. |
 | Roadmap-worker focused suite | 10 passed | The former worker collection blocker is resolved; its documentation is stale. |
@@ -20,14 +20,14 @@ Orville retains a substantial local control-plane implementation, but it is **no
 
 ## Confirmed remediation queue
 
-The following tasks are the authoritative queue created by this audit. They are intentionally ordered before legacy unchecked entries in `TODO.md`; each must retain its security, approval, and secret-redaction boundaries while being resolved.
+The following tasks are the authoritative queue created by this audit. They are intentionally ordered before legacy unchecked entries in `TODO.md`; each must retain its security, approval, and secret-redaction boundaries while being resolved. The first and second remediation increments have completed four listed items and reduced the suite from 20 to 8 failures.
 
 | Priority | ID | Verified finding | Required completion evidence |
 |---|---|---|---|
-| P0 | `TODO-cff928829702` | The full suite has 15 reproducible failures after the validated first remediation increment. | A clean full-suite run, per-failure triage, and updated release evidence. |
+| P0 | `TODO-cff928829702` | The full suite has 8 reproducible failures after the validated second remediation increment. | A clean full-suite run, per-failure triage, and updated release evidence. |
 | Completed | `TODO-54d8ec6f80b9` | Manual connector and Blackbox API-key persistence unconditionally required Windows DPAPI. | Fernet-encrypted non-Windows records now require a runtime-only protected master key, Windows DPAPI remains active, and focused connector/Blackbox tests pass without plaintext persistence. |
-| P0 | `TODO-25105284c9fc` | The visual-regression checker unconditionally requires `artifacts/visual_regression_baseline.json`, but the baseline is absent. | A reviewed committed baseline and passing visual-regression tests. |
-| P1 | `TODO-f7347e19331a` | Five documentation-contract tests replace `/` with `\\` before resolving paths, causing false failures on POSIX hosts. | Platform-neutral path resolution with focused test coverage. |
+| Completed | `TODO-25105284c9fc` | The visual-regression checker required an absent baseline artifact. | A deterministic baseline was generated from reviewed local design and markup evidence; the checker and all three focused visual tests pass. |
+| Completed | `TODO-f7347e19331a` | Documentation-contract tests rewrote portable `/` references as `\\` paths, causing false POSIX failures. | A single tested resolver normalizes either separator, rejects unsafe absolute/traversal paths, and serves the affected contract tests; 29 combined focused tests pass. |
 | P1 | `TODO-f83deb76611e` | The TODO-ID utility adds a second marker whenever prose follows an existing marker, and several legacy rows duplicate newer completion records. | Idempotent marker parsing, a passing identifier test, and reconciled checkpoint/template records. |
 | P1 | `TODO-1f336418c5a4` | Test expectations are stale or timing-sensitive around checkpoint schema version, timeout event position, and preview-server startup readiness. | Stable behavior-or-contract decisions, focused tests, and no order/timing dependence. |
 | Completed | `TODO-3d2f46e3bd16` | Hub-download destination validation accepted Windows-style traversal syntax on POSIX. | A shared resolver now normalizes separators and rejects traversal, absolute, drive-qualified, UNC, and NUL-containing paths; focused hub tests pass. |

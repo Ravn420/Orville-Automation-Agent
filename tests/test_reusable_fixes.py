@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from tests.repository_references import resolve_repository_reference
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = ROOT / "config" / "reusable-fixes.json"
@@ -28,7 +30,7 @@ class ReusableFixesTests(unittest.TestCase):
             self.assertTrue(fix["assets"], name)
             self.assertTrue(fix["reuse"], name)
             for asset in fix["assets"]:
-                self.assertTrue((ROOT / asset.replace("/", "\\")).is_file(), f"{name}: {asset}")
+                self.assertTrue(resolve_repository_reference(ROOT, asset).is_file(), f"{name}: {asset}")
 
     def test_catalog_is_versioned_and_documented(self) -> None:
         self.assertEqual(self.catalog["schema_version"], "1.0")
