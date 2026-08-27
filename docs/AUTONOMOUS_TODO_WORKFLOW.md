@@ -33,16 +33,16 @@ External changes are not implied by TODO completion. Publishing, deletion, accou
 The Windows Scheduled Task invokes:
 
 ```powershell
-python tools\orville_manus_worker.py --repo "C:\Users\Zeref\Documents\Manus Projects\Orville" --max-active 4 --validate-create-readability
+python tools\orville_manus_worker.py --repo "C:\Users\Zeref\Documents\Manus Projects\Orville" --max-active 3 --max-retries 2 --lease-seconds 600 --continuous --poll-interval 60
 ```
 
-The worker is configured for four existing task threads and must pass the creation-readability gate before using the fourth slot. A real invocation must include:
+The production worker is configured for exactly three existing task threads and runs continuously under a supervisor. A real invocation must include:
 
 ```powershell
-python tools\orville_manus_worker.py --repo "C:\Users\Zeref\Documents\Manus Projects\Orville" --max-active 4 --validate-create-readability
+python tools\orville_manus_worker.py --repo "C:\Users\Zeref\Documents\Manus Projects\Orville" --max-active 3 --max-retries 2 --lease-seconds 600 --continuous --poll-interval 60
 ```
 
-The gate is fail-closed when a newly created diagnostic task remains unreadable. It prevents the worker from polling additional records under an API routing condition known to return inaccessible task IDs.
+The worker is fail-closed with respect to task creation: it never creates replacement tasks during normal cycles and polls only the three task IDs already verified and recorded in worker state. Any task-detail 404 is retained as evidence and skipped without adding a new slot.
 
 ## Validation commands
 

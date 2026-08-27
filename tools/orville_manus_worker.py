@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import re
+import signal
 import sys
 import time
 import uuid
@@ -487,6 +488,66 @@ def validate_create_readability_gate(
     )
 
 
+def run_continuously(
+    repo: Path,
+    *,
+    interval_seconds: float = 60.0,
+    max_active_tasks: int = DEFAULT_MAX_ACTIVE_TASKS,
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    lease_seconds: int = DEFAULT_LEASE_SECONDS,
+    max_cycles: int | None = None,
+    sleep_fn: Any = time.sleep,
+) -> int:
+    """Run bounded worker cycles until a stop signal or optional cycle limit.
+
+    The loop deliberately reuses ``run_once`` so every cycle acquires/releases
+    the application lock, refreshes leases, honors pause state, and applies the
+    same retry policy. A stop signal is handled by the process entry point and
+    causes the loop to finish the current cycle before returning.
+    """
+    if interval_seconds < 0:
+        raise ValueError("interval_seconds must be non-negative")
+    if max_cycles is not None and max_cycles < 1:
+        raise ValueError("max_cycles must be positive when provided")
+    stop_requested = {"value": False}
+
+    def request_stop(_signum: int, _frame: Any) -> None:
+        stop_requested["value"] = True
+        log(repo, "control: graceful shutdown requested")
+
+    previous_handlers: dict[int, Any] = {}
+    for signum in (getattr(signal, "SIGINT", None), getattr(signal, "SIGTERM", None)):
+        if signum is not None:
+            try:
+                previous_handlers[signum] = signal.getsignal(signum)
+                signal.signal(signum, request_stop)
+            except (OSError, ValueError):
+                pass
+    cycles = 0
+    try:
+        while not stop_requested["value"] and (max_cycles is None or cycles < max_cycles):
+            cycles += 1
+            result = run_once(
+                repo,
+                max_active_tasks=max_active_tasks,
+                max_retries=max_retries,
+                lease_seconds=lease_seconds,
+            )
+            if result != 0:
+                log(repo, f"continuous: cycle={cycles} result={result}; continuing within supervisor")
+            if stop_requested["value"] or (max_cycles is not None and cycles >= max_cycles):
+                break
+            sleep_fn(interval_seconds)
+        log(repo, f"continuous: stopped after cycles={cycles}")
+        return 0
+    finally:
+        for signum, handler in previous_handlers.items():
+            try:
+                signal.signal(signum, handler)
+            except (OSError, ValueError):
+                pass
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Resume existing Orville Manus task threads for TODO work.")
     parser.add_argument("--repo", type=Path, default=Path(os.environ.get("ORVILLE_REPO", Path(__file__).resolve().parents[1])), help="Orville repository root; scheduled invocations should pass the absolute repo path")
@@ -501,6 +562,9 @@ def main() -> int:
     control.add_argument("--status", action="store_true", help="print redacted worker status without network calls")
     parser.add_argument("--max-retries", type=int, default=DEFAULT_MAX_RETRIES, help="per-task retry budget (default: 2)")
     parser.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS, help="stale-lock lease duration (default: 600)")
+    parser.add_argument("--continuous", action="store_true", help="run bounded cycles continuously until interrupted")
+    parser.add_argument("--poll-interval", type=float, default=60.0, help="seconds between continuous cycles (default: 60)")
+    parser.add_argument("--max-cycles", type=int, default=None, help="optional continuous-cycle limit for testing")
     args = parser.parse_args()
     repo = args.repo.expanduser().resolve()
     if not (repo / "TODO.md").is_file():
@@ -514,6 +578,17 @@ def main() -> int:
     if args.status:
         print(json.dumps(worker_status(repo), ensure_ascii=False, indent=2))
         return 0
+    if args.continuous:
+        if args.dry_run:
+            parser.error("--continuous cannot be combined with --dry-run")
+        return run_continuously(
+            repo,
+            interval_seconds=args.poll_interval,
+            max_active_tasks=args.max_active,
+            max_retries=args.max_retries,
+            lease_seconds=args.lease_seconds,
+            max_cycles=args.max_cycles,
+        )
     return run_once(
         repo,
         dry_run=args.dry_run,

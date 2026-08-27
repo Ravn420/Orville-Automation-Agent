@@ -10,10 +10,10 @@ $Python = (Get-Command py -ErrorAction SilentlyContinue).Source
 if (-not $Python) { $Python = (Get-Command python -ErrorAction SilentlyContinue).Source }
 if (-not $Python) { throw 'Python was not found. Install Python 3.11+ and rerun this script.' }
 
-$Action = New-ScheduledTaskAction -Execute $Python -Argument ('"{0}" --repo "{1}" --max-active 3 --max-retries 2 --lease-seconds 600' -f $Worker, $Repo)
-$Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration (New-TimeSpan -Days 3650)
-$Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Seconds 50)
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Description 'Continues exactly three already-created Manus task threads for actionable Orville TODO items using the explicit Orville repository path; never creates new tasks. Uses bounded retries and heartbeat lease recovery.' -Force | Out-Null
+$Action = New-ScheduledTaskAction -Execute $Python -Argument ('"{0}" --repo "{1}" --max-active 3 --max-retries 2 --lease-seconds 600 --continuous --poll-interval 60' -f $Worker, $Repo)
+$Trigger = New-ScheduledTaskTrigger -AtStartup
+$Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Days 3650) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Description 'Continuously supervises exactly three already-created Manus task threads for actionable Orville TODO items using the explicit Orville repository path; never creates new tasks. Uses bounded retries, heartbeat lease recovery, graceful shutdown, and pause/resume.' -Force | Out-Null
 Write-Output "Installed scheduled task: $TaskName"
 Write-Output "Worker: $Worker"
 Write-Output 'The worker reads MANUS_API_KEY from the process environment; no secret is written by this script.'

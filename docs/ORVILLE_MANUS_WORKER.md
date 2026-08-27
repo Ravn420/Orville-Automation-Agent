@@ -18,7 +18,7 @@ From the repository root, run:
 
 ```powershell
 $env:MANUS_API_KEY = '<value supplied through a protected environment mechanism>'
-python tools\orville_manus_worker.py --repo 'C:\Users\Zeref\Documents\Manus Projects\Orville' --max-active 3 --max-retries 2 --lease-seconds 600
+python tools\orville_manus_worker.py --repo 'C:\Users\Zeref\Documents\Manus Projects\Orville' --max-active 3 --max-retries 2 --lease-seconds 600 --continuous --poll-interval 60
 ```
 
 For a credential-free state inspection from the repository root:
@@ -37,13 +37,13 @@ python tools\orville_manus_worker.py --repo 'C:\path\to\Orville' --pause
 python tools\orville_manus_worker.py --repo 'C:\path\to\Orville' --resume
 ```
 
-`--max-active` accepts values from 1 through 10. The default is 10. Real CLI invocations above three require `--validate-create-readability`; the gate creates one private diagnostic task and retries its `task.detail` lookup on 404 and transient transport failures. If the task remains unreadable after `--validation-retries` attempts, the worker exits with code 2 and does not poll or mutate existing task state. Use `--validation-interval` to bound the delay between checks. The worker is safe to invoke repeatedly: `.orville_manus_worker.lock` prevents overlapping invocations, while the state file prevents duplicate reservation of TODO lines.
+`--max-active` accepts values from 1 through 10. The default is 10. Real CLI invocations above three require `--validate-create-readability`; the gate creates one private diagnostic task and retries its `task.detail` lookup on 404 and transient transport failures. If the task remains unreadable after `--validation-retries` attempts, the worker exits with code 2 and does not poll or mutate existing task state. Use `--validation-interval` to bound the delay between checks. The worker is safe to invoke repeatedly or run continuously: `.orville_manus_worker.lock` prevents overlapping cycles, while the state file prevents duplicate reservation of TODO lines.
 
 ## Windows background execution
 
-Run `tools\install_orville_manus_worker.ps1` from an elevated PowerShell session after configuring `MANUS_API_KEY` for the scheduled-task execution context. The installer registers a once-per-minute task with an explicit absolute `--repo` path, starts when available, ignores overlapping scheduled instances, and limits each invocation to 50 seconds.
+Run `tools\install_orville_manus_worker.ps1` from an elevated PowerShell session after configuring `MANUS_API_KEY` for the scheduled-task execution context. The installer registers one startup task that launches the supervised continuous worker with an explicit absolute `--repo` path, ignores overlapping instances, and restarts the process after an unexpected exit.
 
-The one-minute trigger is a continuation check, not a task-creation or task-completion delay. A stopped existing task is resumed on the next invocation with the next eligible TODO item. If no existing task IDs are present in the state file, the worker remains idle and logs that it will not create a new task. The startup validation task is an exception used only when explicitly requested to prove that scaled concurrency can safely use the API identity; it is not added to worker state. Each run refreshes its lock heartbeat; a dead owner whose lease has expired may be recovered, while a live or malformed lock is retained for safety.
+The continuous process is a supervised continuation loop, not a task-creation or task-completion delay. It runs one bounded cycle, waits for `--poll-interval`, and repeats until stopped. A stopped existing task is resumed in the next cycle with the next eligible TODO item. If no existing task IDs are present in the state file, the worker remains idle and logs that it will not create a new task. The startup validation task is an exception used only when explicitly requested to prove that scaled concurrency can safely use the API identity; it is not added to worker state. Each cycle refreshes its lock heartbeat; a dead owner whose lease has expired may be recovered, while a live or malformed lock is retained for safety. SIGINT/SIGTERM requests graceful shutdown after the current cycle.
 
 ## State and recovery
 
