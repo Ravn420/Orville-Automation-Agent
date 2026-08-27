@@ -1087,7 +1087,7 @@ The following requirements were added after reviewing primary documentation and 
 
 - [ ] Evaluate generated software in isolated, reproducible environments using tests and behavioral acceptance criteria rather than text similarity alone. <!-- task-id:TODO-06227efe167c -->
 
-- [ ] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. <!-- task-id:TODO-745d5e6b79eb -->
+- [x] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. Added `config/repository-coding-evaluations.json`, two disposable issue fixtures with golden patches, `tools/run_repository_coding_evaluations.py`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, and focused tests; evaluator and full regression validation passed. <!-- task-id:TODO-745d5e6b79eb -->
 
 - [ ] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. <!-- task-id:TODO-f452603d4f34 -->
 

@@ -1506,3 +1506,12 @@ Each future execution record now has a consistent place to state what was not te
 | TODO-37bc97abee20 | Define task-specific evaluation datasets and golden cases for planning, code generation, debugging, refactoring, research, GUI workflows, and model import | Verification Agent / Research Agent | Existing task, agent, model-import, GUI, and verification contracts | completed-local | `config/evaluation-datasets.json`, `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md`, `tests/test_evaluation_datasets.py`; 3 focused tests, Python compilation, and broader regression passed |
 
 The registry is synthetic/local, deterministic by default, and safety-bounded. It does not replace isolated software evaluation, repository-level coding evaluations, trace observability, or live deployment acceptance.
+
+
+## 21.4A — Repository-level coding evaluations
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-745d5e6b79eb | Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks | Verification Agent / Code Synthesis Agent | 21.4 evaluation registry and existing project/test contracts | completed-local | `config/repository-coding-evaluations.json`, `tools/run_repository_coding_evaluations.py`, `docs/REPOSITORY_CODING_EVALUATIONS.md`, `tests/test_repository_coding_evaluations.py`; two baseline-failing fixtures, offline dependency installation, patch dry-run/apply, focused tests, compilation, and regression checks pass |
+
+The evaluator uses disposable workspaces, forbids network and external side effects, redacts temporary paths in evidence, and does not claim production readiness or substitute for isolated software evaluation.

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "registry_id": "orville-repository-coding-evaluations",
+  "version": "2026-08-28",
+  "execution_policy": {
+    "network": "disabled",
+    "external_side_effects": "forbidden",
+    "credentials": "not permitted",
+    "temporary_workspace": "required",
+    "baseline_failure_required": true,
+    "patch_application": "patch-dry-run-check-then-apply"
+  },
+  "cases": [
+    {
+      "id": "cache-key-bug",
+      "title": "Fix cross-namespace cache-key collision",
+      "issue": "Cache entries from different namespaces collide when they use the same logical key.",
+      "fixture_path": "artifacts/repository-coding-evaluations/cases/cache-key-bug",
+      "patch_path": "golden.patch",
+      "dependency_manifest": "requirements.txt",
+      "focused_test_command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "regression_command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "compile_command": ["python3", "-m", "compileall", "-q", "case_app", "tests"],
+      "acceptance": ["baseline fails the namespace-isolation regression", "golden patch applies cleanly", "focused tests pass after patch", "compilation passes after patch", "regression command passes after patch"]
+    },
+    {
+      "id": "path-boundary",
+      "title": "Reject exporter path traversal",
+      "issue": "The text exporter writes relative paths without proving that the resolved destination remains inside the approved root.",
+      "fixture_path": "artifacts/repository-coding-evaluations/cases/path-boundary",
+      "patch_path": "golden.patch",
+      "dependency_manifest": "requirements.txt",
+      "focused_test_command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "regression_command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "compile_command": ["python3", "-m", "compileall", "-q", "case_app", "tests"],
+      "acceptance": ["baseline fails the traversal regression", "golden patch applies cleanly", "focused tests pass after patch", "compilation passes after patch", "regression command passes after patch"]
+    }
+  ]
+}

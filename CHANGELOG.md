@@ -1,5 +1,19 @@
 # Orville Changelog
 
+## 2026-08-28 — Repository-level coding evaluations
+
+### Added
+
+- Completed `TODO-745d5e6b79eb` with a deterministic offline evaluator for realistic repository issues and golden patches.
+- Added two disposable fixtures covering a cross-namespace cache-key collision and an exporter path-traversal defect.
+- Added dependency-manifest installation, baseline-failure checks, patch dry-run/application, focused tests, Python compilation, regression checks, redacted JSON evidence, and safety restrictions.
+
+### Validation
+
+- Focused harness tests: **3 passed**.
+- Both repository coding cases: passed through install, baseline failure, patch application, focused tests, compilation, and regression checks.
+- Broader regression: **795 passed, 1 warning, 6 subtests passed**.
+
 ## 2026-08-28 — Task-specific evaluation datasets
 
 ### Added

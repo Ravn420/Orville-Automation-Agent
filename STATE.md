@@ -997,3 +997,8 @@ The selected reusable-template item is complete locally. The Standard Execution 
 ## Evaluation datasets and golden cases checkpoint — 2026-08-28
 
 `TODO-37bc97abee20` is complete as a local contract. `config/evaluation-datasets.json` defines seven synthetic, task-specific suites—planning, code generation, debugging, refactoring, research, GUI workflows, and model import—with stable case IDs, required and prohibited behaviors, deterministic defaults, safety constraints, and structured acceptance fields. `docs/EVALUATION_DATASETS_AND_GOLDEN_CASES.md` defines selection, reporting, privacy, approval, evidence, and limitation rules. Focused validation passed 3 tests, Python compilation passed, and the broader regression suite passed **792 tests, 1 warning, and 6 subtests**. The registry does not claim isolated software evaluation, repository-level coding evaluation, trace observability, or live deployment acceptance.
+
+
+## Repository coding evaluations checkpoint — 2026-08-28
+
+`TODO-745d5e6b79eb` is complete as a local contract. `config/repository-coding-evaluations.json` defines two realistic synthetic repository cases: a cross-namespace cache-key collision and an exporter path-traversal defect. `tools/run_repository_coding_evaluations.py` executes each in a disposable workspace, installs requirements offline, requires the baseline regression to fail, checks and applies the golden patch, then runs focused tests, Python compilation, and regression checks. Focused harness tests passed 3; the evaluator passed both cases; Python compilation passed; and the broader regression suite passed **795 tests, 1 warning, and 6 subtests**. No network, credentials, external side effects, production resources, or destructive actions were used.
