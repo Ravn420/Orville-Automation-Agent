@@ -22,6 +22,25 @@ class SandboxUnavailable(SandboxError):
     """Raised when no approved platform isolation adapter is available."""
 
 
+def is_sandbox_absolute_path(path: Path) -> bool:
+    """Accept native absolute paths and Windows absolute paths used by Windows adapters.
+
+    ``pathlib.Path`` follows the host platform, so ``Path('C:/model')`` is relative
+    on POSIX even though it is an absolute Windows path. Validation must preserve
+    Windows Sandbox configuration generation on a POSIX control host without
+    treating relative POSIX paths as valid.
+    """
+    return path.is_absolute() or PureWindowsPath(str(path)).is_absolute()
+
+
+def sandbox_path_from_request(value: object) -> Path:
+    """Preserve absolute Windows paths while resolving native host paths."""
+    path = Path(str(value)).expanduser()
+    if PureWindowsPath(str(path)).is_absolute():
+        return path
+    return path.resolve()
+
+
 @dataclass(frozen=True)
 class SandboxPolicy:
     """Explicit execution limits and boundary permissions."""
@@ -68,7 +87,7 @@ class SandboxPlan:
         if any(char in self.command[0] for char in "&|;<>`\n"):
             raise ValueError("shell syntax is not allowed in sandbox argv")
         for path_name, path in (("model_path", self.model_path), ("scratch_path", self.scratch_path), ("output_path", self.output_path)):
-            if not path.is_absolute() and not PureWindowsPath(str(path)).is_absolute():
+            if not is_sandbox_absolute_path(path):
                 raise ValueError(f"{path_name} must be absolute")
         if set(self.environment) - self.policy.allowed_environment:
             raise ValueError("environment contains variables outside the sandbox allowlist")
@@ -83,9 +102,9 @@ class SandboxPlan:
         plan = cls(
             run_id=str(request.get("run_id", "")),
             command=tuple(str(item) for item in (command or ())),
-            model_path=Path(str(request.get("model_path", ""))).expanduser().resolve(),
-            scratch_path=Path(str(request.get("scratch_path", ""))).expanduser().resolve(),
-            output_path=Path(str(request.get("output_path", ""))).expanduser().resolve(),
+            model_path=sandbox_path_from_request(request.get("model_path", "")),
+            scratch_path=sandbox_path_from_request(request.get("scratch_path", "")),
+            output_path=sandbox_path_from_request(request.get("output_path", "")),
             policy=policy,
             model_checksum=str(request.get("model_checksum", "")),
             environment={str(key): str(value) for key, value in dict(request.get("environment", {})).items()},

@@ -168,3 +168,43 @@ def dashboard_values(results: Mapping[str, object]) -> dict[str, str]:
         "failures": str(len(failures)) if isinstance(failures, list) else "—",
         "artifacts": str(len(artifact_items)) if isinstance(artifact_items, list) else "—",
     }
+
+
+GUI_ENGINE_ACTIONS = {
+    "create_run": ("POST", "/api/v1/objectives", "objective"),
+    "execute_run": ("POST", "/api/v1/objectives/{run_id}/execute", "stream"),
+    "pause_monitor": ("LOCAL", None, None),
+    "resume_run": ("POST", "/api/v1/objectives/{run_id}/execute", "stream"),
+    "cancel_run": ("POST", "/api/v1/runs/{run_id}/cancel", None),
+    "approve_task": ("POST", "/api/v1/runs/{run_id}/tasks/{task_id}/approval", "approved"),
+    "retry_run": ("POST", "/api/v1/objectives/{run_id}/execute", "stream"),
+    "checkpoint": ("GET", "/api/v1/runs/{run_id}", None),
+    "verification": ("GET", "/api/v1/runs/{run_id}", None),
+    "artifact_list": ("GET", "/api/v1/artifacts", None),
+}
+
+
+def build_engine_action_request(action: str, run_id: str | None = None, task_id: str | None = None) -> tuple[str, str, dict | None]:
+    """Build the authenticated GUI-to-engine request for a supported action.
+
+    The ``checkpoint`` and ``verification`` read projections use the persisted run
+    endpoint. ``pause_monitor`` is a local UI operation; the backend does not expose
+    a run-pause endpoint.
+    """
+    from urllib.parse import quote
+
+    if action not in GUI_ENGINE_ACTIONS:
+        raise ValueError(f"unsupported GUI engine action: {action}")
+    method, template, _payload_key = GUI_ENGINE_ACTIONS[action]
+    if method == "LOCAL":
+        return method, "", None
+    if "{run_id}" in template and not str(run_id or "").strip():
+        raise ValueError(f"{action} requires a run_id")
+    if "{task_id}" in template and not str(task_id or "").strip():
+        raise ValueError(f"{action} requires a task_id")
+    path = template.format(run_id=quote(str(run_id), safe=""), task_id=quote(str(task_id), safe=""))
+    if action in {"execute_run", "resume_run", "retry_run"}:
+        return method, path, {"context": {"stream": True}}
+    if action == "approve_task":
+        return method, path, {"approved": True}
+    return method, path, None

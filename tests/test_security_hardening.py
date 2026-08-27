@@ -100,3 +100,20 @@ def test_tuf_target_integrity_fails_closed(tmp_path: Path):
     metadata["signed"]["targets"]["model.gguf"]["length"] = target.stat().st_size
     with pytest.raises(TufVerificationError, match="sha256"):
         verifier.verify_target(target, "model.gguf", metadata)
+
+
+def test_sandbox_plan_preserves_windows_absolute_paths_from_request():
+    plan = SandboxPlan.from_request(
+        {
+            "run_id": "r1",
+            "command": ["worker.exe", "--model", "C:/model"],
+            "model_path": "C:/model",
+            "scratch_path": "C:/scratch",
+            "output_path": "C:/out",
+            "model_checksum": "sha256:x",
+        },
+        SandboxPolicy(),
+    )
+    assert str(plan.model_path) == "C:/model"
+    assert str(plan.scratch_path) == "C:/scratch"
+    assert str(plan.output_path) == "C:/out"
