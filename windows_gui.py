@@ -159,12 +159,23 @@ class OrvilleWindow(tk.Tk):
         self.sidebar = ttk.Frame(self.workspace, style="Sidebar.TFrame", padding=(12, 16))
         self.sidebar.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         self.sidebar.rowconfigure(7, weight=1)
-        ttk.Button(self.sidebar, text="＋  New objective", style="Primary.TButton", command=self._focus_composer).pack(fill="x", pady=(0, 22))
-        for title, items in (("WORKSPACE", ("Overview", "Active tasks", "Recent activity", "Verification")), ("RESOURCES", ("Artifacts", "Integrations")), ("SYSTEM", ("Settings",))):
-            ttk.Label(self.sidebar, text=title, style="Section.TLabel").pack(anchor="w", padx=10, pady=(7, 5))
-            for item in items:
-                command = self.open_execution_monitor if item in {"Active tasks", "Recent activity"} else self.open_verification_review if item == "Verification" else self.show_workflow_help if item == "Overview" else lambda name=item: self._write(f"{name} is available through the existing Orville workflow.")
-                ttk.Button(self.sidebar, text="  " + item, style="Nav.TButton", command=command).pack(fill="x")
+        ttk.Button(self.sidebar, text="＋  New Task", style="Primary.TButton", command=self._focus_composer).pack(fill="x", pady=(0, 16))
+        ttk.Label(self.sidebar, text="WORKSPACE", style="Section.TLabel").pack(anchor="w", padx=10, pady=(7, 5))
+        for label, command in (
+            ("  Personal Agent", self.open_personal_agent),
+            ("  Projects", self.open_projects),
+            ("  Task history", self.open_task_history),
+            ("  Overview", self.show_workflow_help),
+            ("  Active tasks", self.open_execution_monitor),
+            ("  Verification", self.open_verification_review),
+        ):
+            ttk.Button(self.sidebar, text=label, style="Nav.TButton", command=command).pack(fill="x")
+        ttk.Label(self.sidebar, text="RESOURCES", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
+        for label, command in (("  Artifacts", self.artifacts), ("  Integrations", self.open_provider_setup)):
+            ttk.Button(self.sidebar, text=label, style="Nav.TButton", command=command).pack(fill="x")
+        ttk.Label(self.sidebar, text="SYSTEM", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
+        ttk.Button(self.sidebar, text="  Settings", style="Nav.TButton", command=self.open_settings).pack(fill="x")
+
         ttk.Label(self.sidebar, text="LOCAL MODELS", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
         ttk.Button(self.sidebar, text="  Import model", style="Nav.TButton", command=self.import_local_model).pack(fill="x")
         ttk.Button(self.sidebar, text="  Model manager", style="Nav.TButton", command=self.open_model_manager).pack(fill="x")
@@ -174,7 +185,54 @@ class OrvilleWindow(tk.Tk):
         tk.Label(account, text="●", bg=self.SIDEBAR, fg=self.ACCENT, font=("Segoe UI", 16)).pack(side="left", padx=(6, 8))
         tk.Label(account, text="Local operator\nOrville workspace", justify="left", bg=self.SIDEBAR, fg=self.TEXT, font=("Segoe UI", 9)).pack(side="left")
 
+    def _show_workspace_payload(self, title: str, subtitle: str, path: str, formatter) -> None:
+        """Open a bounded read-oriented workspace backed by a local API projection."""
+        window = tk.Toplevel(self)
+        window.title(f"Orville — {title}")
+        window.geometry("900x620")
+        window.minsize(680, 440)
+        window.configure(bg=self.BG)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(1, weight=1)
+        ttk.Label(window, text=title, style="Title.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(16, 4))
+        ttk.Label(window, text=subtitle, style="Subtitle.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(42, 10))
+        body = ttk.Frame(window, style="Surface.TFrame", padding=14)
+        body.grid(row=1, column=0, sticky="nsew", padx=14, pady=(8, 14))
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(0, weight=1)
+        text = scrolledtext.ScrolledText(body, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, relief="flat", borderwidth=0, font=("Segoe UI", 9), padx=12, pady=12)
+        text.grid(row=0, column=0, sticky="nsew")
+        status = tk.StringVar(value="Loading…")
+        ttk.Label(body, textvariable=status, style="Subtitle.TLabel").grid(row=1, column=0, sticky="w", pady=(8, 0))
+
+        def render(result: object) -> None:
+            value = formatter(result)
+            text.configure(state="normal")
+            text.delete("1.0", "end")
+            text.insert("1.0", value)
+            text.configure(state="disabled")
+            status.set("Local data loaded. External side effects require an explicit approval flow.")
+
+        self._manager_request(path, "GET", None, render)
+
+    def open_projects(self) -> None:
+        """Show persisted projects and their stable identifiers."""
+        self._show_workspace_payload("Projects", "Choose a project context before recovering work or reviewing memory.", "/api/v1/projects", lambda result: json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+
+    def open_task_history(self) -> None:
+        """Show previous task threads for bounded recovery."""
+        self._show_workspace_payload("Task history", "Review previous objectives and recover a thread without replaying external side effects.", "/api/v1/threads?limit=100", lambda result: json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+
+    def open_personal_agent(self) -> None:
+        """Show isolated agent status and project-scoped memory controls."""
+        self._show_workspace_payload("Personal Agent", "The personal agent is isolated to the local runtime; memory is project-scoped and explicitly persisted.", "/api/v1/agents?enabled_only=false", lambda result: json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+
+    def open_settings(self) -> None:
+        """Open existing provider, privacy, and runtime settings without exposing secrets."""
+        self.open_provider_setup()
+
     def _build_center(self) -> None:
+
         self.center = ttk.Frame(self.workspace, style="App.TFrame", padding=(2, 0))
         self.center.grid(row=0, column=1, sticky="nsew")
         self.center.rowconfigure(2, weight=1)

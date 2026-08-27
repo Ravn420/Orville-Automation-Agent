@@ -1285,25 +1285,25 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 ## Restored Orville Product Shell
 
-- [ ] Audit current navigation, intake, task history, projects, settings, personal agent, and persistence behavior. <!-- task-id:TODO-66aaca9a4a16 -->
+- [x] Audit current navigation, intake, task history, projects, settings, personal agent, and persistence behavior. <!-- task-id:TODO-66aaca9a4a16 -->
 
-- [ ] Re-read runtime, automation, hosting, and full-stack guidance for always-on personal-agent boundaries. <!-- task-id:TODO-5e1d44cca5cf -->
+- [x] Re-read runtime, automation, hosting, and full-stack guidance for always-on personal-agent boundaries. <!-- task-id:TODO-5e1d44cca5cf -->
 
-- [ ] Define the sidebar information architecture and first-screen interaction model. <!-- task-id:TODO-69f56440af2e -->
+- [x] Define the sidebar information architecture and first-screen interaction model. <!-- task-id:TODO-69f56440af2e -->
 
-- [ ] Restore a collapsible sidebar with New Task, Personal Agent, Projects, task history, and Settings. <!-- task-id:TODO-61de21b01004 -->
+- [x] Restore a collapsible sidebar with New Task, Personal Agent, Projects, task history, and Settings. <!-- task-id:TODO-61de21b01004 -->
 
-- [ ] Make the main screen a friendly instruction-first New Task input window. <!-- task-id:TODO-1d0689438dfa -->
+- [x] Make the main screen a friendly instruction-first New Task input window. <!-- task-id:TODO-1d0689438dfa -->
 
-- [ ] Add a Personal Agent workspace with isolated runtime status and persistent memory controls. <!-- task-id:TODO-545bf2b30a02 -->
+- [x] Add a Personal Agent workspace with isolated runtime status and persistent memory controls. <!-- task-id:TODO-545bf2b30a02 -->
 
-- [ ] Add clickable Projects and previous-task recovery flows. <!-- task-id:TODO-7f68c7bcd25c -->
+- [x] Add clickable Projects and previous-task recovery flows. <!-- task-id:TODO-7f68c7bcd25c -->
 
-- [ ] Preserve provider configuration, repository tools, live code viewer, runs, artifacts, state, events, and API docs. <!-- task-id:TODO-20612b699396 -->
+- [x] Preserve provider configuration, repository tools, live code viewer, runs, artifacts, state, events, and API docs. <!-- task-id:TODO-20612b699396 -->
 
-- [ ] Verify desktop, collapsed-sidebar, and responsive behavior plus task recovery and settings flows. <!-- task-id:TODO-58d9e57472c1 -->
+- [x] Verify desktop, collapsed-sidebar, and responsive behavior plus task recovery and settings flows. <!-- task-id:TODO-58d9e57472c1 -->
 
-- [ ] Save a verified restored-shell checkpoint. <!-- task-id:TODO-0338eef4053a -->
+- [x] Save a verified restored-shell checkpoint. <!-- task-id:TODO-0338eef4053a -->
 
 ## Restored Orville Shell Status
 
