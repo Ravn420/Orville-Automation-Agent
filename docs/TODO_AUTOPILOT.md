@@ -83,14 +83,14 @@ The worker treats repository instructions and agent output as untrusted data. It
 
 ## Activated continuation profile — 2026-08-27
 
-The existing Windows Scheduled Task `Orville Manus Todo Worker` is enabled and runs every minute while the interactive user session is available. It invokes `tools\orville_manus_worker.py` with the absolute repository path and `--max-active 3`. Each cycle polls only the already-recorded Worker Task 1–10 thread records, and when a thread stops it resumes that same thread with exactly one next unchecked TODO item. The continuation playbook requires claim-before-work, focused validation, compilation and broader checks when feasible, state/changelog synchronization, and `[x]` only after validation evidence agrees.
+The Windows Scheduled Task `Orville Manus Todo Worker` is configured by `tools\install_orville_manus_worker.ps1` to run every minute while the interactive user session is available; run the installer on the target Windows machine to enable it. It invokes `tools\orville_manus_worker.py` with the absolute repository path and `--max-active 4 --validate-create-readability`. Each cycle polls only the already-recorded Worker Task 1–10 thread records, and when a thread stops it resumes that same thread with exactly one next unchecked TODO item. The continuation playbook requires claim-before-work, focused validation, compilation and broader checks when feasible, state/changelog synchronization, and `[x]` only after validation evidence agrees.
 
-This activation does not create replacement Manus tasks, run above three active threads, or bypass the create-readability scale gate. The worker reads `MANUS_API_KEY` only from the scheduled process environment and never writes it to repository state. The current attached repository has no Git metadata, so branch creation, commits, pushes, and pull requests cannot be performed in this workspace; the worker records that limitation rather than fabricating Git delivery. External provider execution and production changes remain subject to their separate approval boundaries.
+This configuration does not create replacement Manus tasks, run above four active threads, or bypass the create-readability scale gate. The worker reads `MANUS_API_KEY` only from the scheduled process environment and never writes it to repository state. The worker requires the target repository to be a real Git worktree with a configured remote before delegated work can commit or push; it records that limitation rather than fabricating Git delivery. External provider execution and production changes remain subject to their separate approval boundaries.
 
 Read-only readiness checks:
 
 ```powershell
 python tools\todo_autopilot.py --repo . --dry-run
-python tools\orville_manus_worker.py --repo . --dry-run --max-active 3
+python tools\orville_manus_worker.py --repo . --dry-run --max-active 4 --validate-create-readability
 schtasks.exe /Query /TN "Orville Manus Todo Worker" /FO LIST
 ```
