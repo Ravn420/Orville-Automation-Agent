@@ -6,7 +6,7 @@ import re
 import unittest
 from pathlib import Path
 
-from windows_gui import (
+from orville_core.gui_state import (
     DEPENDENCY_STATE_COPY,
     classify_dependency_state,
     dependency_state_message,

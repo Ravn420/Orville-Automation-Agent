@@ -1,0 +1,24 @@
+test_dashboard_aggregates_existing_payload_shapes (tests.test_dashboard.DashboardTests.test_dashboard_aggregates_existing_payload_shapes) ... ok
+test_dashboard_degrades_to_safe_bounded_values (tests.test_dashboard.DashboardTests.test_dashboard_degrades_to_safe_bounded_values) ... ok
+test_dashboard_source_declares_required_cards_and_routes (tests.test_dashboard.DashboardTests.test_dashboard_source_declares_required_cards_and_routes) ... ok
+test_all_dependency_types_map_to_stable_states (tests.test_gui_degraded_availability.GuiDegradedAvailabilityTests.test_all_dependency_types_map_to_stable_states) ... ok
+test_contract_and_gui_copy_preserve_work_and_privacy (tests.test_gui_degraded_availability.GuiDegradedAvailabilityTests.test_contract_and_gui_copy_preserve_work_and_privacy) ... ok
+test_each_state_has_plain_language_recovery_actions (tests.test_gui_degraded_availability.GuiDegradedAvailabilityTests.test_each_state_has_plain_language_recovery_actions) ... ok
+test_cli_bounds_are_explicit (tests.test_gui_performance_measurement.GuiPerformanceMeasurementTests.test_cli_bounds_are_explicit) ... ok
+test_fixed_workload_contains_requested_collections (tests.test_gui_performance_measurement.GuiPerformanceMeasurementTests.test_fixed_workload_contains_requested_collections) ... ok
+test_measure_fails_startup_gate (tests.test_gui_performance_measurement.GuiPerformanceMeasurementTests.test_measure_fails_startup_gate) ... ok
+test_measure_reports_required_metrics_and_passes_gates (tests.test_gui_performance_measurement.GuiPerformanceMeasurementTests.test_measure_reports_required_metrics_and_passes_gates) ... ok
+test_contract_covers_required_exposure_categories_and_limits (tests.test_gui_sensitive_data.GuiSensitiveDataTests.test_contract_covers_required_exposure_categories_and_limits) ... ok
+test_gui_paths_use_safe_projection_and_do_not_echo_objective (tests.test_gui_sensitive_data.GuiSensitiveDataTests.test_gui_paths_use_safe_projection_and_do_not_echo_objective) ... ok
+test_sensitive_keys_and_patterns_are_redacted (tests.test_gui_sensitive_data.GuiSensitiveDataTests.test_sensitive_keys_and_patterns_are_redacted) ... ok
+test_all_required_states_have_copy_and_recovery (tests.test_workflow_state_handling.WorkflowStateHandlingTests.test_all_required_states_have_copy_and_recovery) ... ok
+test_classifier_distinguishes_empty_blocked_active_partial_and_failed (tests.test_workflow_state_handling.WorkflowStateHandlingTests.test_classifier_distinguishes_empty_blocked_active_partial_and_failed) ... ok
+test_views_expose_loading_empty_offline_and_safe_recovery (tests.test_workflow_state_handling.WorkflowStateHandlingTests.test_views_expose_loading_empty_offline_and_safe_recovery) ... ok
+test_changed_baseline_fails_closed (tests.test_visual_regression.VisualRegressionTests.test_changed_baseline_fails_closed) ... ok
+test_current_assets_match_committed_baseline (tests.test_visual_regression.VisualRegressionTests.test_current_assets_match_committed_baseline) ... ok
+test_snapshot_contains_design_and_critical_screen_evidence (tests.test_visual_regression.VisualRegressionTests.test_snapshot_contains_design_and_critical_screen_evidence) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.010s
+
+OK

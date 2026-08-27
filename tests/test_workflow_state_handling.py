@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from windows_gui import WORKFLOW_STATE_COPY, classify_workflow_state, state_message
+from orville_core.gui_state import WORKFLOW_STATE_COPY, classify_workflow_state, state_message
 
 
 class WorkflowStateHandlingTests(unittest.TestCase):

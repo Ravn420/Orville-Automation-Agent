@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from windows_gui import safe_display_value
+from orville_core.gui_state import safe_display_value
 
 
 class GuiSensitiveDataTests(unittest.TestCase):

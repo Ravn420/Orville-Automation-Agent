@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from windows_gui import classify_dependency_state, classify_workflow_state, dependency_state_message
+from orville_core.gui_state import classify_dependency_state, classify_workflow_state, dependency_state_message
 
 
 DEFAULT_TASKS = 1000
@@ -30,7 +30,7 @@ DEFAULT_ARTIFACTS = 500
 def _startup_ms() -> float:
     start = time.perf_counter()
     completed = subprocess.run(
-        [sys.executable, "-c", "import windows_gui"],
+        [sys.executable, "-c", "import orville_core.gui_state"],
         check=True,
         capture_output=True,
         text=True,
