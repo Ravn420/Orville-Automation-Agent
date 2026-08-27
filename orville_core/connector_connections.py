@@ -8,6 +8,7 @@ the provider's official endpoints.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 import base64
 import hashlib
 import json
@@ -24,6 +25,9 @@ from typing import Any
 
 class ConnectorConnectionError(RuntimeError):
     """Raised for invalid or unsafe connector connection operations."""
+
+
+CredentialProtector = Callable[[str], str]
 
 
 def _protect(value: str) -> str:
@@ -123,8 +127,17 @@ class ConnectorConnection:
 
 
 class ConnectorConnectionStore:
-    def __init__(self, path: str | Path):
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        protect: CredentialProtector = _protect,
+        unprotect: CredentialProtector = _unprotect,
+    ) -> None:
+        """Create a store with Windows DPAPI by default and injectable test protection."""
         self.path = Path(path)
+        self._protect = protect
+        self._unprotect = unprotect
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._records: dict[str, ConnectorConnection] = {}
@@ -169,7 +182,7 @@ class ConnectorConnectionStore:
         normalized_url = _safe_http_url(base_url, allow_local=allow_local)
         with self._lock:
             current = self._records.get(uid)
-            record = ConnectorConnection(uid, display_name.strip() or uid, auth_type, credential_header.strip(), normalized_url, "connected", list(scopes), time.time(), _secret=_protect(credential.strip()), operation_count=current.operation_count if current else 0)
+            record = ConnectorConnection(uid, display_name.strip() or uid, auth_type, credential_header.strip(), normalized_url, "connected", list(scopes), time.time(), _secret=self._protect(credential.strip()), operation_count=current.operation_count if current else 0)
             self._records[uid] = record
             self._save()
             return record.public()
@@ -192,7 +205,7 @@ class ConnectorConnectionStore:
         query = urllib.parse.urlencode({"response_type": "code", "client_id": client_id.strip(), "redirect_uri": redirect_uri, "scope": " ".join(scopes), "state": state, "code_challenge": challenge, "code_challenge_method": "S256"})
         authorization_url = f"{normalized_auth}{'&' if '?' in normalized_auth else '?'}{query}"
         with self._lock:
-            record = ConnectorConnection(uid=uid, display_name=display_name.strip() or uid, auth_type="oauth2", credential_header="Authorization", base_url=normalized_base, status="authorization_required", scopes=list(scopes), client_id=client_id.strip(), client_secret=_protect(client_secret.strip()) if client_secret else None, token_url=normalized_token, auth_url=normalized_auth, redirect_uri=redirect_uri, state=state, code_verifier=verifier, revoke_url=normalized_revoke)
+            record = ConnectorConnection(uid=uid, display_name=display_name.strip() or uid, auth_type="oauth2", credential_header="Authorization", base_url=normalized_base, status="authorization_required", scopes=list(scopes), client_id=client_id.strip(), client_secret=self._protect(client_secret.strip()) if client_secret else None, token_url=normalized_token, auth_url=normalized_auth, redirect_uri=redirect_uri, state=state, code_verifier=verifier, revoke_url=normalized_revoke)
             self._records[uid] = record
             self._save()
             return {"connection": record.public(), "authorization_url": authorization_url}
@@ -204,7 +217,7 @@ class ConnectorConnectionStore:
                 raise ConnectorConnectionError("OAuth connection was not started")
             if not record.state or not secrets.compare_digest(record.state, state):
                 raise ConnectorConnectionError("OAuth state validation failed")
-            client_secret = _unprotect(record.client_secret) if record.client_secret else ""
+            client_secret = self._unprotect(record.client_secret) if record.client_secret else ""
             payload = {"grant_type": "authorization_code", "code": code, "redirect_uri": record.redirect_uri, "client_id": record.client_id, "code_verifier": record.code_verifier}
             if client_secret:
                 payload["client_secret"] = client_secret
@@ -220,10 +233,10 @@ class ConnectorConnectionStore:
             access_token = token_payload.get("access_token")
             if not isinstance(access_token, str) or not access_token:
                 raise ConnectorConnectionError("OAuth provider did not return an access token")
-            record._secret = _protect(access_token)
+            record._secret = self._protect(access_token)
             refresh_token = token_payload.get("refresh_token")
             if isinstance(refresh_token, str) and refresh_token:
-                record.refresh_token = _protect(refresh_token)
+                record.refresh_token = self._protect(refresh_token)
             record.status = "connected"
             record.connected_at = time.time()
             record.expires_at = time.time() + float(token_payload.get("expires_in", 0) or 0) if token_payload.get("expires_in") else None
@@ -238,8 +251,8 @@ class ConnectorConnectionStore:
             record = self._records.get(uid)
             if record is None or record.auth_type != "oauth2" or not record.refresh_token:
                 raise ConnectorConnectionError("connector has no refresh token")
-            refresh_token = _unprotect(record.refresh_token)
-            client_secret = _unprotect(record.client_secret) if record.client_secret else ""
+            refresh_token = self._unprotect(record.refresh_token)
+            client_secret = self._unprotect(record.client_secret) if record.client_secret else ""
             payload = {"grant_type": "refresh_token", "refresh_token": refresh_token, "client_id": record.client_id or ""}
             if client_secret:
                 payload["client_secret"] = client_secret
@@ -255,10 +268,10 @@ class ConnectorConnectionStore:
             access_token = token_payload.get("access_token")
             if not isinstance(access_token, str) or not access_token:
                 raise ConnectorConnectionError("OAuth refresh did not return an access token")
-            record._secret = _protect(access_token)
+            record._secret = self._protect(access_token)
             replacement = token_payload.get("refresh_token")
             if isinstance(replacement, str) and replacement:
-                record.refresh_token = _protect(replacement)
+                record.refresh_token = self._protect(replacement)
             record.status = "connected"
             record.expires_at = time.time() + float(token_payload.get("expires_in", 0) or 0) if token_payload.get("expires_in") else None
             record.last_error = None
@@ -271,10 +284,10 @@ class ConnectorConnectionStore:
             if record is None:
                 return False
             if record.revoke_url and record._secret:
-                token = _unprotect(record._secret)
+                token = self._unprotect(record._secret)
                 payload = {"token": token, "client_id": record.client_id or ""}
                 if record.client_secret:
-                    payload["client_secret"] = _unprotect(record.client_secret)
+                    payload["client_secret"] = self._unprotect(record.client_secret)
                 request = urllib.request.Request(record.revoke_url, data=urllib.parse.urlencode(payload).encode(), headers={"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
                 try:
                     with urllib.request.urlopen(request, timeout=20):
@@ -300,7 +313,7 @@ class ConnectorConnectionStore:
             record = self._records.get(uid)
             if record is None or record.status != "connected" or not record._secret:
                 raise ConnectorConnectionError("connector requires sign-in before invocation")
-            return record, _unprotect(record._secret)
+            return record, self._unprotect(record._secret)
 
     def mark_operation(self, uid: str) -> None:
         with self._lock:

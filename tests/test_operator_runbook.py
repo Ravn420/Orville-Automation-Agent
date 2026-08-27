@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import unittest
 
@@ -46,7 +46,7 @@ class OperatorRunbookTests(unittest.TestCase):
         references = re.findall(r"`(docs/[^`]+\.md)`", self.text)
         self.assertGreaterEqual(len(references), 6)
         for reference in references:
-            self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+            self.assertTrue(ROOT.joinpath(*PurePosixPath(reference).parts).is_file(), reference)
         self.assertNotRegex(self.text, r"(?i)sk-[A-Za-z0-9]{12,}|Bearer\s+[A-Za-z0-9._-]{8,}|api[_-]?key\s*=\s*[^\s,]+")
 
 

@@ -8,14 +8,15 @@ import os
 import time
 import re
 from dataclasses import asdict
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 from datetime import UTC, datetime
 from enum import StrEnum
 from time import monotonic
 from threading import Thread
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import Request as UrlRequest, urlopen
 from uuid import uuid4
 
 from .checkpoint import CheckpointStore
@@ -383,12 +384,12 @@ def _api_operation_name(request: Any) -> str:
 def _safe_api_error_message(operation: str, status_code: int, detail: Any = None) -> str:
     """Create a bounded operation-specific message without returning raw exception text."""
     normalized = SecretRedactor.redact_exception(ValueError(str(detail))) if detail else ""
-    if status_code == 401:
+    if "allowlist" in normalized.lower():
+        reason = "the operation is not allowlisted"
+    elif status_code == 401:
         reason = "authentication is required"
     elif status_code == 403:
         reason = "the operation is not allowed"
-        if "allowlist" in normalized.lower():
-            reason = "the operation is not allowlisted"
     elif status_code == 404:
         reason = "the requested resource was not found"
     elif status_code == 409:
@@ -412,6 +413,17 @@ def _safe_api_error_message(operation: str, status_code: int, detail: Any = None
     return f"{operation} failed: {reason}."
 
 
+def _safe_hub_destination(value: str | None) -> PurePosixPath | None:
+    """Normalize a client-relative model path or reject unsafe destination input."""
+    if value is None:
+        return None
+    normalized = value.strip().replace("\\", "/")
+    candidate = PurePosixPath(normalized)
+    if not normalized or "\x00" in normalized or candidate.is_absolute() or ".." in candidate.parts or re.match(r"^[A-Za-z]:", normalized):
+        raise HubModelError("download destination must be a relative path inside Orville's models directory")
+    return candidate
+
+
 class ImageGenerationPayload(BaseModel):
     prompt: str = Field(min_length=1, max_length=20_000)
     negative_prompt: str | None = Field(default=None, max_length=20_000)
@@ -429,7 +441,7 @@ class ImageGenerationPayload(BaseModel):
     wait_timeout_seconds: float = 600.0
 
 
-def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_path: str | Path | None = None, storage: str | None = None, api_token: str | None = None, allowed_origins: list[str] | None = None, requests_per_minute: int = 120, engine: OrchestrationEngine | None = None, handlers: dict[str, Any] | None = None, verifiers: dict[str, Any] | None = None) -> Any:
+def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_path: str | Path | None = None, storage: str | None = None, api_token: str | None = None, allowed_origins: list[str] | None = None, requests_per_minute: int = 120, engine: OrchestrationEngine | None = None, handlers: dict[str, Any] | None = None, verifiers: dict[str, Any] | None = None, connector_connection_store: ConnectorConnectionStore | None = None) -> Any:
     """Create an authenticated API application without contacting external services."""
     if FastAPI is None:
         raise RuntimeError("API dependencies are not installed; install the 'api' extra")
@@ -491,7 +503,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     automation_dispatcher = AutomationDispatcher(schedule_store=schedule_store, workflow_store=workflow_store, executor=WorkflowExecutor(dict(handlers or {})))
     event_intake = EventIntake(os.getenv("ORVILLE_WEBHOOK_SIGNING_SECRET"), database_path or (checkpoint_root.parent / "orville.db"))
     connector_bridge = ConnectorBridge.from_environment()
-    connection_store = ConnectorConnectionStore(checkpoint_root.parent / "connector-connections.json")
+    connection_store = connector_connection_store or ConnectorConnectionStore(checkpoint_root.parent / "connector-connections.json")
     connector_defaults = ConnectorDefaultsStore(checkpoint_root.parent / "connector-defaults.json")
     connector_mutation_policy = ConnectorMutationPolicy()
     thread_store = TaskThreadStore(database_path or (checkpoint_root.parent / "orville.db"))
@@ -805,7 +817,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         try:
             record, credential = connection_store.credential(connector_uid)
             auth_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
-            request = Request(f"{record.base_url}/operations", headers={"Accept": "application/json", record.credential_header: auth_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="GET")
+            request = UrlRequest(f"{record.base_url}/operations", headers={"Accept": "application/json", record.credential_header: auth_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="GET")
             with urlopen(request, timeout=10) as response:
                 raw = response.read(200_001)
             if len(raw) > 200_000:
@@ -839,7 +851,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
                 record, credential = connection_store.credential(connector_uid)
                 auth_scheme = "Bearer" if record.auth_type == "bearer" else credential
                 credential_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
-                request = Request(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
+                request = UrlRequest(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
                 with urlopen(request, timeout=30) as response:
                     raw = response.read(2_000_001)
                 if len(raw) > 2_000_000:
@@ -1294,7 +1306,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=400, detail="research locator must be an http(s) URL")
         try:
             research_network_policy.check_host(parsed.hostname)
-            request = Request(locator, headers={"User-Agent": "OrvilleResearch/1.0"})
+            request = UrlRequest(locator, headers={"User-Agent": "OrvilleResearch/1.0"})
             with urlopen(request, timeout=15) as response:
                 content_type = response.headers.get("Content-Type", "")
                 body = response.read(2_000_001)
@@ -1659,9 +1671,10 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             raise HTTPException(status_code=409, detail="model download requires explicit approval")
         root = (checkpoint_root.parent / "models").resolve()
         root.mkdir(parents=True, exist_ok=True)
-        destination = (root / payload.destination).resolve() if payload.destination else root
         try:
-            if os.path.commonpath([str(root), str(destination)]) != str(root):
+            relative_destination = _safe_hub_destination(payload.destination)
+            destination = (root / relative_destination).resolve() if relative_destination else root
+            if destination != root and root not in destination.parents:
                 raise HubModelError("download destination must remain inside Orville's models directory")
             token = next((provider.config.api_key for provider in provider_registry.providers() if provider.config.provider_type in {"huggingface", "hugging-face", "hf-inference"} and provider.config.api_key), hub_client.token)
             hub_client.token = token

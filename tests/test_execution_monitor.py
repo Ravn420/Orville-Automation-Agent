@@ -28,7 +28,8 @@ class ExecutionMonitorTests(unittest.TestCase):
     def test_monitor_uses_safe_bounded_output(self) -> None:
         self.assertIn("never display raw errors or payloads", self.source)
         self.assertIn("events[-80:]", self.source)
-        self.assertIn("Run unavailable. Check the run ID and local API status.", self.source)
+        self.assertIn('"offline": ("Offline", "The local Orville service could not be reached."', self.source)
+        self.assertIn("Start the local service and try again.", self.source)
 
 
 if __name__ == "__main__":

@@ -31,6 +31,6 @@ def test_phase_three_contains_reliability_increments_only() -> None:
 def test_todo_item_records_the_mapping_evidence() -> None:
     todo = (ROOT / "TODO.md").read_text(encoding="utf-8")
     line = next(line for line in todo.splitlines() if "Split broad phase labels" in line)
-    assert line.startswith("- [-] Split broad phase labels")
+    assert line.startswith("- [x] Split broad phase labels")
     assert "Phase 2 provider work" in line
     assert "Phase 3 media work" in line

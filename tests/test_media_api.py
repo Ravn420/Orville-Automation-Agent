@@ -57,8 +57,9 @@ def test_hub_routes_report_machine_and_gate_downloads():
             assert search.json()["models"][0]["model_id"] == "org/Small"
             pending = client.post("/api/v1/models/hub/download", headers=headers, json={"repo_id": "org/Small"})
             assert pending.status_code == 409
-            traversal = client.post("/api/v1/models/hub/download", headers=headers, json={"repo_id": "org/Small", "destination": "..\\outside", "approved": True})
-            assert traversal.status_code == 400
+            for destination in ("..\\outside", "../outside", "C:\\outside"):
+                traversal = client.post("/api/v1/models/hub/download", headers=headers, json={"repo_id": "org/Small", "destination": destination, "approved": True})
+                assert traversal.status_code == 400
             queued = client.post("/api/v1/models/hub/download", headers=headers, json={"repo_id": "org/Small", "approved": True, "max_retries": 4})
             assert queued.status_code == 200, queued.text
             assert queued.json()["download"]["max_retries"] == 4

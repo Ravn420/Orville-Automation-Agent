@@ -14,13 +14,13 @@ def test_sandbox_plan_rejects_shell_strings_and_secret_environment():
         SandboxPlan.from_request({"run_id": "r1", "command": ["python", "-V"], "model_path": "C:/model", "scratch_path": "C:/scratch", "output_path": "C:/out", "model_checksum": "sha256:x", "environment": {"API_KEY": "secret"}}, policy)
 
 
-def test_unavailable_sandbox_fails_closed():
+def test_unavailable_sandbox_fails_closed(tmp_path: Path):
     plan = SandboxPlan(
         run_id="r1",
         command=("python", "-V"),
-        model_path=Path("C:/model"),
-        scratch_path=Path("C:/scratch"),
-        output_path=Path("C:/out"),
+        model_path=tmp_path / "model",
+        scratch_path=tmp_path / "scratch",
+        output_path=tmp_path / "out",
         policy=SandboxPolicy(),
         model_checksum="sha256:x",
     )
@@ -68,10 +68,10 @@ def test_platform_adapters_never_claim_unavailable_runtime_is_ready(tmp_path: Pa
     if not LinuxBubblewrapExecutor(executable="missing-bwrap").available():
         with pytest.raises(SandboxUnavailable):
             LinuxBubblewrapExecutor(executable="missing-bwrap").build_argv(
-                SandboxPlan("r1", ("python", "-V"), Path("C:/model"), tmp_path / "scratch", tmp_path / "out", SandboxPolicy(), "sha256:x")
+                SandboxPlan("r1", ("python", "-V"), tmp_path / "model", tmp_path / "scratch", tmp_path / "out", SandboxPolicy(), "sha256:x")
             )
     windows = WindowsSandboxExecutor(executable="missing-windows-sandbox")
-    plan = SandboxPlan("r1", ("worker.exe", "--model", "C:/model"), Path("C:/model"), tmp_path / "scratch", tmp_path / "out", SandboxPolicy(), "sha256:x")
+    plan = SandboxPlan("r1", ("worker.exe", "--model", "C:/model"), tmp_path / "model", tmp_path / "scratch", tmp_path / "out", SandboxPolicy(), "sha256:x")
     config = windows.build_config(plan, tmp_path / "worker.wsb")
     assert "<Networking>Disable</Networking>" in config.read_text(encoding="utf-8")
     assert "<ReadOnly>true</ReadOnly>" in config.read_text(encoding="utf-8")

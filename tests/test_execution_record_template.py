@@ -22,4 +22,5 @@ def test_limitation_checklist_remains_a_template_placeholder() -> None:
     text = TODO.read_text(encoding="utf-8")
     assert "TODO-e22984a50c7a" in text
     assert "Known limitations recorded" in text
-    assert "reusable execution-record" in text
+    assert "Use the following record for each future objective:" in text
+    assert "### Known limitations" in text

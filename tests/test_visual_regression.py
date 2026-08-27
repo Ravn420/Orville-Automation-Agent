@@ -16,7 +16,7 @@ class VisualRegressionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.root = Path(__file__).resolve().parents[1]
-        cls.baseline = cls.root / "artifacts" / "visual_regression_baseline.json"
+        cls.baseline = cls.root / "tests" / "fixtures" / "visual_regression_baseline.json"
         cls.document = (cls.root / "docs" / "VISUAL_REGRESSION.md").read_text(encoding="utf-8")
 
     def test_current_assets_match_committed_baseline(self) -> None:

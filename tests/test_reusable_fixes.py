@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import unittest
 
 
@@ -28,7 +28,7 @@ class ReusableFixesTests(unittest.TestCase):
             self.assertTrue(fix["assets"], name)
             self.assertTrue(fix["reuse"], name)
             for asset in fix["assets"]:
-                self.assertTrue((ROOT / asset.replace("/", "\\")).is_file(), f"{name}: {asset}")
+                self.assertTrue(ROOT.joinpath(*PurePosixPath(asset).parts).is_file(), f"{name}: {asset}")
 
     def test_catalog_is_versioned_and_documented(self) -> None:
         self.assertEqual(self.catalog["schema_version"], "1.0")

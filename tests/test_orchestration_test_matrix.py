@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import unittest
 
@@ -34,7 +34,7 @@ class OrchestrationTestMatrixTests(unittest.TestCase):
             references = re.findall(r"`(tests/[^`]+\.py)`", row)
             self.assertTrue(references, row)
             for reference in references:
-                self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+                self.assertTrue(ROOT.joinpath(*PurePosixPath(reference).parts).is_file(), reference)
 
     def test_matrix_has_deterministic_execution_and_safety_gates(self) -> None:
         for phrase in (

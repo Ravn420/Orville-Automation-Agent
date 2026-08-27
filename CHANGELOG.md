@@ -1,5 +1,26 @@
 # Orville Changelog
 
+## 2026-08-27 — Regression contracts and M14.8 drill preparation
+
+### Fixed
+
+- Corrected model-download path validation to reject traversal across POSIX and Windows separators, drive-qualified destinations, and other unsafe client-relative paths.
+- Preserved a safe `allowlisted` reason in API error responses without reflecting submitted host, credential, or payload values.
+- Added an internal test-only credential-protector seam for connector tests while retaining Windows DPAPI as the default production protector and fail-closed non-Windows behavior.
+- Eliminated the preview-runtime startup race by waiting for a bounded local listener readiness check before returning a running record, with child cleanup on startup failure.
+- Persisted sanitized task-failure reasons into terminal operation evidence and aligned checkpoint schema tests with the v2 writer and v1 reader compatibility contract.
+- Corrected portable repository-reference tests, host-native sandbox fixtures, stale monitor/execution-record/roadmap assertions, TODO-ID marker recognition, and the versioned visual-regression baseline fixture.
+
+### Added
+
+- Added `docs/REGRESSION_REMEDIATION_PLAN.md`, which records the root cause, implementation sequence, acceptance criteria, and ongoing controls for roadmap assertions and TODO-ID normalization.
+- Added `docs/M14_8_LIVE_DRILL_PROCEDURE.md` and focused contract coverage for the approval-gated non-production drill prerequisites, deployment sequence, fault matrix, stop conditions, and evidence retention requirements.
+
+### Validation
+
+- Focused regression modules: 72 passed. M14.8 procedure, roadmap, and TODO-ID checks: 10 passed; the non-mutating identifier tool reports `identified_records=996 changed=0`.
+- Final full project test check: 784 passed and 6 subtests passed in 22.88 seconds. No external deployment, provider operation, credential, or production traffic was used.
+
 ## 2026-08-27 — M14.8 control-plane reconciliation
 
 ### Changed

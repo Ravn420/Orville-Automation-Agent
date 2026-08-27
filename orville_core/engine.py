@@ -227,7 +227,7 @@ class OrchestrationEngine:
             task.status = TaskStatus.FAILED
             task.error = f"{type(exc).__name__}: {exc}"
             self._record(checkpoint, "task_failed", task.task_id, {"attempt": task.attempts, "error": task.error})
-            self._record_operation(checkpoint, task, "after", "failed")
+            self._record_operation(checkpoint, task, "after", "failed", {"error": task.error})
             checkpoint.context.pop("_progress_callback", None)
             self._save(checkpoint)
             return
@@ -305,7 +305,7 @@ class OrchestrationEngine:
                 task.status = TaskStatus.FAILED
                 task.error = f"{type(error).__name__}: {error}"
                 self._record(checkpoint, "task_failed", task.task_id, {"attempt": task.attempts, "parallel": True, "error": task.error})
-                self._record_operation(checkpoint, task, "after", "failed")
+                self._record_operation(checkpoint, task, "after", "failed", {"error": task.error})
                 continue
             task.output = output
             checkpoint.context.setdefault("outputs", {})[task.task_id] = output
@@ -331,7 +331,14 @@ class OrchestrationEngine:
         """Return a bounded operation category for durable checkpoint evidence."""
         return str(task.inputs.get("operation_kind", "task"))
 
-    def _record_operation(self, checkpoint: Checkpoint, task: TaskNode, phase: str, status: str) -> None:
+    def _record_operation(
+        self,
+        checkpoint: Checkpoint,
+        task: TaskNode,
+        phase: str,
+        status: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
         """Append secret-free operation evidence; the caller persists the checkpoint."""
         operation_kind = self._operation_kind(task)
         if operation_kind not in {"agent", "tool", "model", "approval", "artifact", "task"}:
@@ -355,7 +362,12 @@ class OrchestrationEngine:
             checkpoint,
             f"operation_checkpoint_{phase}",
             task.task_id,
-            {"operation_kind": operation_kind, "status": status, "sequence": sequence},
+            {
+                "operation_kind": operation_kind,
+                "status": status,
+                "sequence": sequence,
+                **(details or {}),
+            },
         )
 
     @staticmethod

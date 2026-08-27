@@ -7,12 +7,19 @@ import pytest
 try:
     from fastapi.testclient import TestClient
     from orville_core.api import create_app
+    from orville_core.connector_connections import ConnectorConnectionStore
+    from credential_test_support import protect, unprotect
 except ImportError:  # pragma: no cover
     TestClient = None
     create_app = None
+    ConnectorConnectionStore = None
 
 
 pytestmark = pytest.mark.skipif(TestClient is None, reason="FastAPI API extras are not installed")
+
+
+def _test_connection_store(directory: str) -> ConnectorConnectionStore:
+    return ConnectorConnectionStore(Path(directory) / "connector-connections.json", protect=protect, unprotect=unprotect)
 
 
 def test_cloud_status_reports_managed_and_user_access_separately(monkeypatch):
@@ -62,7 +69,7 @@ def test_user_blackbox_api_key_connection_is_redacted_and_disconnectable(monkeyp
     with tempfile.TemporaryDirectory() as directory:
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_URL", "https://relay.example.test/v1")
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_ALLOWED_HOSTS", "relay.example.test")
-        client = TestClient(create_app(checkpoint_dir=Path(directory), api_token="secret"))
+        client = TestClient(create_app(checkpoint_dir=Path(directory), api_token="secret", connector_connection_store=_test_connection_store(directory)))
         headers = {"Authorization": "Bearer secret"}
         connected = client.post("/api/v1/cloud/blackbox/user/api-key", headers=headers, json={"api_key": "sk-test-secret"})
         assert connected.status_code == 200
@@ -84,7 +91,7 @@ def test_user_blackbox_api_key_test_and_credential_delete_are_safe(monkeypatch):
     with tempfile.TemporaryDirectory() as directory:
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_URL", "https://relay.example.test/v1")
         monkeypatch.setenv("ORVILLE_BLACKBOX_RELAY_ALLOWED_HOSTS", "relay.example.test")
-        client = TestClient(create_app(checkpoint_dir=Path(directory), api_token="secret"))
+        client = TestClient(create_app(checkpoint_dir=Path(directory), api_token="secret", connector_connection_store=_test_connection_store(directory)))
         headers = {"Authorization": "Bearer secret"}
         tested = client.post(
             "/api/v1/cloud/blackbox/user/test",

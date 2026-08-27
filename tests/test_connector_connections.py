@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from orville_core.api import create_app
 from orville_core.connector_connections import ConnectorConnectionStore
+from credential_test_support import protect, unprotect
 
 
 class FixtureHandler(BaseHTTPRequestHandler):
@@ -48,13 +49,13 @@ def fixture_server():
 def test_manual_connection_is_redacted_and_persists_on_windows():
     with TemporaryDirectory() as directory:
         path = Path(directory) / "connections.json"
-        store = ConnectorConnectionStore(path)
+        store = ConnectorConnectionStore(path, protect=protect, unprotect=unprotect)
         record = store.connect_manual(uid="fixture", display_name="Fixture", auth_type="bearer", credential_header="Authorization", base_url="http://127.0.0.1:9000", credential="secret-token", scopes=["read"], allow_local=True)
         assert record["status"] == "connected"
         assert record["has_credential"] is True
         assert "secret-token" not in json.dumps(record)
         assert "secret-token" not in path.read_text(encoding="utf-8")
-        reloaded = ConnectorConnectionStore(path)
+        reloaded = ConnectorConnectionStore(path, protect=protect, unprotect=unprotect)
         _, credential = reloaded.credential("fixture")
         assert credential == "secret-token"
 
@@ -63,7 +64,8 @@ def test_api_manual_connection_operation_discovery_invocation_and_disconnect():
     server, base_url = fixture_server()
     try:
         with TemporaryDirectory() as directory:
-            app = create_app(api_token="test-token", storage="json", checkpoint_dir=Path(directory) / ".orville")
+            store = ConnectorConnectionStore(Path(directory) / "connector-connections.json", protect=protect, unprotect=unprotect)
+            app = create_app(api_token="test-token", storage="json", checkpoint_dir=Path(directory) / ".orville", connector_connection_store=store)
             client = TestClient(app)
             headers = {"Authorization": "Bearer test-token"}
             connected = client.post("/api/v1/connectors/fixture/connect/manual", headers=headers, json={"project_requirement": "connector fixture contract test", "approved": True, "approval_reference": "test-approval-1", "display_name": "Fixture", "auth_type": "bearer", "credential_header": "Authorization", "base_url": base_url, "credential": "secret-token", "scopes": ["read"], "allow_local": True})

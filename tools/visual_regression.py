@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BASELINE = ROOT / "artifacts" / "visual_regression_baseline.json"
+DEFAULT_BASELINE = ROOT / "tests" / "fixtures" / "visual_regression_baseline.json"
 
 
 class _MarkupFingerprint(HTMLParser):

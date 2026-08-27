@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import unittest
 
@@ -39,7 +39,7 @@ class StandaloneReadmeTests(unittest.TestCase):
         references = re.findall(r"`((?:docs|tools|orville_core|examples)/[^\s`]+)", self.text)
         self.assertGreaterEqual(len(references), 10)
         for reference in references:
-            self.assertTrue((ROOT / reference.replace("/", "\\")).is_file(), reference)
+            self.assertTrue(ROOT.joinpath(*PurePosixPath(reference).parts).is_file(), reference)
 
     def test_readme_preserves_security_and_standalone_boundaries(self) -> None:
         for phrase in (

@@ -34,3 +34,10 @@ def test_identifier_generation_preserves_status_markers_and_text() -> None:
     assert "- [-] active task" in updated
     assert "- [x] done task" in updated
     assert len(ID.findall(updated)) == 3
+
+
+def test_identifier_generation_preserves_marker_with_completion_evidence() -> None:
+    source = "- [x] Completed. <!-- task-id:TODO-0123456789ab --> Focused tests passed.\n"
+    updated, changed = assign_ids(source)
+    assert changed == 0
+    assert updated == source

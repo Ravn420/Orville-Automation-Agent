@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 CHECKBOX = re.compile(r"^(?P<prefix>- \[(?: |-|x|!|~)\] )(?P<body>.*?)(?P<newline>\n?)$")
-ID_MARKER = re.compile(r"\s*<!--\s*task-id:(TODO-[0-9a-f]{12})\s*-->\s*$")
+ID_MARKER = re.compile(r"<!--\s*task-id:(TODO-[0-9a-f]{12})\s*-->")
 
 
 def assign_ids(text: str) -> tuple[str, int]:
