@@ -165,6 +165,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--state", type=Path, help="worker state path; defaults to <repo>/.orville_manus_worker_state.json")
     parser.add_argument("--manifest", type=Path, default=Path("/var/lib/orville/three_task_bootstrap.json"))
     parser.add_argument("--resume-partial", action="store_true", help="resume a previously recorded partial creation; never creates a fourth task")
+    parser.add_argument(
+        "--task-id",
+        dest="task_ids",
+        action="append",
+        help="bind an existing Manus task ID; repeat exactly three times to skip task creation",
+    )
     return parser.parse_args()
 
 
@@ -184,15 +190,28 @@ def main() -> int:
     if existing_state and existing_state.get("active_tasks"):
         die(f"worker state already contains active tasks: {state_path}; refusing to create duplicates")
 
+    supplied_task_ids = args.task_ids or []
+    if supplied_task_ids:
+        if len(supplied_task_ids) != TASK_COUNT:
+            die(f"--task-id must be supplied exactly {TASK_COUNT} times")
+        if len(set(supplied_task_ids)) != TASK_COUNT:
+            die("--task-id values must be unique")
+
     manifest = read_json(manifest_path)
-    task_ids: list[str] = []
+    task_ids: list[str] = list(supplied_task_ids)
+    if task_ids and manifest:
+        manifest_ids = manifest.get("task_ids")
+        if manifest_ids != task_ids:
+            die(f"provided task IDs do not match bootstrap manifest: {manifest_path}")
+
     if manifest:
         raw_ids = manifest.get("task_ids")
         if not isinstance(raw_ids, list) or not all(isinstance(item, str) and item for item in raw_ids):
             die(f"bootstrap manifest is invalid: {manifest_path}")
-        task_ids = list(raw_ids)
+        if not task_ids:
+            task_ids = list(raw_ids)
         if len(task_ids) == TASK_COUNT:
-            print("manifest already contains three task IDs; verifying without creating new tasks")
+            print("three task IDs are configured; verifying without creating new tasks")
         elif not args.resume_partial:
             die(f"partial bootstrap exists at {manifest_path}; use --resume-partial after review")
         elif len(task_ids) > TASK_COUNT:
@@ -203,11 +222,29 @@ def main() -> int:
             index = len(task_ids)
             task_id = create_task(api_key, *TASK_PROMPTS[index])
             task_ids.append(task_id)
-            atomic_write(manifest_path, {"task_ids": task_ids, "created_at": manifest.get("created_at", now()) if manifest else now(), "count": len(task_ids)})
+            atomic_write(
+                manifest_path,
+                {
+                    "task_ids": task_ids,
+                    "created_at": manifest.get("created_at", now()) if manifest else now(),
+                    "count": len(task_ids),
+                },
+            )
+
             print(f"created task {index + 1}/{TASK_COUNT}: {task_id}")
 
         statuses = [verify_task(api_key, task_id) for task_id in task_ids]
-        atomic_write(manifest_path, {"task_ids": task_ids, "statuses": statuses, "verified_at": now(), "count": TASK_COUNT})
+        atomic_write(
+            manifest_path,
+            {
+                "task_ids": task_ids,
+                "statuses": statuses,
+                "verified_at": now(),
+                "count": TASK_COUNT,
+                "source": "provided-existing-task-ids" if supplied_task_ids else "created-by-bootstrap",
+            },
+        )
+
         atomic_write(state_path, build_state(repo, task_ids, statuses))
     except RuntimeError as exc:
         die(f"bootstrap stopped safely: {exc}", 3)
