@@ -1503,9 +1503,9 @@ The instructional walkthrough was rendered as `/home/ubuntu/orville-runs-walkthr
 
 - [x] Connect installed local models to runtime validation, activation, and provider routing. <!-- task-id:TODO-4026d23bd78c -->
 
-- [ ] Add local models to provider and New Task generation selectors in the broader GUI. <!-- task-id:TODO-9ef3c871cc79 -->
+- [x] Add local models to provider and New Task generation selectors in the broader GUI. Added Local model catalog to `docs/mockups/model-configuration.html`, local model options and filtering to `docs/mockups/generation-workspace.html`, and local model selection to `docs/mockups/orville-control-center.html`; covered by `tests/test_local_model_gui_controls.py`. <!-- task-id:TODO-9ef3c871cc79 -->
 
-- [ ] Add pause/resume, activate, and select controls to the Signal Room. <!-- task-id:TODO-6abad89031fd -->
+- [x] Add pause/resume, activate, and select controls to the Signal Room. Added explicit Activate, Pause, Resume, and Use for objective controls with approval-gated status messaging in `docs/mockups/orville-control-center.html` and `docs/mockups/generation-workspace.html`; covered by `tests/test_local_model_gui_controls.py`. <!-- task-id:TODO-6abad89031fd -->
 
 - [x] Run backend model-installation, routing, security, and focused Windows-compatible validation. <!-- task-id:TODO-2e5d24e0b57b -->
 

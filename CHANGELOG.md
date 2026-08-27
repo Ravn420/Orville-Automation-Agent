@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-08-28 — Local-model GUI controls
+
+### Changed
+
+- Closed `TODO-9ef3c871cc79` and `TODO-6abad89031fd`.
+- Added a Local model catalog provider preset, capability-filtered local model options, a local-only inventory filter, and explicit Signal Room Activate, Pause, Resume, and Use for objective controls.
+- Preserved approval-gated activation, cooperative pause/resume semantics, local privacy boundaries, and review-only generation behavior.
+- Added focused acceptance coverage in `tests/test_local_model_gui_controls.py` and documented the workflow in `docs/LOCAL_MODEL_RUNTIME.md`.
+
+### Validation
+
+- Focused local-model GUI, generation, model-runtime, and existing GUI checks: **66 tests and 1 subtest passed**.
+- Final full regression: **814 tests and 6 subtests passed**; compilation, visual baseline, and `python tools/project_checks.py all` passed.
+- Windows-native executable packaging remains a Windows-runner responsibility and is not claimed from Linux.
+
+
 ## 2026-08-28 — Expanded Signal Room GUI checkpoint
 
 ### Changed

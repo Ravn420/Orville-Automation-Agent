@@ -161,6 +161,22 @@
       "section",
       "div",
       "h2",
+      "span",
+      "p",
+      "div",
+      "label",
+      "select",
+      "option",
+      "option",
+      "option",
+      "div",
+      "button",
+      "button",
+      "button",
+      "button",
+      "section",
+      "div",
+      "h2",
       "button",
       "div",
       "div",
@@ -195,5 +211,5 @@
       "script"
     ]
   },
-  "structure_hash": "34621343a0f1730ac397f85df580d7dcf47c38e56f7398aff5727ca55001d8c0"
+  "structure_hash": "ee51d4be83433e5d416d34f7a5d9533369c4cd78ce94cd9a1ef8ee543932d201"
 }

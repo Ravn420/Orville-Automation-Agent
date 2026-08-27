@@ -25,6 +25,12 @@ Imported models are connected through the catalog's provider configuration. Olla
 
 Activation preserves text and code compatibility behavior. A model declaring vision, embeddings, audio, image generation, or video generation must first pass a reachable-runtime capability probe. Only modalities declared by both the model and the runtime are exposed to routing. Unsupported capabilities remain unavailable rather than being advertised optimistically.
 
+## GUI model selection and lifecycle controls
+
+The broader GUI exposes registered local models in the generation workspace and Signal Room control center. Capability selectors filter models by declared support, while a local-only filter keeps cloud entries out of a private draft. The model-configuration view also offers a **Local model catalog** provider preset that points to the approved local adapter without adding credentials to the task state.
+
+Signal Room exposes **Activate**, **Pause**, **Resume**, and **Use for objective** controls. Activation remains approval-gated; pause is cooperative and preserves resumability; resume announces that runtime health will be checked before execution; and selection changes only the next draft until an explicit reviewed execution. These controls are local preview affordances and do not silently invoke an external provider.
+
 ## Streaming controls
 
 `StreamPolicy` remains the single policy surface for `max_buffer_chars`, cooperative cancellation, `checkpoint_every_chunks`, and `preserve_partial_output`. Partial output is emitted periodically and is also checkpointed when cancellation or reconnect occurs. `reconnect_attempts` now controls bounded provider reconnects. When a provider replays the prefix after reconnect, Orville skips the already checkpointed prefix to avoid duplicate output.
