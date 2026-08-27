@@ -1039,13 +1039,13 @@ The following requirements were added after reviewing primary documentation and 
 
 - [x] Implement durable checkpoints before and after material agent, tool, model, approval, and artifact operations. Added schema-versioned `OperationCheckpoint` records with deterministic IDs and secret-safe before/after evidence across serial, parallel, and approval-gated execution in `orville_core/models.py` and `orville_core/engine.py`; documented in `docs/OPERATION_CHECKPOINTS.md` with focused coverage in `tests/test_operation_checkpoints.py`. Nine focused automation tests, 18 workflow/acceptance/core regressions, and Python compilation passed. <!-- task-id:TODO-629895d4fa49 -->
 
-- [-] Support replay, resume, pause, cancellation, retry, and controlled state inspection after interruption or failure. *(Worker Task 2 — in progress.)* <!-- task-id:TODO-175df4cecc51 -->
+- [x] Support replay, resume, pause, cancellation, retry, and controlled state inspection after interruption or failure. Implemented in `orville_core/engine.py` with durable checkpoint evidence and covered by `tests/test_recovery_controls.py` and `tests/test_operation_checkpoints.py`. <!-- task-id:TODO-175df4cecc51 -->
 
-- [-] Stream graph, agent, tool, model, approval, and artifact events to the GUI and persist an auditable event history. *(Worker Task 1 — in progress 2026-08-27; extending the existing authenticated polling/SSE contract with explicit event-category coverage and durable audit-history evidence.)* <!-- task-id:TODO-2b113eb0e255 -->
+- [x] Stream graph, agent, tool, model, approval, and artifact events to the GUI and persist an auditable event history. Authenticated polling/SSE delivery, monotonic sequence replay, safe reconciliation, and categorized operation checkpoints are implemented and covered by `docs/REALTIME_EXECUTION_EVENTS.md`, `docs/OPERATION_CHECKPOINTS.md`, `orville_core/api.py`, and `tests/test_realtime_execution_events.py`. <!-- task-id:TODO-2b113eb0e255 -->
 
-- [ ] Define short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing rules. <!-- task-id:TODO-3108982ea7c3 -->
+- [x] Define short-term task memory, long-term project memory, retention, deletion, isolation, and user-editing rules. Implemented by the redacted, owner-scoped `MemoryStore` and authenticated memory routes; documented in `docs/MEMORY_AND_IDEMPOTENCY_GOVERNANCE.md` and covered by `tests/test_memory.py`. <!-- task-id:TODO-3108982ea7c3 -->
 
-- [ ] Add idempotency keys and deduplication for external actions, retries, scheduled jobs, and artifact writes. <!-- task-id:TODO-93ad3cc054dc -->
+- [x] Add idempotency keys and deduplication for external actions, retries, scheduled jobs, and artifact writes. Workflow run keys, inbound-event deduplication, resumable event sequence cursors, deterministic operation checkpoints, and content-hash artifact versioning are implemented and documented in `docs/MEMORY_AND_IDEMPOTENCY_GOVERNANCE.md` and `docs/SCHEDULED_WORKFLOW_IDEMPOTENCY.md`. <!-- task-id:TODO-93ad3cc054dc -->
 
 ### 21.2 Model and local-file security
 

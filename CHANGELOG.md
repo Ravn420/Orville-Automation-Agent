@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-08-28 — Recovery, event history, memory, and idempotency closeout
+
+### Changed
+
+- Closed TODOs `TODO-175df4cecc51`, `TODO-2b113eb0e255`, `TODO-3108982ea7c3`, and `TODO-93ad3cc054dc`.
+- Recorded durable replay/resume/pause/cancellation/retry/state-inspection behavior, ordered authenticated polling/SSE event delivery, categorized operation checkpoints, and safe audit-history reconciliation.
+- Added `orville_core/memory.py` and `tests/test_memory.py` for owner-scoped task/project memory, secret redaction, bounded TTL, retention planning, explicit purge, user editing, and tombstone deletion; added authenticated API routes and public package exports.
+- Consolidated idempotency evidence for workflow runs, scheduled dispatch, inbound events, resumable event cursors, operation checkpoints, and content-hash artifact versions in `docs/MEMORY_AND_IDEMPOTENCY_GOVERNANCE.md`.
+
+### Validation
+
+- Focused recovery/event/checkpoint/scheduler/idempotency/memory coverage passed: **20 tests**.
+- Full regression passed: **794 tests and 6 subtests**.
+- Python compilation and `python tools/project_checks.py all` passed.
+- No external provider calls or destructive actions were used.
+
 ## 2026-08-28 — Signal Room GUI redesign closeout
 
 ### Changed

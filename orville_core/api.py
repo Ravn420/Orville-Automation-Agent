@@ -22,6 +22,7 @@ from uuid import uuid4
 from .checkpoint import CheckpointStore
 from .persistence import SQLiteCheckpointStore
 from .artifacts import ArtifactStore
+from .memory import MemoryStore
 from .engine import OrchestrationEngine
 from .extensions import Connector, ExtensionRegistry, PermissionSet
 from .integration import model_task_handler, streaming_model_task_handler
@@ -474,6 +475,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     else:
         raise ValueError("storage must be 'sqlite' or 'json'")
     artifacts = ArtifactStore(checkpoint_root.parent / "artifacts")
+    memory_store = MemoryStore(database_path or (checkpoint_root.parent / "orville.db"))
     platform_store = PlatformStore(database_path or (checkpoint_root.parent / "orville.db"))
     model_catalog = LocalModelCatalog(checkpoint_root.parent / "orville-models.json", TrustStore(checkpoint_root.parent / "orville-trust-store.json"))
     hub_client = HuggingFaceHubClient(token=os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN"))
@@ -2046,6 +2048,42 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             return artifacts.retention_plan(max_versions=max_versions)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/memory", dependencies=[Depends(authenticate)])
+    def put_memory(payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            record = memory_store.put(str(payload["scope"]), str(payload["owner_id"]), str(payload["key"]), payload.get("value"), source=str(payload.get("source", "user")), ttl_seconds=payload.get("ttl_seconds"))
+            audit_store.append("local", "memory.put", record.memory_id, "success", metadata={"scope": record.scope, "owner_id": record.owner_id, "key": record.key})
+            return {"memory": record.to_dict()}
+        except (KeyError, TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/v1/memory", dependencies=[Depends(authenticate)])
+    def list_memory(scope: str, owner_id: str) -> dict[str, Any]:
+        try:
+            return memory_store.inspect(scope, owner_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.delete("/api/v1/memory/{memory_id}", dependencies=[Depends(authenticate)])
+    def delete_memory(memory_id: str, owner_id: str) -> dict[str, Any]:
+        deleted = memory_store.delete(memory_id, owner_id=owner_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="memory not found")
+        audit_store.append("local", "memory.delete", memory_id, "success", metadata={"owner_id": owner_id})
+        return {"memory_id": memory_id, "deleted": True}
+
+    @app.get("/api/v1/memory/retention/plan", dependencies=[Depends(authenticate)])
+    def memory_retention_plan() -> dict[str, Any]:
+        return memory_store.retention_plan()
+
+    @app.post("/api/v1/memory/retention/purge", dependencies=[Depends(authenticate)])
+    def purge_memory(payload: dict[str, Any]) -> dict[str, Any]:
+        if payload.get("confirm") is not True:
+            raise HTTPException(status_code=400, detail="explicit confirmation required")
+        removed = memory_store.purge_expired(before=payload.get("before"))
+        audit_store.append("local", "memory.retention_purge", "expired", "success", metadata={"removed": removed})
+        return {"purged": removed}
 
     @app.get("/api/v1/artifacts/{relative_path:path}", dependencies=[Depends(authenticate)])
     def get_artifact(relative_path: str) -> Any:

@@ -27,6 +27,7 @@ from .canary_controller import CanaryState, DurableCanaryController, HealthDecis
 from .worker_protocol import WorkerRequest, WorkerResponse, decode_message, encode_message
 from .local_execution import LocalModelExecutionError, LocalModelExecutionService, execute_local_model
 from .artifacts import ArtifactRecord, ArtifactStore
+from .memory import MemoryRecord, MemoryStore
 from .media_provenance import MediaAsset, MediaHistoryRecord, MediaProvenanceStore, MediaTransformation
 from .media_validation import MediaValidationPolicy, MediaValidationResult, validate_media
 from .document_verification import DocumentVerificationPolicy, DocumentVerificationResult, verify_document
@@ -194,6 +195,8 @@ __all__ = [
     "execute_local_model",
     "ArtifactRecord",
     "ArtifactStore",
+    "MemoryRecord",
+    "MemoryStore",
     "MediaAsset",
     "MediaHistoryRecord",
     "MediaProvenanceStore",
