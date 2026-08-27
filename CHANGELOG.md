@@ -1,5 +1,23 @@
 # Orville Changelog
 
+## 2026-08-27 — Guarded TODO queue and bounded autopilot dispatch
+
+### Added
+
+- Added `tools/build_todo_queue.py` and `config/todo-task-queue.json`, a deterministic schema-v1 queue containing all 464 non-terminal canonical TODO records: 437 backlog records, 13 review records for already-active work, and 14 blocked records.
+- Added focused queue-builder tests, a queue validation mode that preserves audited planning edits, and ignored local autopilot state/lock paths.
+- Extended `docs/TODO_AUTOPILOT.md` with the queue relationship, build/check commands, and the explicit statement that the conservative TODO-driven dispatcher does not consume the queue automatically.
+
+### Changed
+
+- Prepared `TODO-3108982ea7c3` as the sole ready, bounded local-only queue item. Its permitted actions are repository edits and tests; no credentials, external publishing, deployment, or destructive operation are allowed.
+- Attempted one non-continuous autopilot dispatch. It stopped before editing because no editor command is configured, retained an ignored local failure record, and left the canonical TODO unchanged.
+
+### Validation
+
+- Queue-builder and autopilot safeguards: 19 focused tests passed. Canonical queue validation passed with queue revision 2 and all 464 stable task IDs.
+- Final full project test check: 789 passed and 6 subtests passed in 23.97 seconds. No external action was performed.
+
 ## 2026-08-27 — Regression contracts and M14.8 drill preparation
 
 ### Fixed

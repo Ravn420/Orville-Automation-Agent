@@ -5,6 +5,8 @@
 **Owners:** Automation Agent and Verification Agent, with Security Agent approval gates.
 **Scope:** A named, isolated non-production environment only.
 
+Complete `docs/M14_8_CHANGE_WINDOW_AUTHORIZATION_TEMPLATE.md` and obtain its recorded approval before beginning any live-drill step in this procedure.
+
 ## Purpose and Safety Boundary
 
 M14.8 is the mandatory pre-production gate for proving that a canary advances and rolls back safely under restart, duplicate-event, partial-failure, injected-fault, and rollback-failure conditions. It may begin only after the M14.2–M14.7 dependency gates have retained, independently reviewed evidence. This procedure is deliberately fail-closed: a missing owner, approval, telemetry source, rollback target, secret boundary, or evidence location stops the drill before traffic is changed.

@@ -23,6 +23,9 @@ htmlcov/
 .orville_manus_worker_state.json.*
 .orville_manus_worker.lock
 .orville_manus_worker.log
+.orville_todo_autopilot.json
+.orville_todo_autopilot.json.*
+.orville_todo_autopilot.lock
 *.sqlite
 *.sqlite3
 *.db

@@ -19,6 +19,24 @@ python -m pytest -q
 
 Use repeated `--validate` arguments to replace the defaults with project-specific checks such as formatting, linting, type checking, focused tests, and the full regression suite.
 
+## Structured backlog queue
+
+`config/todo-task-queue.json` is a schema-v1, repository-tracked planning queue generated from every non-terminal `TODO.md` record by `tools/build_todo_queue.py`. It preserves each canonical task ID and source line while assigning unchecked records to `backlog`, active records to `review`, and explicitly blocked records to `blocked`. Its audit trail records guarded planning edits; it does not represent completed task evidence and it does not change `TODO.md`.
+
+Build the queue without dispatching work:
+
+```text
+python tools/build_todo_queue.py --todo TODO.md --output config/todo-task-queue.json
+```
+
+Validate the queue against the canonical non-terminal TODO records without overwriting guarded planning revisions:
+
+```text
+python tools/build_todo_queue.py --todo TODO.md --output config/todo-task-queue.json --check
+```
+
+Use the guarded queue editor to inspect or change one pre-dispatch task only. Never manually modify queue revisions, audit entries, task identifiers, in-progress state, result records, or evidence. The queue is a selection and review aid; the current `todo_autopilot.py` dispatcher remains TODO-driven and processes one item at a time. It does not consume this queue automatically.
+
 ## Execution
 
 1. **Select one item.** The worker scans `TODO.md` files for `- [ ]` entries, skipping `.git`, `tmp`, and cache directories. `--todo-line` can pin a specific line in the repository-root TODO file.
