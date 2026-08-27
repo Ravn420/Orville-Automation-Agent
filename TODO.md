@@ -46,7 +46,7 @@ This section is the **authoritative remediation queue** from the complete reposi
 
 - [x] Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention without deleting data automatically. Retained `.orville/orville.db-shm`, `.orville/orville.db-wal`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal` unchanged; named-path hashes, retention rationale, explicit no-deletion approval record, and redacted secret-scan evidence are in `docs/SQLITE_WAL_SHM_RETENTION_REVIEW.md`. Focused persistence/security validation passed 7 tests. <!-- task-id:TODO-570aaf580e3d -->
 
-- [ ] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. Acceptance: the video or an explicit archival limitation is retained with reproducible metadata and delivery status. <!-- task-id:TODO-f8a70d13fc97 -->
+- [!] Retain walkthrough-video source, validation evidence, and delivery metadata before closing its checklist. **Blocked:** the documented video path and repository/workspace searches contain no source, checksum, delivery metadata, or archive URI; an explicit release-owner waiver or the original/regenerated video is required before closure. See `docs/WALKTHROUGH_VIDEO_ARCHIVAL_COMPLIANCE_NOTE.md`. <!-- task-id:TODO-f8a70d13fc97 -->
 
 ## 4. Initial Baseline
 
