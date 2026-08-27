@@ -1089,7 +1089,7 @@ The following requirements were added after reviewing primary documentation and 
 
 - [ ] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. <!-- task-id:TODO-745d5e6b79eb -->
 
-- [ ] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. <!-- task-id:TODO-f452603d4f34 -->
+- [x] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. Added `orville_core/run_observability.py`, public exports, `tests/test_run_observability.py`, and `docs/PER_RUN_OBSERVABILITY.md`; focused tests, compilation, and broader regression validation passed. <!-- task-id:TODO-f452603d4f34 -->
 
 - [ ] Implement OpenTelemetry-compatible traces, metrics, and events for graph nodes, agents, model calls, tool calls, MCP calls, approvals, and artifact operations. <!-- task-id:TODO-5b61f3b41e3b -->
 

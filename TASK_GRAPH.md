@@ -1497,3 +1497,12 @@ Checkpoint schema version 2 now persists secret-safe operation records with dete
 | Boundary | The checklist remains a reusable template placeholder and does not represent a product feature completion. |
 
 Each future execution record now has a consistent place to state what was not tested, what remains environment-owned, and which risks or dependencies remain open.
+
+
+## 21.5 — Per-run observability records
+
+| ID | Requirement | Owner | Dependencies | Status | Evidence |
+|---|---|---|---|---|---|
+| TODO-f452603d4f34 | Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures | Observability / Security / Verification Agents | Existing trace, telemetry, checkpoint, approval, artifact, and redaction contracts | completed-local | `orville_core/run_observability.py`, `tests/test_run_observability.py`, `docs/PER_RUN_OBSERVABILITY.md`; 3 focused tests, Python compilation, and broader regression passed |
+
+The record is append-only JSONL, stores prompt hashes rather than raw prompts, redacts nested sensitive metadata, omits tool arguments and artifact bytes, validates non-negative usage/latency values, and leaves distributed trace export, provider billing reconciliation, and production retention enforcement as follow-up work.

@@ -992,3 +992,8 @@ Implemented schema-versioned, secret-safe `OperationCheckpoint` records and inte
 ## Worker Task 1 checkpoint — execution-record known limitations — 2026-08-27
 
 The selected reusable-template item is complete locally. The Standard Execution Record Template now includes explicit categories for scope limitations, environment/provider limitations, validation limitations, and unresolved risks/follow-up dependencies. `tests/test_execution_record_template.py` verifies the categories and placeholder semantics; two focused tests and Python compilation passed. The checklist remains a reusable template and is not treated as a completed product milestone.
+
+
+## Per-run observability checkpoint — 2026-08-28
+
+`TODO-f452603d4f34` is complete as a local contract. `orville_core/run_observability.py` provides explicit per-run fields for provider/model/version, hash-only prompt capture, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reason, cache status, cost metadata, and failures. `RunObservabilityRecorder` persists redacted JSONL records, omits raw prompts/tool arguments/artifact bytes, and validates bounded numeric values. Focused validation passed 3 tests; Python compilation passed; and the broader regression suite passed **798 tests, 1 warning, and 6 subtests**. Distributed trace export, provider billing reconciliation, and production retention enforcement remain follow-up work.
