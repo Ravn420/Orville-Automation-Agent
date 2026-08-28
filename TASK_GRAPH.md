@@ -1604,3 +1604,16 @@ The evaluator preserves reproducibility metadata and removes the temporary candi
 | Validation | Focused GUI/action/workspace tests: 9 passed; Python compilation passed |
 | Safety | Read-only viewer; bounded output rendering; no credentials, provider calls, publication, or destructive actions |
 | Limitations | GUI rendering and live provider behavior remain environment-dependent |
+
+
+## Run lifecycle narrative checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-582e0f5dec5a` — define the complete run lifecycle narrative and scene order |
+| Status | completed-local |
+| Evidence | `docs/RUN_LIFECYCLE_NARRATIVE.md`, `tests/test_run_lifecycle_narrative.py` |
+| Validation | Focused narrative-contract tests: 2 passed; Python compilation passed |
+| Scope | Ten ordered scenes cover workspace, intake, planning, approval, execution, live progress, controlled branch, verification, artifact handoff, and completion |
+| Safety | Explicit credential, publication, destructive-action, fabricated-output, and deployment-boundary rules are included |
+| Limitations | Visual recording, live provider behavior, and production acceptance remain separate environment-owned work |

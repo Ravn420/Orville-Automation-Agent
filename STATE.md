@@ -1032,3 +1032,6 @@ The next eligible TODO, `TODO-500f367e0031`, is complete locally. `docs/THREAT_M
 
 
 **Direct live code-generation viewer checkpoint — 2026-08-28:** Closed `TODO-8064ebccb62c`. The Windows GUI now sends code-generation objectives, opens a live read-only viewer as soon as the run is created, starts streaming execution automatically, polls persisted run state, renders bounded task output and recent events, and stops polling at terminal states. Focused GUI contract tests passed 9 tests and Python compilation passed. No external credentials or provider calls were used.
+
+
+**Run lifecycle narrative checkpoint — 2026-08-28:** Closed `TODO-582e0f5dec5a`. Added `docs/RUN_LIFECYCLE_NARRATIVE.md`, defining the canonical state sequence and ten ordered walkthrough scenes from workspace readiness through terminal completion, plus approval, provider, pause/resume, cancellation, partial-stream, verification-failure, evidence, and safety branches. Focused narrative-contract tests passed 2 tests and Python compilation passed. No external credentials, provider calls, publication, or destructive actions were used.

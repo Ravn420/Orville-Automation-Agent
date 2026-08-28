@@ -1281,7 +1281,7 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [x] Verify path boundaries, secret redaction, command allowlists, diff safety, repair limits, frontend build, and end-to-end execution. <!-- task-id:TODO-72793f54f87f -->
 
-- [ ] Save a repository-aware checkpoint. <!-- task-id:TODO-ac234124eb89 -->
+- [!] Save a repository-aware checkpoint. Blocked: concurrent roadmap workers are actively mutating shared control files and GUI/runtime/observability work in this worktree, so a repository-aware checkpoint cannot be safely created, synchronized, or committed without mixing roadmap items. Existing checkpoint artifacts are not claimed as evidence for this TODO. <!-- task-id:TODO-ac234124eb89 -->
 
 ## Restored Orville Product Shell
 
@@ -1325,17 +1325,17 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [x] Verified frontend build, 99 backend tests, control-plane API regression, and desktop preview rendering. <!-- task-id:TODO-6627f624748c -->
 
-- [ ] Save a verified restored-shell checkpoint. <!-- task-id:TODO-9746b1729935 -->
+- [!] Save a verified restored-shell checkpoint. Existing `basic-demo-run.json` is valid and the checkpoint/recovery checks passed, but completion is blocked: the worktree branch changed to `feature/live-code-generation-viewer` and shared control files are concurrently modified by other roadmap work, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-9746b1729935 -->
 
 ## Runs Walkthrough Video
 
-- [ ] Define the complete run lifecycle narrative and scene order. <!-- task-id:TODO-582e0f5dec5a -->
+- [-] Define the complete run lifecycle narrative and scene order. In progress on a repository-grounded scene-order document covering intake, planning, approval, execution, live progress, verification, artifact handoff, failure/recovery, and completion. <!-- task-id:TODO-582e0f5dec5a -->
 
-- [ ] Prepare Signal Room visual references and instructional overlays. <!-- task-id:TODO-92c9029c2bf1 -->
+- [!] Prepare Signal Room visual references and instructional overlays. Blocked: concurrent roadmap workers are actively mutating shared control files and GUI, observability, live-viewer, and visual-reference work on `feature/live-code-generation-viewer`, so new visual assets or overlays cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-92c9029c2bf1 -->
 
-- [ ] Generate a walkthrough covering intake, planning, provider generation, live code, verification, approvals, artifacts, failure, and repair. <!-- task-id:TODO-c5944ab8d2c5 -->
+- [!] Generate a walkthrough covering intake, planning, provider generation, live code, verification, approvals, artifacts, failure, and repair. A repository-grounded scene-order narrative exists in `docs/RUN_LIFECYCLE_NARRATIVE.md`, but no rendered walkthrough video is retained; generation is blocked by the absence of editable/renderable capture source and concurrent GUI/control-file changes on `feature/live-code-generation-viewer`. Do not claim delivery until a rendered artifact and reproducible media metadata exist. <!-- task-id:TODO-c5944ab8d2c5 -->
 
-- [ ] Review the video for readable labels, sequence completeness, and factual alignment with the current Orville implementation. <!-- task-id:TODO-cc4006312df6 -->
+- [!] Review the video for readable labels, sequence completeness, and factual alignment with the current Orville implementation. Blocked: the referenced walkthrough video source is absent, so readable-label, sequence, and factual-alignment review cannot be performed; the worktree also contains concurrent uncommitted GUI, observability, and control-file changes on `feature/live-code-generation-viewer`. No video-review claim is made. <!-- task-id:TODO-cc4006312df6 -->
 
 - [ ] Deliver the final video artifact. <!-- task-id:TODO-130df39163f5 -->
 

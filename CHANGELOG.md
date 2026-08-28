@@ -2370,3 +2370,17 @@ Added structured limitation categories to the reusable Standard Execution Record
 - Focused GUI/action/workspace tests: **9 passed**.
 - Python compilation passed for `windows_gui.py` and the focused launch tests.
 - No external credentials, provider calls, publication, or destructive actions were used.
+
+
+## 2026-08-28 — Run lifecycle narrative and scene order
+
+### Changed
+
+- Added `docs/RUN_LIFECYCLE_NARRATIVE.md`, a repository-grounded walkthrough contract with a canonical run-state sequence and ten ordered scenes from workspace readiness through verified completion.
+- Defined labeled branch scenes for approval rejection, provider unavailability, pause/resume, cancellation, partial-stream recovery, and verification failure, together with evidence, safety, and recording rules.
+
+### Validation
+
+- Focused lifecycle-narrative tests: **2 passed**.
+- Python compilation passed for the narrative contract test.
+- No external credentials, provider calls, publication, or destructive actions were used.
