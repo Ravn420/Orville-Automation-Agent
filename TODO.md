@@ -1119,9 +1119,9 @@ The following requirements were added after reviewing primary documentation and 
 
 - [!] Document model, provider, connector, prompt, tool, dependency, and GUI version changes for reproducibility. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, visual-regression, and risk-register work on `feature/visual-regression-tests`, so new reproducibility documentation cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-bb2fb50c6ff3 -->
 
-- [ ] Define incident response for model failures, data leakage, unsafe tool use, compromised connectors, corrupted model files, and production regressions. <!-- task-id:TODO-f5109c70d1d9 -->
+- [!] Define incident response for model failures, data leakage, unsafe tool use, compromised connectors, corrupted model files, and production regressions. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, visual-regression, and risk-register work on `feature/visual-regression-tests`, so an incident-response contract cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-f5109c70d1d9 -->
 
-- [ ] Add a deprecation and migration process for providers, model formats, APIs, MCP versions, runtime dependencies, and GUI components. <!-- task-id:TODO-a82c805619c4 -->
+- [!] Add a deprecation and migration process for providers, model formats, APIs, MCP versions, runtime dependencies, and GUI components. The process and focused validation are present and passed, but completion is blocked: the worktree branch changed to `feature/visual-regression-tests` and shared control files are concurrently modified by other roadmap work, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-a82c805619c4 -->
 
 ## 22. Research Sources Used
 
@@ -1179,9 +1179,9 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [x] GUI API client implemented with in-memory bearer-token handling and objective/event requests. <!-- task-id:TODO-486d831a018f -->
 
-- [ ] Production GUI bridge remains pending: durable identity and authorization scopes, CORS and rate-limit enforcement, backend run manager injection, artifact APIs, SSE/WebSocket push, and database-backed state. <!-- task-id:TODO-e365c91ee53b -->
+- [!] Production GUI bridge remains pending: durable identity and authorization scopes, CORS and rate-limit enforcement, backend run manager injection, artifact APIs, SSE/WebSocket push, and database-backed state. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, visual-regression, and lifecycle work on `feature/visual-regression-tests`; implementing this production bridge would require broad backend/API changes and approval-sensitive deployment assumptions that cannot be safely isolated in the current worktree. <!-- task-id:TODO-e365c91ee53b -->
 
-- [ ] Final operational pass remains pending: OpenTelemetry export, evaluation harness, security regression suite, packaging and migration workflows, deployment configuration, rollback procedures, and clean-environment acceptance testing. <!-- task-id:TODO-32baa69a5473 -->
+- [!] Final operational pass remains pending: OpenTelemetry export, evaluation harness, security regression suite, packaging and migration workflows, deployment configuration, rollback procedures, and clean-environment acceptance testing. Blocked: concurrent roadmap workers are actively mutating shared control files and observability/telemetry, GUI, lifecycle, and deployment-related work in this worktree; completing this cross-cutting operational pass would require broad changes and approval-sensitive deployment assumptions that cannot be safely isolated or validated here. <!-- task-id:TODO-32baa69a5473 -->
 
 ## Finalization Pass Status
 
