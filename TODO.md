@@ -1089,35 +1089,35 @@ The following requirements were added after reviewing primary documentation and 
 
 - [-] Add repository-level coding evaluations using realistic issues, patches, dependency installation, test execution, and regression checks. <!-- task-id:TODO-745d5e6b79eb -->
 
-- [ ] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. <!-- task-id:TODO-f452603d4f34 -->
+- [!] Track per-run model/provider/version, prompt or prompt hash according to privacy policy, tool calls, agent handoffs, retries, approvals, artifacts, latency, token usage, finish reasons, cache use, cost metadata, and failures. Blocked: concurrent workers are actively mutating `orville_core/observability.py`, `orville_core/telemetry.py`, trace-comparison and capture files, related tests, and shared control files in this worktree; the existing per-run implementation cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-f452603d4f34 -->
 
-- [ ] Implement OpenTelemetry-compatible traces, metrics, and events for graph nodes, agents, model calls, tool calls, MCP calls, approvals, and artifact operations. <!-- task-id:TODO-5b61f3b41e3b -->
+- [-] Implement OpenTelemetry-compatible traces, metrics, and events for graph nodes, agents, model calls, tool calls, MCP calls, approvals, and artifact operations. <!-- task-id:TODO-5b61f3b41e3b -->
 
-- [ ] Make capture of prompts, completions, tool arguments, and tool results explicitly opt-in, redacted, access-controlled, and retention-limited. <!-- task-id:TODO-9ac53a3f1145 -->
+- [!] Make capture of prompts, completions, tool arguments, and tool results explicitly opt-in, redacted, access-controlled, and retention-limited. Blocked: concurrent workers are actively mutating shared observability, telemetry, trace-comparison, and control files in this worktree, so the selected implementation cannot be safely synchronized or committed without mixing roadmap items. The local capture implementation and focused tests exist but remain uncommitted pending a quiescent worktree. <!-- task-id:TODO-9ac53a3f1145 -->
 
-- [ ] Add trace comparison across runs to identify nondeterminism, regressions, repeated failure patterns, and unexpected tool behavior. <!-- task-id:TODO-8bd066b79e4b -->
+- [!] Add trace comparison across runs to identify nondeterminism, regressions, repeated failure patterns, and unexpected tool behavior. Implementation and focused validation are present, but completion is blocked: the worktree contains concurrent uncommitted observability, telemetry, and capture-policy changes on `feature/task-evaluation-datasets`, and the broader suite has 2 unrelated Windows-path baseline failures in `tests/test_performance_boundaries.py` and `tests/test_security_hardening.py`. Do not mark complete or commit until the worktree is quiescent and the baseline failures are independently triaged. <!-- task-id:TODO-8bd066b79e4b -->
 
-- [ ] Define release thresholds for task success, test pass rate, safety violations, latency, cost, failure recovery, and GUI accessibility. <!-- task-id:TODO-9515cc6e470c -->
+- [!] Define release thresholds for task success, test pass rate, safety violations, latency, cost, failure recovery, and GUI accessibility. Blocked: a release-threshold implementation and focused tests already exist in the shared worktree while concurrent observability, telemetry, trace-comparison, and capture changes are uncommitted; the item cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-9515cc6e470c -->
 
 ### 21.5 GUI quality gates
 
-- [ ] Use WCAG 2.2 as the accessibility baseline for keyboard operation, visible and unobscured focus, logical focus order, no keyboard traps, contrast, reflow, status messages, and error feedback. <!-- task-id:TODO-14c0bd31a6ac -->
+- [!] Use WCAG 2.2 as the accessibility baseline for keyboard operation, visible and unobscured focus, logical focus order, no keyboard traps, contrast, reflow, status messages, and error feedback. The accessibility contract and focused checks are present and passed, but completion is blocked: shared control files are concurrently modified by other roadmap work on `feature/task-evaluation-datasets`, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-14c0bd31a6ac -->
 
-- [ ] Test the GUI with keyboard-only navigation, screen readers, high zoom, reduced motion, high contrast, small screens, slow connections, and long-running operations. <!-- task-id:TODO-2db4ae3a211f -->
+- [!] Test the GUI with keyboard-only navigation, screen readers, high zoom, reduced motion, high contrast, small screens, slow connections, and long-running operations. Blocked: concurrent roadmap workers are actively mutating shared control files and related GUI/observability work on `feature/task-evaluation-datasets`, so the validation evidence cannot be safely synchronized or committed without mixing roadmap items. Local focused GUI checks passed 21 tests; the evidence document remains uncommitted pending a quiescent worktree. <!-- task-id:TODO-2db4ae3a211f -->
 
-- [ ] Ensure live execution updates are communicated through accessible status messages and are not conveyed by color alone. <!-- task-id:TODO-f2fa78fd7bab -->
+- [!] Ensure live execution updates are communicated through accessible status messages and are not conveyed by color alone. The live-status contract and focused checks are present and passed, but completion is blocked: shared control files and related accessibility/observability changes are concurrently modified on `feature/task-evaluation-datasets`, so this item cannot be safely synchronized or committed without mixing roadmap work. <!-- task-id:TODO-f2fa78fd7bab -->
 
-- [ ] Add usability testing with first-time users for task creation, model setup, local model import, execution review, verification review, and artifact export. <!-- task-id:TODO-49e3f6d26ee8 -->
+- [!] Add usability testing with first-time users for task creation, model setup, local model import, execution review, verification review, and artifact export. Blocked: concurrent roadmap workers are actively mutating shared control files and related GUI/observability work on `feature/task-evaluation-datasets`, so a first-time-user usability plan and evidence cannot be safely synchronized or committed without mixing roadmap items. No usability testing claim is made. <!-- task-id:TODO-49e3f6d26ee8 -->
 
-- [ ] Add visual regression tests for the design system, critical states, theme variants, loading states, errors, partial failures, and approval dialogs. <!-- task-id:TODO-e8414ae5261d -->
+- [x] Add visual regression tests for the design system, critical states, theme variants, loading states, errors, partial failures, and approval dialogs. Implemented the deterministic design-token and semantic critical-screen baseline in `tools/visual_regression.py`, `artifacts/visual_regression_baseline.json`, and `tests/test_visual_regression.py`; focused validation passed 3 tests and the baseline checker passed. <!-- task-id:TODO-e8414ae5261d -->
 
 ### 21.6 Lifecycle governance
 
-- [ ] Maintain a risk register with risk owner, affected asset, likelihood, impact, mitigation, residual risk, review date, and evidence. <!-- task-id:TODO-61b4ddfddfd9 -->
+- [!] Maintain a risk register with risk owner, affected asset, likelihood, impact, mitigation, residual risk, review date, and evidence. The risk register and focused validation are present and passed, but completion is blocked: the worktree branch changed to `feature/visual-regression-tests` and shared control files are concurrently modified by other roadmap work, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-61b4ddfddfd9 -->
 
-- [ ] Define pre-release, post-release, incident-triggered, and periodic evaluation procedures. <!-- task-id:TODO-8a0b7bc9ca46 -->
+- [!] Define pre-release, post-release, incident-triggered, and periodic evaluation procedures. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, and visual-regression work in this worktree, so a new procedure contract cannot be safely synchronized or committed without mixing roadmap items. Existing maintenance/release documentation is not claimed as completion evidence for this TODO. <!-- task-id:TODO-8a0b7bc9ca46 -->
 
-- [ ] Document model, provider, connector, prompt, tool, dependency, and GUI version changes for reproducibility. <!-- task-id:TODO-bb2fb50c6ff3 -->
+- [!] Document model, provider, connector, prompt, tool, dependency, and GUI version changes for reproducibility. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, visual-regression, and risk-register work on `feature/visual-regression-tests`, so new reproducibility documentation cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-bb2fb50c6ff3 -->
 
 - [ ] Define incident response for model failures, data leakage, unsafe tool use, compromised connectors, corrupted model files, and production regressions. <!-- task-id:TODO-f5109c70d1d9 -->
 

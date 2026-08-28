@@ -1,5 +1,18 @@
 # Orville Changelog
 
+## 2026-08-28 — Visual regression baseline
+
+### Changed
+
+- Added deterministic visual-regression coverage for the design-system token projection and canonical control-center mockup, including theme, responsive, reduced-motion, pressed-state, and critical-screen semantic markers.
+- Added `tools/visual_regression.py`, the reviewed `artifacts/visual_regression_baseline.json`, `docs/VISUAL_REGRESSION.md`, and focused baseline drift tests.
+
+### Validation
+
+- Focused visual-regression tests: **3 passed**.
+- `python tools/visual_regression.py check` passed.
+- Python compilation passed for the checker and focused tests. Screenshot pixel equivalence, browser-engine differences, and assistive-technology review remain environment-dependent limitations.
+
 ## 2026-08-28 — Isolated behavioral evaluation
 
 ### Changed
