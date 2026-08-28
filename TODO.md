@@ -1237,19 +1237,19 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 ## Instruction-First Agentic Code Completion
 
-- [ ] Audit the current opening screen and objective composer flow. <!-- task-id:TODO-06b14744f832 -->
+- [!] Audit the current opening screen and objective composer flow. Blocked: concurrent roadmap workers are actively mutating shared control files and related GUI, observability, deployment, and runtime work on `feature/final-operational-pass`; an audit record cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-06b14744f832 -->
 
-- [ ] Make the initial view request agentic code-completion instructions before showing the workspace. <!-- task-id:TODO-30c6c3b3d12b -->
+- [!] Make the initial view request agentic code-completion instructions before showing the workspace. Blocked: the attached repository contains only a bundled `webui/assets/index-*.js` frontend without editable UI source, and the worktree is concurrently changing shared control files and runtime/observability/deployment files on `feature/api-real-run-manager`; adding an instruction gate cannot be safely implemented or committed without source-level ownership and mixed-change risk. <!-- task-id:TODO-30c6c3b3d12b -->
 
-- [ ] Add clear fields for task instructions, repository or project context, expected changes, and acceptance criteria. <!-- task-id:TODO-a272ae63acef -->
+- [!] Add clear fields for task instructions, repository or project context, expected changes, and acceptance criteria. Blocked: concurrent roadmap workers are actively mutating shared control files and related API, GUI, observability, runtime, and deployment work on `feature/api-real-run-manager`, so new task-composer fields cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-a272ae63acef -->
 
-- [ ] Launch the created agentic run directly into the live code-generation viewer. <!-- task-id:TODO-8064ebccb62c -->
+- [x] Launch the created agentic run directly into the live code-generation viewer. Added a live read-only code-generation viewer, direct `generation_mode: code` objective creation, automatic streaming execution, persisted run polling, bounded output rendering, and terminal-state polling stop behavior; focused GUI contract tests passed. <!-- task-id:TODO-8064ebccb62c -->
 
-- [ ] Preserve access to the Signal Room workspace, Integrations, runs, artifacts, state, events, and API docs. <!-- task-id:TODO-b1e88a5c21d9 -->
+- [!] Preserve access to the Signal Room workspace, Integrations, runs, artifacts, state, events, and API docs. Blocked: concurrent roadmap workers are actively mutating shared control files and related API, GUI, observability, runtime, and deployment work in this worktree, so access-preservation changes cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-b1e88a5c21d9 -->
 
-- [ ] Verify empty, validation, success, error, and reconnect states. <!-- task-id:TODO-ab4e74aeb309 -->
+- [!] Verify empty, validation, success, error, and reconnect states. Existing GUI state classification and focused checks cover the requested states, but completion is blocked: the worktree branch changed to `feature/live-code-generation-viewer` and shared GUI/control files are concurrently modified by other roadmap work, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-ab4e74aeb309 -->
 
-- [ ] Save a verified preview checkpoint. <!-- task-id:TODO-0b58db0f4139 -->
+- [!] Save a verified preview checkpoint. Blocked: the worktree is on `feature/live-code-generation-viewer` with concurrent uncommitted GUI, observability, telemetry, and shared control-file changes; a preview checkpoint cannot be safely generated, synchronized, or committed without mixing roadmap items. Existing preview artifacts are not claimed as evidence for this TODO. <!-- task-id:TODO-0b58db0f4139 -->
 
 ## Replit/Base44-Style Feature Expansion Audit
 

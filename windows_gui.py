@@ -902,7 +902,8 @@ class OrvilleWindow(tk.Tk):
         self.context_text.insert("1.0", text)
         self.context_text.configure(state="disabled")
 
-    def _request(self, path: str, method: str = "GET", payload: dict | None = None) -> None:
+    def _request(self, path: str, method: str = "GET", payload: dict | None = None, callback=None) -> None:
+
         self.task_status.configure(text="WORKING", bg="#f4edff", fg=self.ACCENT)
 
         def worker() -> None:
@@ -911,7 +912,8 @@ class OrvilleWindow(tk.Tk):
             try:
                 with urllib.request.urlopen(request, timeout=8) as response:
                     result = json.loads(response.read().decode())
-                    self.after(0, lambda: self._request_succeeded(result))
+                    self.after(0, lambda: callback(result) if callback else self._request_succeeded(result))
+
             except urllib.error.HTTPError as exc:
                 exc.read()
                 self.after(0, lambda: self._request_failed(f"The objective request could not be completed (HTTP {exc.code})."))
@@ -948,14 +950,83 @@ class OrvilleWindow(tk.Tk):
     def artifacts(self) -> None:
         self._request("/api/v1/artifacts")
 
+    def open_live_code_generation_viewer(self, run_id: str) -> None:
+        """Open a live, read-only viewer for a streaming code-generation run."""
+        window = tk.Toplevel(self)
+        window.title("Orville — Live Code Generation")
+        window.geometry("980x650")
+        window.minsize(760, 480)
+        window.configure(bg=self.BG)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(1, weight=1)
+        ttk.Label(window, text="Live code generation", style="Title.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(16, 4))
+        ttk.Label(window, text="The run is streaming through the configured model-backed API handler.", style="Subtitle.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(42, 10))
+        body = ttk.Frame(window, style="Surface.TFrame", padding=12)
+        body.grid(row=1, column=0, sticky="nsew", padx=14, pady=(8, 14))
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(1, weight=1)
+        summary = tk.StringVar(value=f"Run: {run_id} · CONNECTING")
+        ttk.Label(body, textvariable=summary, background=self.SURFACE, foreground=self.MUTED).grid(row=0, column=0, sticky="w")
+        output = scrolledtext.ScrolledText(body, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, relief="flat", borderwidth=0, font=("Consolas", 9), padx=10, pady=10)
+        output.grid(row=1, column=0, sticky="nsew", pady=(12, 10))
+
+        def render(result: object) -> None:
+            if not isinstance(result, dict) or result.get("error"):
+                summary.set(f"Run: {run_id} · UNAVAILABLE")
+                text = str(result.get("error", RUN_UNAVAILABLE_MESSAGE)) if isinstance(result, dict) else RUN_UNAVAILABLE_MESSAGE
+            else:
+                status = str(result.get("run_status", "unknown")).upper()
+                summary.set(f"Run: {run_id} · {status}")
+                graph = result.get("graph") if isinstance(result.get("graph"), dict) else {}
+                tasks = graph.get("tasks") if isinstance(graph.get("tasks"), list) else []
+                lines = [f"Run: {run_id}", f"Status: {status}", ""]
+                for task in tasks:
+                    if not isinstance(task, dict):
+                        continue
+                    lines.extend([f"[{task.get('status', 'unknown')}] {task.get('title', task.get('task_id', 'task'))}"])
+                    task_output = task.get("output")
+                    if isinstance(task_output, dict) and isinstance(task_output.get("text"), str) and task_output["text"].strip():
+                        lines.extend(["", task_output["text"][-12000:], ""])
+                events = result.get("events") if isinstance(result.get("events"), list) else []
+                if events:
+                    lines.extend(["", f"Events ({len(events)}):"])
+                    lines.extend(f"{event.get('event_type', 'event')} · {event.get('task_id', 'run')}" for event in events[-40:] if isinstance(event, dict))
+                text = "\n".join(lines)
+            output.configure(state="normal")
+            output.delete("1.0", "end")
+            output.insert("1.0", text)
+            output.configure(state="disabled")
+            if isinstance(result, dict) and result.get("run_status") in {"completed", "failed", "blocked", "cancelled"}:
+                return
+            if window.winfo_exists():
+                window.after(750, refresh)
+
+        def refresh() -> None:
+            if window.winfo_exists():
+                self._manager_request(f"/api/v1/runs/{quote(run_id, safe='')}", "GET", None, render)
+
+        refresh()
+
     def create_objective(self) -> None:
+
         text = self.objective.get("1.0", "end").strip()
         if not text or text == self._placeholder:
             messagebox.showwarning("Objective required", "Enter an objective before creating it.")
             return
         self._write("Objective submitted", "user")
         method, path, payload = build_engine_action_request("create_run")
-        self._request(path, method, {"objective": text, **(payload or {})})
+
+        def launch_viewer(result: object) -> None:
+            self._request_succeeded(result)
+            if not isinstance(result, dict) or not result.get("run_id"):
+                return
+            run_id = str(result["run_id"])
+            self.open_live_code_generation_viewer(run_id)
+            execute_path = f"/api/v1/objectives/{quote(run_id, safe='')}/execute"
+            self._request(execute_path, "POST", {"context": {"stream": True}}, lambda execution: self._write({"run_id": run_id, "status": "streaming_started", "execution": execution}, "meta"))
+
+        self._request(path, method, {"objective": text, "generation_mode": "code", **(payload or {})}, launch_viewer)
+
         self.objective.delete("1.0", "end")
         self._restore_placeholder()
 

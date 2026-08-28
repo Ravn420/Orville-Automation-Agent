@@ -1592,3 +1592,15 @@ The evaluator preserves reproducibility metadata and removes the temporary candi
 | Validation | Focused API and injection tests: 10 passed; Python compilation passed |
 | Safety | Default handlers are provider-router-backed; no fake generation handler is installed by the production factory. No provider calls or credentials were used in validation |
 | Limitations | Live provider behavior and production deployment hosting remain environment-owned |
+
+
+## Direct live code-generation viewer checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-8064ebccb62c` — launch the created agentic run directly into the live code-generation viewer |
+| Status | completed-local |
+| Evidence | `windows_gui.py`, `tests/test_live_code_generation_launch.py` |
+| Validation | Focused GUI/action/workspace tests: 9 passed; Python compilation passed |
+| Safety | Read-only viewer; bounded output rendering; no credentials, provider calls, publication, or destructive actions |
+| Limitations | GUI rendering and live provider behavior remain environment-dependent |

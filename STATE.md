@@ -1029,3 +1029,6 @@ The next eligible TODO, `TODO-500f367e0031`, is complete locally. `docs/THREAT_M
 
 
 **API runtime injection checkpoint — 2026-08-28:** Closed `TODO-41dfe16627d4`. The deployed API now defaults objective handlers to the real provider-router-backed handlers in `orville_core.integration` and accepts an injectable `RunManager` for synchronous, streaming, and cancellation flows. Focused API injection and compatibility validation passed 10 tests; Python compilation passed. No external provider calls or credentials were used.
+
+
+**Direct live code-generation viewer checkpoint — 2026-08-28:** Closed `TODO-8064ebccb62c`. The Windows GUI now sends code-generation objectives, opens a live read-only viewer as soon as the run is created, starts streaming execution automatically, polls persisted run state, renders bounded task output and recent events, and stops polling at terminal states. Focused GUI contract tests passed 9 tests and Python compilation passed. No external credentials or provider calls were used.

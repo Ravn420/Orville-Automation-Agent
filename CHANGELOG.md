@@ -2356,3 +2356,17 @@ Added structured limitation categories to the reusable Standard Execution Record
 - API compatibility and injection tests: **10 passed**.
 - Python compilation passed for the API, run manager, package exports, and focused tests.
 - Live provider calls, credentials, and production deployment were not used.
+
+
+## 2026-08-28 — Direct live code-generation viewer
+
+### Changed
+
+- Updated `windows_gui.py` so objective submission requests code-generation mode, opens a live read-only viewer immediately after run creation, starts streaming execution, and polls persisted run state and events.
+- Added bounded task-output rendering and terminal-state polling shutdown to keep the viewer responsive and safe for long-running runs.
+
+### Validation
+
+- Focused GUI/action/workspace tests: **9 passed**.
+- Python compilation passed for `windows_gui.py` and the focused launch tests.
+- No external credentials, provider calls, publication, or destructive actions were used.
