@@ -1329,7 +1329,7 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 ## Runs Walkthrough Video
 
-- [-] Define the complete run lifecycle narrative and scene order. In progress on a repository-grounded scene-order document covering intake, planning, approval, execution, live progress, verification, artifact handoff, failure/recovery, and completion. <!-- task-id:TODO-582e0f5dec5a -->
+- [x] Define the complete run lifecycle narrative and scene order. Added `docs/RUN_LIFECYCLE_NARRATIVE.md` with a canonical run-state sequence, ten ordered walkthrough scenes from workspace readiness through completion, and labeled approval, provider, pause/resume, cancellation, partial-stream, verification-failure, evidence, and safety branches; focused narrative-contract tests passed. <!-- task-id:TODO-582e0f5dec5a -->
 
 - [!] Prepare Signal Room visual references and instructional overlays. Blocked: concurrent roadmap workers are actively mutating shared control files and GUI, observability, live-viewer, and visual-reference work on `feature/live-code-generation-viewer`, so new visual assets or overlays cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-92c9029c2bf1 -->
 
@@ -1337,7 +1337,7 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [!] Review the video for readable labels, sequence completeness, and factual alignment with the current Orville implementation. Blocked: the referenced walkthrough video source is absent, so readable-label, sequence, and factual-alignment review cannot be performed; the worktree also contains concurrent uncommitted GUI, observability, and control-file changes on `feature/live-code-generation-viewer`. No video-review claim is made. <!-- task-id:TODO-cc4006312df6 -->
 
-- [ ] Deliver the final video artifact. <!-- task-id:TODO-130df39163f5 -->
+- [!] Deliver the final video artifact. A delivery-status note records that a fallback MP4 was rendered outside this repository after the generator quota was reached, but no video bytes or reproducible media metadata are retained under the attached repository and no external delivery is authorized. The item cannot be marked complete until the artifact is retained inside the repository's designated evidence boundary or an approved archival limitation is recorded with complete metadata. <!-- task-id:TODO-130df39163f5 -->
 
 ## Runs Walkthrough Video Status
 
