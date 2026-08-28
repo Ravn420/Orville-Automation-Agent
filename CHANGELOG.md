@@ -2342,3 +2342,17 @@ Five focused operation-checkpoint tests, four existing automation tests, and 18 
 ## 2026-08-27 — Execution-record known limitations
 
 Added structured limitation categories to the reusable Standard Execution Record Template: scope, environment/provider, validation, and unresolved risks/follow-up dependencies. Added `tests/test_execution_record_template.py`; two focused tests and Python compilation passed. The checklist remains a template placeholder for future records and is not treated as a product milestone.
+
+
+## 2026-08-28 — API runtime injection
+
+### Changed
+
+- Added `orville_core.run_manager.RunManager` and injected it into the API factory for synchronous, streaming, and cancellation execution.
+- Confirmed the deployed API defaults objective generation to real provider-router-backed handlers from `orville_core.integration`; focused tests reject missing or fake default wiring.
+
+### Validation
+
+- API compatibility and injection tests: **10 passed**.
+- Python compilation passed for the API, run manager, package exports, and focused tests.
+- Live provider calls, credentials, and production deployment were not used.

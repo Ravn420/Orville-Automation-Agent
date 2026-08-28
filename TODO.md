@@ -1199,15 +1199,15 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [x] Verify the GUI with TypeScript checking, production build, desktop preview, and mobile preview. <!-- task-id:TODO-c9d6d0adec4c -->
 
-- [ ] Replace in-memory API graphs and rate limits with durable database-backed state and distributed rate limiting. <!-- task-id:TODO-0b77a2724ce8 -->
+- [!] Replace in-memory API graphs and rate limits with durable database-backed state and distributed rate limiting. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, lifecycle, and deployment work on `feature/final-operational-pass`; implementing this item requires broad API/database changes plus deployment-specific durable storage and distributed-rate-limit assumptions that cannot be safely isolated or validated in the current worktree. <!-- task-id:TODO-0b77a2724ce8 -->
 
-- [ ] Provide a production identity provider, scoped authorization, TLS, deployment secrets, CORS allowlist, and audit-log sink. <!-- task-id:TODO-23b12a217ff3 -->
+- [!] Provide a production identity provider, scoped authorization, TLS, deployment secrets, CORS allowlist, and audit-log sink. The credential-free production contract and focused validation are present and passed, but completion is blocked: the worktree branch changed to `feature/final-operational-pass` and shared control files are concurrently modified by other roadmap work, so this item cannot be safely synchronized or committed without mixing changes. <!-- task-id:TODO-23b12a217ff3 -->
 
-- [ ] Inject real model-backed handlers and run manager into the deployed API; no fake generation handlers are permitted. <!-- task-id:TODO-41dfe16627d4 -->
+- [x] Inject real model-backed handlers and run manager into the deployed API; no fake generation handlers are permitted. Added injectable `RunManager`, wired synchronous/background execution and cancellation through it, exposed runtime dependencies on `app.state`, and verified default handlers come from `orville_core.integration`. <!-- task-id:TODO-41dfe16627d4 -->
 
-- [ ] Implement SSE/WebSocket event push, full local-model runtime activation, sandboxed process execution, and hardware-aware resource checks. <!-- task-id:TODO-e4e9152d3c61 -->
+- [!] Implement SSE/WebSocket event push, full local-model runtime activation, sandboxed process execution, and hardware-aware resource checks. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, visual-regression, lifecycle, and deployment work on `feature/final-operational-pass`; this item requires broad runtime/backend changes plus platform-specific process isolation and hardware provisioning that cannot be safely isolated or validated in the current worktree. <!-- task-id:TODO-e4e9152d3c61 -->
 
-- [ ] Complete production acceptance, security, accessibility, performance, repository-level code-generation evaluation, packaging, deployment, rollback, and disaster-recovery tests. <!-- task-id:TODO-9d23783f4060 -->
+- [!] Complete production acceptance, security, accessibility, performance, repository-level code-generation evaluation, packaging, deployment, rollback, and disaster-recovery tests. Local grouped validation and retained evidence are present, but completion is blocked: the worktree contains concurrent shared control-file and implementation changes on `feature/final-operational-pass`; the grouped gate has 51 passed and 2 unrelated Windows-path baseline failures, and deployment-owned production checks remain unperformed. Do not mark complete or commit without a quiescent worktree and release-owner review. <!-- task-id:TODO-9d23783f4060 -->
 
 ## Roadmap Completion Pass — Verified Update
 
@@ -1227,13 +1227,13 @@ The roadmap may be marked complete only after the system demonstrates at least o
 
 - [x] Verify GUI TypeScript checking and production build after API-client event-stream support. <!-- task-id:TODO-fd068c598c02 -->
 
-- [ ] Connect deployed GUI to a configured backend URL and authenticated token through a server-side secret mechanism. <!-- task-id:TODO-c4ddd8a16896 -->
+- [!] Connect deployed GUI to a configured backend URL and authenticated token through a server-side secret mechanism. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, lifecycle, and deployment work on `feature/final-operational-pass`; completing this item requires an approved real deployment target and secret-management configuration, which must not be inferred or fabricated in the repository-only worktree. <!-- task-id:TODO-c4ddd8a16896 -->
 
-- [ ] Complete external identity, scoped authorization, TLS, distributed rate limiting, and durable audit logging. <!-- task-id:TODO-2d2b1715895f -->
+- [!] Complete external identity, scoped authorization, TLS, distributed rate limiting, and durable audit logging. Blocked: concurrent roadmap workers are actively mutating shared control files and observability, telemetry, GUI, lifecycle, and deployment work on `feature/final-operational-pass`; completion requires approved identity/TLS/secret infrastructure and durable distributed services that cannot be safely isolated or validated in the current repository-only worktree. <!-- task-id:TODO-2d2b1715895f -->
 
-- [ ] Complete real model runtime injection, sandboxed local process execution, resource validation, and provider capability negotiation. <!-- task-id:TODO-007a1807f0ec -->
+- [!] Complete real model runtime injection, sandboxed local process execution, resource validation, and provider capability negotiation. Blocked: concurrent roadmap workers are actively mutating shared control files and runtime/observability/GUI/deployment work on `feature/final-operational-pass`; implementing this item requires platform-specific sandbox and hardware/runtime provisioning that cannot be safely isolated or validated in the current repository-only worktree. <!-- task-id:TODO-007a1807f0ec -->
 
-- [ ] Run clean-environment acceptance and deployment validation after choosing the target hosting topology. <!-- task-id:TODO-494d5e4a3c5c -->
+- [!] Run clean-environment acceptance and deployment validation after choosing the target hosting topology. Local clean-environment validation and retained evidence are present, but completion is blocked: shared control files and implementation changes are concurrently modified on `feature/final-operational-pass`, so this item cannot be safely synchronized or committed without mixing roadmap work. Live deployment remains deployment-owner work. <!-- task-id:TODO-494d5e4a3c5c -->
 
 ## Instruction-First Agentic Code Completion
 

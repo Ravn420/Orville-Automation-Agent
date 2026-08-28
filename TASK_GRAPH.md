@@ -1580,3 +1580,15 @@ The selected item is closed through an explicit archival limitation, not an arch
 | Limitations | This local helper does not claim OS/container/network isolation, dependency provenance, adversarial sandboxing, or production-scale evaluation; those remain deployment-owned |
 
 The evaluator preserves reproducibility metadata and removes the temporary candidate copy after evaluation. No provider calls, credentials, personal data, or external mutations were used.
+
+
+## API runtime injection checkpoint — 2026-08-28
+
+| Field | Value |
+|---|---|
+| Task | `TODO-41dfe16627d4` — inject real model-backed handlers and run manager into the deployed API |
+| Status | completed-local |
+| Evidence | `orville_core/run_manager.py`, `orville_core/api.py`, `tests/test_api_run_manager_injection.py` |
+| Validation | Focused API and injection tests: 10 passed; Python compilation passed |
+| Safety | Default handlers are provider-router-backed; no fake generation handler is installed by the production factory. No provider calls or credentials were used in validation |
+| Limitations | Live provider behavior and production deployment hosting remain environment-owned |

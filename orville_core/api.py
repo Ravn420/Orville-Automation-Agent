@@ -71,6 +71,7 @@ from .blackbox_model_discovery import BlackboxModelDiscovery, BlackboxModelDisco
 from .cloud_onboarding import initial_cloud_onboarding
 from .provider_features import DiscoveryCatalogStore, PolicyBackupStore, PrivacyRoutingPolicy, PrivacyRoutingPolicyStore, ProviderDiscoveryError, ProviderRateLimitStore, RemoteCatalogStore, RemotePolicyStore, discover_provider_models, redacted_provider_export
 from .canary import CanaryController, CanaryError, CanaryHealthEvaluator, CanaryStateStore, HealthObservation, SyntheticDeploymentAdapter
+from .run_manager import RunManager
 
 try:
     from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
@@ -442,7 +443,8 @@ class ImageGenerationPayload(BaseModel):
     wait_timeout_seconds: float = 600.0
 
 
-def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_path: str | Path | None = None, storage: str | None = None, api_token: str | None = None, allowed_origins: list[str] | None = None, requests_per_minute: int = 120, engine: OrchestrationEngine | None = None, handlers: dict[str, Any] | None = None, verifiers: dict[str, Any] | None = None) -> Any:
+def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_path: str | Path | None = None, storage: str | None = None, api_token: str | None = None, allowed_origins: list[str] | None = None, requests_per_minute: int = 120, engine: OrchestrationEngine | None = None, handlers: dict[str, Any] | None = None, verifiers: dict[str, Any] | None = None, run_manager: RunManager | None = None) -> Any:
+
     """Create an authenticated API application without contacting external services."""
     if FastAPI is None:
         raise RuntimeError("API dependencies are not installed; install the 'api' extra")
@@ -667,13 +669,14 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
                 citations.append({"claim": claim, "source_ids": captured_ids, "confidence": "medium", "created_at": datetime.now(UTC).isoformat(), "capture_mode": "automatic"})
             store.save(checkpoint)
 
-    def execute_in_background(run_id: str, graph: TaskGraph, context: dict[str, Any]) -> None:
-        try:
-            run_engine.run(graph, context=context, run_id=run_id)
-            persist_generated_artifact(run_id)
-            capture_research_citations(run_id)
-        finally:
-            run_threads.pop(run_id, None)
+    def on_run_completed(run_id: str) -> None:
+        persist_generated_artifact(run_id)
+        capture_research_citations(run_id)
+
+    active_run_manager = run_manager or RunManager(run_engine, store, on_completed=on_run_completed)
+    app.state.run_manager = active_run_manager
+    app.state.orchestration_engine = run_engine
+    app.state.provider_registry = provider_registry
 
     def authenticate(authorization: str | None = Header(default=None)) -> None:
         if authorization != f"Bearer {expected_token}":
@@ -1947,16 +1950,14 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         context = dict(payload.context)
         stream = bool(context.pop("stream", False))
         if stream:
-            if run_id in run_threads and run_threads[run_id].is_alive():
-                return {"run_id": run_id, "status": "running", "streaming": True}
-            thread = Thread(target=execute_in_background, args=(run_id, graph, context), daemon=True)
-            run_threads[run_id] = thread
-            thread.start()
+            active_run_manager.execute(graph, context=context, run_id=run_id, streaming=True)
             return {"run_id": run_id, "status": "running", "streaming": True}
+
         try:
-            result = run_engine.run(graph, context=context, run_id=run_id)
-            persist_generated_artifact(run_id)
-            capture_research_citations(run_id)
+            result = active_run_manager.execute(graph, context=context, run_id=run_id, streaming=False)
+            if result is None:
+                raise RuntimeError("synchronous run manager returned no execution result")
+
         except ProviderError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         return {"run_id": result.run_id, "status": result.status.value, "outputs": result.outputs, "checkpoint_path": result.checkpoint_path}
@@ -2011,11 +2012,10 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     @app.post("/api/v1/runs/{run_id}/cancel", dependencies=[Depends(authenticate)])
     def cancel_run(run_id: str) -> dict[str, str]:
         try:
-            checkpoint = store.load(run_id)
+            active_run_manager.request_cancel(run_id)
+
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="run not found") from exc
-        checkpoint.context["cancel_requested"] = True
-        store.save(checkpoint)
         return {"run_id": run_id, "status": "cancellation_requested"}
 
     @app.post("/api/v1/runs/{run_id}/tasks/{task_id}/approval", dependencies=[Depends(authenticate)])

@@ -1026,3 +1026,6 @@ The local model lifecycle now has a closed asset taxonomy, safe/unsafe serializa
 ## 21.3 threat-model checkpoint — 2026-08-28
 
 The next eligible TODO, `TODO-500f367e0031`, is complete locally. `docs/THREAT_MODEL_21_3.md` covers prompt injection, excessive agency, insecure output handling, sensitive information disclosure, supply-chain risk, context poisoning, and unbounded tool access across Orville’s trust boundaries. Each category has an abuse case, mitigation family, detection/evidence path, and residual-risk statement, with explicit untrusted-content and high-impact approval boundaries. Focused threat-model tests passed 3; the post-rebase full regression suite passed **821 tests, 1 warning, and 6 subtests**. Live provider, deployment, browser, and production credential exercises remain environment-owned.
+
+
+**API runtime injection checkpoint — 2026-08-28:** Closed `TODO-41dfe16627d4`. The deployed API now defaults objective handlers to the real provider-router-backed handlers in `orville_core.integration` and accepts an injectable `RunManager` for synchronous, streaming, and cancellation flows. Focused API injection and compatibility validation passed 10 tests; Python compilation passed. No external provider calls or credentials were used.

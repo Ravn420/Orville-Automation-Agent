@@ -16,6 +16,10 @@ from .supply_chain import SupplyChainReview, review_downloaded_file
 from .recovery import RecoveryVerification, build_rollback_plan, verify_recovery_evidence
 from .failure_patterns import FailurePattern, review_completed_task_graphs
 from .observability import JsonlTraceRecorder, RunMetadata, RunMetadataRecorder, TraceRecord, hash_prompt
+from .capture_policy import CapturePolicy, CapturedPayload, CaptureStore
+from .telemetry import MetricSeries, OpenTelemetryRecorder, OperationEvent, SUPPORTED_OPERATION_KINDS, TelemetryRegistry
+from .trace_comparison import TraceComparisonResult, compare_traces
+
 from .sandbox import SandboxError, SandboxExecutor, SandboxPlan, SandboxPolicy, SandboxResult, SandboxUnavailable, UnavailableSandboxExecutor
 from .sandbox_adapters import LinuxBubblewrapExecutor, WindowsSandboxExecutor, discover_sandbox_adapters
 from .tuf_metadata import TufRepositoryVerifier, TufVerificationError
@@ -33,6 +37,7 @@ from .media_validation import MediaValidationPolicy, MediaValidationResult, vali
 from .document_verification import DocumentVerificationPolicy, DocumentVerificationResult, verify_document
 from .evaluation import EvaluationCheck, EvaluationResult, evaluate_output
 from .evaluation_datasets import EvaluationDataset, EvaluationDatasetError, GoldenCase, load_evaluation_catalog, parse_evaluation_catalog
+from .run_manager import RunManager
 from .behavioral_evaluation import BehavioralAcceptanceCase, BehavioralEvaluationCheck, BehavioralEvaluationResult, CodingEvaluationSpec, evaluate_coding_change, evaluate_generated_software
 from .runtime_health import HealthCheck, RuntimeHealth
 from .connector_health import ConnectorHealth, ConnectorHealthError, ConnectorInventory
@@ -159,6 +164,13 @@ __all__ = [
     "RunMetadata",
     "RunMetadataRecorder",
     "hash_prompt",
+    "MetricSeries",
+    "TelemetryRegistry",
+    "OperationEvent",
+    "OpenTelemetryRecorder",
+    "SUPPORTED_OPERATION_KINDS",
+    "TraceComparisonResult",
+    "compare_traces",
 
     "SandboxError",
     "SandboxExecutor",
@@ -221,6 +233,7 @@ __all__ = [
     "GoldenCase",
     "load_evaluation_catalog",
     "parse_evaluation_catalog",
+    "RunManager",
     "BehavioralAcceptanceCase",
     "BehavioralEvaluationCheck",
     "BehavioralEvaluationResult",
