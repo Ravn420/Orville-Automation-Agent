@@ -1,0 +1,8 @@
+{
+  "name": "Orville Automation Agent",
+  "description": "Standalone task-graph orchestration engine with provider adapters and Signal Room web interface",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

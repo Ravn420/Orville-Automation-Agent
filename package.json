@@ -1,0 +1,15 @@
+{
+  "name": "orville-automation-agent",
+  "version": "0.1.0",
+  "description": "Orville Automation Agent and Signal Room Web UI",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "echo 'Build ready'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
