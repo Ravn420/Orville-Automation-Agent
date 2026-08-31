@@ -1,4 +1,0 @@
-$ /usr/bin/python3 -m compileall -q orville_core windows_gui.py
-SECURITY GATE: security_gate_sandbox_boundary_failed security gate check failed: sandbox_boundary
-SECURITY GATE: security_gate_attestation_boundary_failed security gate check failed: attestation_boundary
-SECURITY GATE: security_gate_audit_evidence_failed security gate check failed: audit_evidence

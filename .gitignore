@@ -26,6 +26,9 @@ htmlcov/
 *.sqlite
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
+data/
 
 # Local logs and temporary diagnostics
 logs/
