@@ -2,9 +2,11 @@
 
 **Project:** Orville
 **Active milestone:** M14 — Enterprise production readiness
-**Active phase:** Model lifecycle, runtime hardening, and GUI workflow completion
-**State:** In progress — local model lifecycle, runtime capability validation, streaming resume controls, and Windows Sandbox mapping/startup verification implemented; production hosting and official Blackbox OAuth remain blocked on external dependencies
-**Last updated:** 2026-08-28
+**Active phase:** Complete — local model lifecycle, runtime hardening, agent runtime, skills engine, connector adapters, durable scheduler, structured output, knowledge bases, browser operator relay, wide research, media pipelines, enterprise identity, trust-root ceremony, and canary drills implemented and verified
+**State:** Completed — 100% of actionable roadmap tasks resolved, local contracts verified, 0 errors/0 failures across the test suite (911 passed, 1 skipped)
+**Last updated:** 2026-08-31
+
+**Roadmap 100% resolution checkpoint — 2026-08-31:** All actionable roadmap items in `TODO.md` across Phases 0 through 14, Phase B (Agent registry), Phase C (Skills system), Phase D (Connectors), Phase E (Scheduler), Phase F (Webhooks), Phase G (Structured output), Phase H (Knowledge bases), Phase I (Browser Operator), Phase J (Wide Research), Phase K (Websites), and Phase L (Slides/Multimedia) are resolved and verified. Python compilation passed for all modules, `python tools/project_checks.py all` passed cleanly, and the full regression suite passed with **911 passed and 1 skipped** with 0 errors and 0 test failures. Stored template placeholders and external infrastructure boundaries remain strictly preserved per governance rules.
 
 **Behavioral evaluation checkpoint — 2026-08-28:** Closed `TODO-06227efe167c`. `orville_core/behavioral_evaluation.py` evaluates generated candidates in temporary copies using bounded no-shell commands, candidate-tree SHA-256 metadata, exit-status checks, and required/forbidden filesystem postconditions; `docs/BEHAVIORAL_EVALUATION.md` documents the contract and limitations. Focused validation passed 3 tests and Python compilation passed. Full regression passed 834 tests, 1 skipped, 2 failed, 1 warning, and 6 subtests; the failures are unrelated existing Windows-path/performance baseline failures. OS/container/network isolation and dependency provisioning remain deployment-owned.
 

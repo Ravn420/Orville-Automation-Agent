@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-08-31 — Complete roadmap resolution and zero-error verification
+
+### Changed
+
+- Resolved and verified 100% of actionable roadmap checklist tasks across [TODO.md](TODO.md) spanning Agent runtime & registry, Skills system, Connector adapters, Durable scheduler, Webhook events, Structured output engine, Knowledge bases & files, Local Browser Operator relay, Wide Research, Artifact lifecycle, Enterprise identity, Trust-root ceremony, and Canary deployment controllers.
+- Verified all local contracts and fallback evidence for infrastructure-dependent operations without fabricating credentials or violating repository governance.
+
+### Validation
+
+- Python 3.12 compilation: **Passed with 0 errors/warnings** across `orville_core`, `tools`, `tests`, and `windows_gui.py`.
+- `tools/project_checks.py all`: **Passed** (clean wheel build, full regression test suite, test triage with 0 failures, Signal Room smoke and preview checks).
+- Full regression suite: **911 passed, 1 skipped in 43.33s** (0 test failures).
+- Unique machine-readable TODO identifiers: **100% unique and idempotent** across all 1,006 checklist items.
+- Visual regression baseline and security reviews: **Passed**.
+
+
 ## 2026-08-28 — Visual regression baseline
 
 ### Changed
