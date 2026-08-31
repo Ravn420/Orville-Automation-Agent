@@ -1345,57 +1345,57 @@ The instructional walkthrough was rendered as `/home/ubuntu/orville-runs-walkthr
 
 ## Broad Manus-Like Capability Expansion
 
-- [ ] Audit existing Orville capabilities against research, browser, coding, workspace, memory, artifact, automation, connector, scheduling, notification, deployment, and observability categories. <!-- task-id:TODO-d22666b3ed35 -->
+- [!] Audit existing Orville capabilities against research, browser, coding, workspace, memory, artifact, automation, connector, scheduling, notification, deployment, and observability categories. Blocked: concurrent roadmap workers are actively mutating shared control files and capability, API, GUI, runtime, observability, and deployment work in this worktree, so a repository-wide capability audit cannot be safely synchronized or committed without mixing roadmap items. <!-- task-id:TODO-d22666b3ed35 -->
 
-- [ ] Define standalone Windows equivalents and explicitly document proprietary Manus capabilities that cannot be reproduced literally. <!-- task-id:TODO-3ca9e5661f74 -->
+- [!] Define standalone Windows equivalents and explicitly document proprietary Manus capabilities that cannot be reproduced literally. Implemented and focused-validated in `docs/STANDALONE_WINDOWS_EQUIVALENTS.md` and `tests/test_standalone_windows_equivalents.py`, but completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree; state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-3ca9e5661f74 -->
 
 - [ ] Implement the highest-value missing agent runtime, browser/research, workspace, memory, approval, and automation foundations. <!-- task-id:TODO-ef21104055e5 -->
 
 - [ ] Implement document, spreadsheet, presentation, data, media, and code artifact workflows. <!-- task-id:TODO-6f0f192e0f8d -->
 
-- [ ] Implement connectors, schedules, notifications, deployment helpers, and observability equivalents. <!-- task-id:TODO-e54e5165107f -->
+- [-] Implement connectors, schedules, notifications, deployment helpers, and observability equivalents. <!-- task-id:TODO-e54e5165107f -->
 
-- [ ] Integrate new capabilities into Signal Room without removing existing menus or workflows. <!-- task-id:TODO-6c093406ae52 -->
+- [!] Integrate new capabilities into Signal Room without removing existing menus or workflows. Added an additive Operations menu for connectors, schedules, notifications, observability, and deployment helpers in `windows_gui.py`, with focused regression coverage in `tests/test_signal_room_capability_integration.py`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree; state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-6c093406ae52 -->
 
-- [ ] Verify security, compatibility, end-to-end behavior, clean-host operation, and executable packaging. <!-- task-id:TODO-e4d256e35cd9 -->
+- [!] Verify security, compatibility, end-to-end behavior, clean-host operation, and executable packaging. Focused checks ran: 13 passed and 1 pre-existing Windows-path normalization failure in `tests/test_security_hardening.py` (`C:\\model` vs `C:/model`); Python compilation passed. Executable packaging cannot be verified here because the required Windows packaging tool/runner is unavailable, and the worktree contains concurrent unrelated changes that prevent safe control-file synchronization and a focused commit. <!-- task-id:TODO-e4d256e35cd9 -->
 
-- [ ] Save a broad-capability checkpoint and deliver a parity report. <!-- task-id:TODO-7d86fda66f3f -->
+- [!] Save a broad-capability checkpoint and deliver a parity report. Added `artifacts/BROAD_CAPABILITY_PARITY_CHECKPOINT_2026-08-28.md` and focused coverage in `tests/test_broad_capability_parity_checkpoint.py`; 3 focused tests and Python compilation passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-7d86fda66f3f -->
 
 ## Safe Browser Session Adapter
 
-- [ ] Audit current browser adapter, security policy, API initialization, and GUI capability status. <!-- task-id:TODO-14b1a51a18bc -->
+- [!] Audit current browser adapter, security policy, API initialization, and GUI capability status. Added `docs/PLATFORM_CAPABILITY_AUDIT_2026-08-28.md` and `tests/test_platform_capability_audit.py`; 3 focused audit tests, Python compilation, and `git diff --check` passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-14b1a51a18bc -->
 
-- [ ] Define browser session lifecycle, domain allowlist, takeover, approval, and audit contracts. <!-- task-id:TODO-effd7a331bf6 -->
+- [!] Define browser session lifecycle, domain allowlist, takeover, approval, and audit contracts. Added `docs/BROWSER_SESSION_LIFECYCLE_CONTRACT.md` and `tests/test_browser_session_lifecycle_contract.py`; 3 contract tests, existing browser/relay tests, Python compilation, and `git diff --check` passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-effd7a331bf6 -->
 
-- [ ] Implement a local browser-session adapter with read-only defaults and fail-closed navigation. <!-- task-id:TODO-fe9759a5f934 -->
+- [!] Implement a local browser-session adapter with read-only defaults and fail-closed navigation. Added explicit `read_only` session persistence in `orville_core/browser.py` and focused coverage in `tests/test_local_browser_session_adapter.py`; focused adapter/browser/relay tests, Python compilation, and `git diff --check` passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-fe9759a5f934 -->
 
-- [ ] Add authenticated session, allowlist, navigation, takeover, approval, and audit routes. <!-- task-id:TODO-8aea5ebfd639 -->
+- [!] Add authenticated session, allowlist, navigation, takeover, approval, and audit routes. Added authenticated browser session listing/creation/detail, allowlist-checked navigation, approval grants, takeover, and audit projections in `orville_core/api.py`, with focused coverage in `tests/test_browser_session_api.py`; route, adapter, browser, and relay tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-8aea5ebfd639 -->
 
-- [ ] Integrate browser controls and takeover prompts into Signal Room. <!-- task-id:TODO-0f6019a14705 -->
+- [!] Integrate browser controls and takeover prompts into Signal Room. Added a Browser controls window in `windows_gui.py` with read-only session creation, allowlist/URL inputs, separate approval, navigation, explicit user takeover confirmation, and audit viewing; added `tests/test_signal_room_browser_controls.py`. Focused Signal Room/browser API/adapter/browser/relay tests, Python compilation, and `git diff --check` passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-0f6019a14705 -->
 
-- [ ] Verify blocked domains, allowed navigation, sensitive-action approval, takeover state, audit records, and responsive UI behavior. <!-- task-id:TODO-c4d9d0ccf9c9 -->
+- [!] Verify blocked domains, allowed navigation, sensitive-action approval, takeover state, audit records, and responsive UI behavior. Focused verification passed: 16 tests covering browser policy/API/adapter/relay/persistence, Signal Room controls, and responsive layouts; Python compilation and `git diff --check` also passed. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-c4d9d0ccf9c9 -->
 
-- [ ] Save a browser-session adapter checkpoint. <!-- task-id:TODO-a8cd1e62d28c -->
+- [!] Save a browser-session adapter checkpoint. Added `artifacts/BROWSER_SESSION_ADAPTER_CHECKPOINT_2026-08-28.md` and `tests/test_browser_session_adapter_checkpoint.py`; checkpoint, adapter, API, browser, and relay tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-a8cd1e62d28c -->
 
 ## Browser Actions, Recovery, and Run Citations
 
-- [ ] Audit browser sessions, action state, run events, artifact storage, and shutdown lifecycle. <!-- task-id:TODO-2f13d5e2c921 -->
+- [!] Audit browser sessions, action state, run events, artifact storage, and shutdown lifecycle. Added `docs/BROWSER_RUN_ARTIFACT_SHUTDOWN_AUDIT_2026-08-28.md` and `tests/test_browser_run_artifact_shutdown_audit.py`; focused lifecycle/browser/API/relay/artifact tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-2f13d5e2c921 -->
 
-- [ ] Define approval records for form submissions and file downloads with redaction rules. <!-- task-id:TODO-8dd98903dd3a -->
+- [!] Define approval records for form submissions and file downloads with redaction rules. Added structured bounded approval records and target/details redaction in `orville_core/browser.py`, with focused coverage in `tests/test_browser_approval_records.py`; approval, browser, API, relay, adapter, and capture-policy tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-8dd98903dd3a -->
 
-- [ ] Record browser actions and implement approval-gated form submission and download operations. <!-- task-id:TODO-aa8e3d054349 -->
+- [!] Record browser actions and implement approval-gated form submission and download operations. Added authenticated `/form` and `/download` browser routes in `orville_core/api.py`, wired approval-grant consumption, and retained action/approval audit records in `orville_core/browser.py`; focused browser action/approval/API/adapter/relay/capture tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-aa8e3d054349 -->
 
-- [ ] Persist browser sessions and recover interrupted sessions safely after restart or shutdown. <!-- task-id:TODO-641133423429 -->
+- [!] Persist browser sessions and recover interrupted sessions safely after restart or shutdown. Existing atomic temp-file persistence and fail-closed `recovered` state were validated with new coverage in `tests/test_browser_session_persistence_recovery.py`; persistence, recovery, browser, API, and approval tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-641133423429 -->
 
-- [ ] Extract page titles, readable text, metadata, and downloaded-source references. <!-- task-id:TODO-b213e9e47c35 -->
+- [!] Extract page titles, readable text, metadata, and downloaded-source references. Added `BrowserSession.extract_page` with bounded title/text/metadata/source-reference output and source references on downloads in `orville_core/browser.py`; focused extraction, browser, API, approval, and adapter tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-b213e9e47c35 -->
 
-- [ ] Attach source records and citations to agent runs and generated artifacts. <!-- task-id:TODO-1bfd83e7a066 -->
+- [!] Attach source records and citations to agent runs and generated artifacts. Added validated `SourceRecord` and `Citation` models in `orville_core/provenance.py`, attached them to persisted `Checkpoint` runs and `ArtifactRecord` manifests, and added `tests/test_source_citations.py`; source/citation, artifact, checkpoint, browser, and API tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-1bfd83e7a066 -->
 
-- [ ] Integrate action approvals, recovery state, and citations into Signal Room. <!-- task-id:TODO-f210cb47fc7a -->
+- [!] Integrate action approvals, recovery state, and citations into Signal Room. Added an additive `View approvals & recovery` projection in `windows_gui.py`, surfaced run source-record and citation counts in the execution monitor, and added `tests/test_signal_room_provenance_controls.py`; focused Signal Room, provenance, artifact, checkpoint, API, and GUI tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-f210cb47fc7a -->
 
-- [ ] Verify security, persistence, clean shutdown, run linkage, and frontend behavior. <!-- task-id:TODO-e1bada1fe5df -->
+- [!] Verify security, persistence, clean shutdown, run linkage, and frontend behavior. Added `docs/SECURITY_PERSISTENCE_FRONTEND_VERIFICATION_2026-08-28.md` and `tests/test_security_persistence_frontend_verification.py`; the evidence suite passed with 30 tests, compilation passed, and `git diff --check` passed. A broader run recorded 36 passed and one pre-existing Windows path representation failure in `tests/test_security_hardening.py` (`C:/model` expected versus `C:\model`). Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-e1bada1fe5df -->
 
-- [ ] Save a verified browser workflow expansion checkpoint. <!-- task-id:TODO-5c65799963ea -->
+- [!] Save a verified browser workflow expansion checkpoint. Added `artifacts/BROWSER_WORKFLOW_EXPANSION_CHECKPOINT_2026-08-28.md` and `tests/test_browser_workflow_expansion_checkpoint.py`; focused checkpoint, Signal Room, browser, API, persistence, and provenance tests passed, as did Python compilation and `git diff --check`. Completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree, so state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-5c65799963ea -->
 
 ## Current execution — Windows release validation
 
@@ -1415,7 +1415,7 @@ The instructional walkthrough was rendered as `/home/ubuntu/orville-runs-walkthr
 
 - [x] Run the complete regression suite and record artifacts. <!-- task-id:TODO-51bdd1a3337e -->
 
-- [ ] Save a final project checkpoint and deliver the executable path and validation results. <!-- task-id:TODO-36f54f90723f -->
+- [-] Save a final project checkpoint and deliver the executable path and validation results. <!-- task-id:TODO-36f54f90723f -->
 
 ## Current execution — checkpoint and safe cleanup
 

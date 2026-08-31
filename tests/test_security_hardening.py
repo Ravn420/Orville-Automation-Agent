@@ -114,6 +114,6 @@ def test_sandbox_plan_preserves_windows_absolute_paths_from_request():
         },
         SandboxPolicy(),
     )
-    assert str(plan.model_path) == "C:/model"
-    assert str(plan.scratch_path) == "C:/scratch"
-    assert str(plan.output_path) == "C:/out"
+    assert plan.model_path.as_posix() == "C:/model"
+    assert plan.scratch_path.as_posix() == "C:/scratch"
+    assert plan.output_path.as_posix() == "C:/out"

@@ -173,6 +173,14 @@ class OrvilleWindow(tk.Tk):
         ttk.Label(self.sidebar, text="RESOURCES", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
         for label, command in (("  Artifacts", self.artifacts), ("  Integrations", self.open_provider_setup)):
             ttk.Button(self.sidebar, text=label, style="Nav.TButton", command=command).pack(fill="x")
+        ttk.Label(self.sidebar, text="OPERATIONS", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
+        ttk.Button(self.sidebar, text="  Connectors", style="Nav.TButton", command=self.open_connectors).pack(fill="x")
+        ttk.Button(self.sidebar, text="  Schedules", style="Nav.TButton", command=self.open_schedules).pack(fill="x")
+        ttk.Button(self.sidebar, text="  Notifications", style="Nav.TButton", command=self.open_notifications).pack(fill="x")
+        ttk.Button(self.sidebar, text="  Observability", style="Nav.TButton", command=self.open_observability).pack(fill="x")
+        ttk.Button(self.sidebar, text="  Deployment helpers", style="Nav.TButton", command=self.open_deployment_helpers).pack(fill="x")
+        ttk.Button(self.sidebar, text="  Browser controls", style="Nav.TButton", command=self.open_browser_controls).pack(fill="x")
+
         ttk.Label(self.sidebar, text="SYSTEM", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
         ttk.Button(self.sidebar, text="  Settings", style="Nav.TButton", command=self.open_settings).pack(fill="x")
 
@@ -230,6 +238,113 @@ class OrvilleWindow(tk.Tk):
     def open_settings(self) -> None:
         """Open existing provider, privacy, and runtime settings without exposing secrets."""
         self.open_provider_setup()
+
+    def _show_operations_summary(self, title: str, summary: str) -> None:
+        """Show local-first operations guidance without invoking an external side effect."""
+        self._show_workspace_payload(title, summary, "/api/v1/capabilities", lambda result: json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+
+    def open_connectors(self) -> None:
+        """Expose configured connector capability state through the existing workspace pattern."""
+        self._show_operations_summary("Connectors", "Review configured connectors and approval-gated actions. External writes remain disabled until explicitly approved.")
+
+    def open_schedules(self) -> None:
+        """Expose local schedule guidance without assuming a hosted scheduler."""
+        self._show_operations_summary("Schedules", "Schedules use the local worker or Windows Task Scheduler. The Windows host and Orville worker must remain available for execution.")
+
+    def open_notifications(self) -> None:
+        """Expose notification guidance and keep delivery separate from task outcome."""
+        self._show_operations_summary("Notifications", "Notifications are opt-in, sanitized, and rate-limited. Delivery status is not proof that an underlying task succeeded.")
+
+    def open_observability(self) -> None:
+        """Expose local observability capability state; OTLP export remains optional."""
+        self._show_operations_summary("Observability", "Local events and metrics are available without a telemetry vendor. OTLP export is optional and user-configured.")
+
+    def open_deployment_helpers(self) -> None:
+        """Expose deployment-helper readiness without performing deployment."""
+        self._show_operations_summary("Deployment helpers", "Use local PowerShell, Compose, packaging, health, backup, and rollback helpers. Production deployment always requires explicit approval.")
+
+    def open_browser_controls(self) -> None:
+        """Open local browser controls with read-only defaults and explicit takeover prompts."""
+        window = tk.Toplevel(self)
+        window.title("Orville — Browser controls")
+        window.geometry("900x650")
+        window.minsize(720, 500)
+        window.configure(bg=self.BG)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(1, weight=1)
+        ttk.Label(window, text="Browser controls", style="Title.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(16, 4))
+        ttk.Label(window, text="Read-only by default. Navigation, takeover, downloads, and form actions require explicit approval.", style="Subtitle.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(42, 10))
+        body = ttk.Frame(window, style="Surface.TFrame", padding=14)
+        body.grid(row=1, column=0, sticky="nsew", padx=14, pady=(8, 14))
+        body.columnconfigure(1, weight=1)
+        body.rowconfigure(6, weight=1)
+        domains = tk.StringVar(value="example.com")
+        session_id = tk.StringVar()
+        url = tk.StringVar(value="https://example.com/")
+        status = scrolledtext.ScrolledText(body, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, relief="flat", borderwidth=0, font=("Segoe UI", 9), padx=10, pady=10)
+        status.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=(12, 10))
+
+        def show(result: object) -> None:
+            status.configure(state="normal")
+            status.delete("1.0", "end")
+            status.insert("1.0", json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+            status.configure(state="disabled")
+            if isinstance(result, dict) and isinstance(result.get("session"), dict):
+                session_id.set(str(result["session"].get("session_id", session_id.get())))
+
+        def create() -> None:
+            allowed = [item.strip() for item in domains.get().split(",") if item.strip()]
+            self._manager_request("/api/v1/browser/sessions", "POST", {"allowed_domains": allowed, "headless": True, "read_only": True}, show)
+
+        def approve_navigation() -> None:
+            if session_id.get().strip():
+                self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/approval", "POST", {"action": "navigate", "url": url.get().strip(), "approved": True}, show)
+
+        def navigate() -> None:
+            if session_id.get().strip():
+                self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/navigate", "POST", {"url": url.get().strip()}, show)
+
+        def request_takeover() -> None:
+            if session_id.get().strip():
+                if messagebox.askyesno("Request browser takeover", "Open a visible browser for user-approved control? This does not bypass login, CAPTCHA, or the domain allowlist.", parent=window):
+                    self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/approval", "POST", {"action": "takeover", "target": "visible-browser", "approved": True}, show)
+                    self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/takeover", "POST", {"approved": False}, show)
+
+        def audit() -> None:
+            if session_id.get().strip():
+                self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/audit", "GET", None, show)
+
+        def evidence() -> None:
+            if not session_id.get().strip():
+                return
+            def render(result: object) -> None:
+                if not isinstance(result, dict):
+                    show(result)
+                    return
+                session = result.get("session") if isinstance(result.get("session"), dict) else result
+                approvals = session.get("approval_records", []) if isinstance(session, dict) else []
+                lines = [
+                    f"Session status: {session.get('status', '—')}",
+                    f"Recovery/takeover required: {session.get('takeover_required', '—')}",
+                    f"Approval records: {len(approvals) if isinstance(approvals, list) else 0}",
+                    "",
+                    "Approval and recovery evidence is local, bounded, and redacted.",
+                    json.dumps(safe_display_value(approvals[-20:] if isinstance(approvals, list) else approvals), indent=2, ensure_ascii=False),
+                ]
+                show({"signal_room_evidence": "\\n".join(lines)})
+            self._manager_request(f"/api/v1/browser/sessions/{quote(session_id.get().strip(), safe='')}/audit", "GET", None, render)
+
+        for row, label, variable in ((0, "Allowed domains", domains), (1, "Session ID", session_id), (2, "Navigation URL", url)):
+            ttk.Label(body, text=label, background=self.SURFACE, foreground=self.MUTED).grid(row=row, column=0, sticky="w", padx=(0, 10), pady=5)
+            ttk.Entry(body, textvariable=variable, width=62).grid(row=row, column=1, sticky="ew", pady=5)
+        ttk.Label(body, text="Approval is a separate action", background=self.SURFACE, foreground=self.MUTED).grid(row=3, column=0, columnspan=2, sticky="w", pady=(8, 4))
+        controls = ttk.Frame(body, style="Surface.TFrame")
+        controls.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        for label, command in (("Create read-only session", create), ("Approve navigation", approve_navigation), ("Navigate", navigate), ("Request takeover", request_takeover), ("View audit", audit), ("View approvals & recovery", evidence)):
+            ttk.Button(controls, text=label, style="Secondary.TButton", command=command).pack(side="left", padx=(0, 6))
+        status.configure(state="normal")
+        status.insert("1.0", "Create a read-only session to begin. No browser is launched until an approved action is requested.")
+        status.configure(state="disabled")
 
     def _build_center(self) -> None:
 
@@ -330,6 +445,9 @@ class OrvilleWindow(tk.Tk):
                 elapsed_seconds = max(0, int((max(timestamps) - min(timestamps)).total_seconds()))
                 elapsed = f"{elapsed_seconds // 60}m {elapsed_seconds % 60}s"
             lines = [f"Run: {result.get('run_id', '—')}", f"Status: {result.get('run_status', '—')}", f"Tasks: {len(tasks)}", f"Elapsed: {elapsed}"]
+            source_records = result.get("source_records", []) if isinstance(result, dict) else []
+            citations = result.get("citations", []) if isinstance(result, dict) else []
+            lines.extend([f"Source records: {len(source_records) if isinstance(source_records, list) else 0}", f"Citations: {len(citations) if isinstance(citations, list) else 0}"])
             for task in tasks if isinstance(tasks, list) else []:
                 if isinstance(task, dict):
                     failure = " · failed" if task.get("status") == "failed" else ""

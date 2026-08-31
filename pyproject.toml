@@ -24,6 +24,7 @@ orville-python-mcp = "orville_core.mcp_server:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.setuptools.packages.find]
 include = ["orville_core*"]

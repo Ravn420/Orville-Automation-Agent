@@ -4,12 +4,13 @@ from __future__ import annotations
 import hashlib
 import json
 import mimetypes
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from .security import FilesystemPolicy, SecurityViolation
+from .provenance import normalize_provenance
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,8 @@ class ArtifactRecord:
     size: int
     sha256: str
     created_at: str
+    source_records: list[dict[str, Any]] = field(default_factory=list)
+    citations: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -49,7 +52,8 @@ class ArtifactStore:
         temporary.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         temporary.replace(self._manifest_path)
 
-    def register(self, path: str | Path, *, artifact_id: str | None = None) -> ArtifactRecord:
+    def register(self, path: str | Path, *, artifact_id: str | None = None, source_records: list[dict[str, Any]] | None = None, citations: list[dict[str, Any]] | None = None) -> ArtifactRecord:
+
         resolved = self.policy.resolve(path)
         if not resolved.is_file():
             raise FileNotFoundError(resolved)
@@ -58,7 +62,9 @@ class ArtifactStore:
             raise SecurityViolation("artifact manifest is not a user artifact")
         digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
         media_type = mimetypes.guess_type(resolved.name)[0] or {".md": "text/markdown", ".json": "application/json", ".py": "text/x-python", ".ts": "text/typescript", ".tsx": "text/typescript"}.get(resolved.suffix.lower(), "application/octet-stream")
-        record = ArtifactRecord(artifact_id or digest[:16], resolved.name, relative, media_type, resolved.stat().st_size, digest, datetime.now(UTC).isoformat())
+        normalized_sources, normalized_citations = normalize_provenance(source_records, citations)
+        record = ArtifactRecord(artifact_id or digest[:16], resolved.name, relative, media_type, resolved.stat().st_size, digest, datetime.now(UTC).isoformat(), normalized_sources, normalized_citations)
+
         manifest = self._load_manifest()
         versions = manifest.setdefault(relative, [])
         if not versions or versions[-1].get("sha256") != record.sha256:

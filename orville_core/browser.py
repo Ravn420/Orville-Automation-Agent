@@ -29,9 +29,16 @@ class BrowserSession:
     _browser: object | None = field(default=None, repr=False)
     _context: object | None = field(default=None, repr=False)
     _page: object | None = field(default=None, repr=False)
+    read_only: bool = True
+    approval_records: list[dict[str, object]] = field(default_factory=list)
 
     def record(self, event: str, detail: str = "") -> None:
         self.audit.append({"at": datetime.now(UTC).isoformat(), "event": event, "detail": detail[:1000]})
+
+    def record_approval(self, action: str, target: str, *, approved: bool, details: dict[str, object] | None = None) -> None:
+        """Record an approval decision without retaining secrets or sensitive values."""
+        self.approval_records.append({"at": datetime.now(UTC).isoformat(), "action": action, "target": _redact_target(target), "approved": approved, "details": _redact_details(details or {})})
+        self.approval_records = self.approval_records[-100:]
 
     def check_url(self, url: str) -> None:
         parsed = urlparse(url)
@@ -55,6 +62,12 @@ class BrowserSession:
         self._page = self._context.new_page()
         return self._page
 
+    def extract_page(self, *, source_url: str | None = None) -> dict[str, object]:
+        """Extract safe page title, readable text, metadata, and source identity."""
+        page = self._ensure_page()
+        metadata = page.locator("meta").evaluate_all("nodes => nodes.map(node => ({name: node.getAttribute('name'), property: node.getAttribute('property'), content: node.getAttribute('content')})).filter(item => item.content)")
+        return {"title": page.title(), "text": page.locator("body").inner_text(timeout=5_000)[:12_000], "metadata": metadata[:100], "source_reference": {"url": source_url or page.url, "title": page.title()}}
+
     def navigate(self, url: str, *, approved: bool = False) -> dict[str, object]:
         self.check_url(url)
         if not approved:
@@ -68,13 +81,15 @@ class BrowserSession:
         self.status = "active"
         self.takeover_required = False
         self.record("navigation.approved", self.current_url)
-        return {**self.to_dict(), "http_status": response.status if response else None, "text_excerpt": page.locator("body").inner_text(timeout=5_000)[:12_000]}
+        extracted = self.extract_page(source_url=self.current_url)
+        return {**self.to_dict(), "http_status": response.status if response else None, "text_excerpt": extracted["text"][:12_000], "page": extracted}
 
     def submit_form(self, selector: str, fields: dict[str, str], *, approved: bool = False) -> dict[str, object]:
         if not selector.strip() or not fields:
             raise ValueError("form submission requires a selector and fields")
         if not approved:
             self.takeover_required = True
+            self.record_approval("form_submission", selector, approved=False, details={"field_names": sorted(fields)})
             self.record("form_submission.approval_required", f"selector={selector}; fields={','.join(sorted(fields))}")
             return self.to_dict()
         page = self._ensure_page()
@@ -83,6 +98,7 @@ class BrowserSession:
         page.locator(selector).locator("button[type=submit], input[type=submit]").first.click()
         self.status = "active"
         self.takeover_required = False
+        self.record_approval("form_submission", selector, approved=True, details={"field_names": sorted(fields)})
         self.record("form_submission.approved", f"selector={selector}; fields={','.join(sorted(fields))}")
         return {**self.to_dict(), "text_excerpt": page.locator("body").inner_text(timeout=5_000)[:12_000]}
 
@@ -90,6 +106,7 @@ class BrowserSession:
         self.check_url(url)
         if not approved:
             self.takeover_required = True
+            self.record_approval("download", url, approved=False, details={"filename": "pending"})
             self.record("download.approval_required", url)
             return self.to_dict()
         page = self._ensure_page()
@@ -107,8 +124,9 @@ class BrowserSession:
         download.save_as(target)
         self.takeover_required = False
         self.status = "active"
+        self.record_approval("download", url, approved=True, details={"filename": filename})
         self.record("download.approved", f"{url} -> {filename}")
-        return {**self.to_dict(), "download": {"name": filename, "path": str(target), "url": url}}
+        return {**self.to_dict(), "download": {"name": filename, "path": str(target), "url": url, "source_reference": {"url": url, "filename": filename}}}
 
     def request_takeover(self, *, approved: bool = False) -> dict[str, object]:
         if not approved:
@@ -156,12 +174,14 @@ class BrowserSession:
             "session_id": self.session_id,
             "allowed_domains": sorted(self.allowed_domains),
             "headless": self.headless,
+            "read_only": self.read_only,
             "download_root": self.download_root,
             "status": self.status,
             "current_url": self.current_url,
             "title": self.title,
             "takeover_required": self.takeover_required,
             "audit": list(self.audit[-100:]),
+            "approval_records": list(self.approval_records[-100:]),
         }
 
 
@@ -180,7 +200,7 @@ class BrowserSessionManager:
             return
         for item in payload if isinstance(payload, list) else []:
             try:
-                session = BrowserSession(str(item["session_id"]), set(item["allowed_domains"]), bool(item.get("headless", True)), str(item.get("download_root", str(Path(gettempdir()) / "orville-browser-downloads"))), "recovered", item.get("current_url"), item.get("title"), True, list(item.get("audit", [])))
+                session = BrowserSession(str(item["session_id"]), set(item["allowed_domains"]), bool(item.get("headless", True)), str(item.get("download_root", str(Path(gettempdir()) / "orville-browser-downloads"))), "recovered", item.get("current_url"), item.get("title"), True, list(item.get("audit", [])), read_only=bool(item.get("read_only", True)), approval_records=list(item.get("approval_records", [])))
                 session.record("session.recovered", "browser handles require explicit restart approval")
                 self.sessions[session.session_id] = session
             except (KeyError, TypeError, ValueError):
@@ -216,9 +236,9 @@ class BrowserSessionManager:
             raise ValueError("browser allowlist must contain at least one domain")
         return normalized
 
-    def create(self, domains: list[str], *, headless: bool = True) -> BrowserSession:
-        session = BrowserSession(f"browser-{uuid4().hex[:12]}", self.normalize_domains(domains), headless=headless)
-        session.record("session.created", "read-only navigation default")
+    def create(self, domains: list[str], *, headless: bool = True, read_only: bool = True) -> BrowserSession:
+        session = BrowserSession(f"browser-{uuid4().hex[:12]}", self.normalize_domains(domains), headless=headless, read_only=read_only)
+        session.record("session.created", "read-only navigation default" if read_only else "write actions remain approval-gated")
         self.sessions[session.session_id] = session
         self.persist()
         return session
@@ -228,3 +248,19 @@ class BrowserSessionManager:
             return self.sessions[session_id]
         except KeyError as exc:
             raise KeyError(f"browser session not found: {session_id}") from exc
+
+
+def _redact_target(target: str) -> str:
+    value = str(target)
+    parsed = urlparse(value)
+    if parsed.scheme and parsed.netloc:
+        return parsed._replace(query="", fragment="").geturl()[:500]
+    return Path(value).name[:200] if ("/" in value or "\\" in value) else value[:500]
+
+
+def _redact_details(details: dict[str, object]) -> dict[str, object]:
+    redacted: dict[str, object] = {}
+    sensitive = {"password", "token", "secret", "api_key", "authorization", "cookie", "value"}
+    for key, value in details.items():
+        redacted[str(key)] = "[REDACTED]" if str(key).lower() in sensitive else value
+    return redacted

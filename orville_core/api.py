@@ -598,6 +598,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     run_threads: dict[str, Thread] = {}
     workspace_sessions: dict[str, WorkspaceSession] = {}
     browser_sessions = BrowserSessionManager(checkpoint_root.parent / "browser-sessions.json")
+    browser_approvals: dict[str, set[str]] = {}
     if hasattr(app, "add_event_handler"):
         app.add_event_handler("shutdown", browser_sessions.shutdown)
     else:
@@ -2412,6 +2413,115 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             return {"session": asdict(browser_relay.revoke(session_id, str(payload["secret"]))) }
         except (KeyError, BrowserRelayError) as exc:
             raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions", dependencies=[Depends(authenticate)])
+    def create_browser_session(payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            domains = payload.get("allowed_domains", [])
+            if not isinstance(domains, list):
+                raise ValueError("allowed_domains must be a list")
+            session = browser_sessions.create(domains, headless=bool(payload.get("headless", True)), read_only=bool(payload.get("read_only", True)))
+            return {"session": session.to_dict()}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/v1/browser/sessions", dependencies=[Depends(authenticate)])
+    def list_browser_sessions() -> dict[str, Any]:
+        return {"sessions": [session.to_dict() for session in browser_sessions.sessions.values()]}
+
+    @app.get("/api/v1/browser/sessions/{session_id}", dependencies=[Depends(authenticate)])
+    def get_browser_session(session_id: str) -> dict[str, Any]:
+        try:
+            return {"session": browser_sessions.get(session_id).to_dict()}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions/{session_id}/approval", dependencies=[Depends(authenticate)])
+    def approve_browser_action(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            session = browser_sessions.get(session_id)
+            action = str(payload["action"])
+            if action not in {"navigate", "takeover", "form_submission", "download"}:
+                raise ValueError("browser action is not allowlisted")
+            if not bool(payload.get("approved", False)):
+                raise PermissionError("browser action approval is required")
+            target = str(payload.get("url") or payload.get("target") or "")
+            if action in {"navigate", "download"}:
+                session.check_url(target)
+            grant = f"{action}:{target}"
+            browser_approvals.setdefault(session_id, set()).add(grant)
+            session.record("approval.granted", f"action={action}; target={target[:300]}")
+            return {"approved": True, "action": action, "target": target, "session": session.to_dict()}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        except (TypeError, ValueError, SecurityViolation) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions/{session_id}/navigate", dependencies=[Depends(authenticate)])
+    def navigate_browser_session(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            session = browser_sessions.get(session_id)
+            url = str(payload["url"])
+            grant = f"navigate:{url}"
+            approved = bool(payload.get("approved", False)) or grant in browser_approvals.get(session_id, set())
+            browser_approvals.get(session_id, set()).discard(grant)
+            return {"session": session.navigate(url, approved=approved)}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (TypeError, ValueError, SecurityViolation, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions/{session_id}/form", dependencies=[Depends(authenticate)])
+    def submit_browser_form(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            session = browser_sessions.get(session_id)
+            selector = str(payload["selector"])
+            fields = payload["fields"]
+            if not isinstance(fields, dict):
+                raise ValueError("fields must be an object")
+            grant = f"form_submission:{selector}"
+            approved = bool(payload.get("approved", False)) or grant in browser_approvals.get(session_id, set())
+            browser_approvals.get(session_id, set()).discard(grant)
+            return {"session": session.submit_form(selector, {str(key): str(value) for key, value in fields.items()}, approved=approved)}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (TypeError, ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions/{session_id}/download", dependencies=[Depends(authenticate)])
+    def download_browser_file(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            session = browser_sessions.get(session_id)
+            url = str(payload["url"])
+            grant = f"download:{url}"
+            approved = bool(payload.get("approved", False)) or grant in browser_approvals.get(session_id, set())
+            browser_approvals.get(session_id, set()).discard(grant)
+            return {"session": session.download(url, approved=approved)}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (TypeError, ValueError, SecurityViolation, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/browser/sessions/{session_id}/takeover", dependencies=[Depends(authenticate)])
+    def takeover_browser_session(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            session = browser_sessions.get(session_id)
+            approved = bool(payload.get("approved", False)) or "takeover:" in "".join(browser_approvals.get(session_id, set()))
+            browser_approvals.get(session_id, set()).difference_update({grant for grant in browser_approvals.get(session_id, set()) if grant.startswith("takeover:")})
+            return {"session": session.request_takeover(approved=approved)}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (TypeError, ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/v1/browser/sessions/{session_id}/audit", dependencies=[Depends(authenticate)])
+    def audit_browser_session(session_id: str) -> dict[str, Any]:
+        try:
+            return {"session_id": session_id, "audit": browser_sessions.get(session_id).to_dict()["audit"]}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/v1/canary/runs", dependencies=[Depends(authenticate)])
     def create_canary_run(payload: dict[str, Any]) -> dict[str, Any]:

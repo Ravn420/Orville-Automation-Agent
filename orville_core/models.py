@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, ClassVar
 
+from .provenance import normalize_provenance
+
 
 class TaskStatus(StrEnum):
     PLANNED = "planned"
@@ -268,6 +270,11 @@ class Checkpoint:
     run_status: RunStatus = RunStatus.RUNNING
     events: list[Event] = field(default_factory=list)
     operation_checkpoints: list[OperationCheckpoint] = field(default_factory=list)
+    source_records: list[dict[str, Any]] = field(default_factory=list)
+    citations: list[dict[str, Any]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.source_records, self.citations = normalize_provenance(self.source_records, self.citations)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -278,6 +285,9 @@ class Checkpoint:
             "run_status": self.run_status.value,
             "events": [event.to_dict() for event in self.events],
             "operation_checkpoints": [item.to_dict() for item in self.operation_checkpoints],
+            "source_records": list(self.source_records),
+            "citations": list(self.citations),
+
         }
 
     @classmethod
@@ -295,4 +305,7 @@ class Checkpoint:
                 OperationCheckpoint.from_dict(item)
                 for item in data.get("operation_checkpoints", [])
             ],
+            source_records=list(data.get("source_records", [])),
+            citations=list(data.get("citations", [])),
+
         )

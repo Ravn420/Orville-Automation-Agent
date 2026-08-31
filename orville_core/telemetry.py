@@ -100,3 +100,70 @@ class TelemetryRegistry:
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(json.dumps(self.snapshot(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return destination
+
+
+SUPPORTED_OPERATION_KINDS = frozenset({"graph_node", "agent", "model", "tool", "mcp", "approval", "artifact"})
+
+
+@dataclass(frozen=True)
+class OperationEvent:
+    """Redacted, OTLP-compatible event metadata for one operation boundary."""
+
+    name: str
+    operation_kind: str
+    timestamp: str
+    attributes: dict[str, Any]
+    duration_seconds: float | None = None
+    success: bool | None = None
+
+
+class OpenTelemetryRecorder:
+    """Collect local OTLP-shaped events while retaining existing metrics behavior."""
+
+    def __init__(self, registry: TelemetryRegistry | None = None) -> None:
+        self.registry = registry or TelemetryRegistry()
+        self.events: list[OperationEvent] = []
+        self._lock = threading.RLock()
+
+    def record_operation(
+        self,
+        name: str,
+        operation_kind: str,
+        *,
+        attributes: dict[str, Any] | None = None,
+        duration_seconds: float | None = None,
+        success: bool = True,
+        retry_count: int = 0,
+    ) -> OperationEvent:
+        if not name.strip() or operation_kind not in SUPPORTED_OPERATION_KINDS:
+            raise ValueError("name must be non-blank and operation_kind must be supported")
+        if duration_seconds is not None and (not math.isfinite(duration_seconds) or duration_seconds < 0):
+            raise ValueError("duration_seconds must be finite and non-negative")
+        safe = {str(key): value for key, value in list((attributes or {}).items())[:64]}
+        safe.pop("prompt", None)
+        safe.pop("completion", None)
+        event = OperationEvent(name, operation_kind, datetime.now(UTC).isoformat(), safe, duration_seconds, success)
+        with self._lock:
+            self.events.append(event)
+        self.registry.record(name, success=success, duration_seconds=duration_seconds, retry_count=retry_count)
+        return event
+
+    def export_otlp(self) -> dict[str, Any]:
+        """Return a dependency-free OTLP-inspired payload for a later exporter."""
+        with self._lock:
+            return {
+                "resource": {"service.name": "orville"},
+                "scope": {"name": "orville.telemetry"},
+                "events": [
+                    {
+                        "name": event.name,
+                        "operation_kind": event.operation_kind,
+                        "timestamp": event.timestamp,
+                        "attributes": event.attributes,
+                        "duration_seconds": event.duration_seconds,
+                        "success": event.success,
+                    }
+                    for event in self.events
+                ],
+                "metrics": self.registry.snapshot()["metrics"],
+            }
