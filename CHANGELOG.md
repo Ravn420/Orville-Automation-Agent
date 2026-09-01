@@ -1,5 +1,20 @@
 # Orville Changelog
 
+## 2026-08-28 — SQLite WAL/SHM retention review
+
+### Changed
+
+- Reviewed the four tracked SQLite sidecars: `.orville/orville.db-shm`, `.orville/orville.db-wal`, `data/.orville/orville.db-shm`, and `data/.orville/orville.db-wal`.
+- Retained every path unchanged. No deletion, truncation, compaction, or data rewrite was performed.
+- Added `docs/SQLITE_WAL_SHM_RETENTION_REVIEW.md` with hashes, named-path decisions, retention rationale, a redacted secret-scan record, and an explicit no-deletion approval record.
+
+### Validation
+
+- Read-only inventory and hash comparison completed; all four sidecars remained byte-for-byte unchanged.
+- Tracked-file secret scan covered 680 files and found only synthetic test/security-pattern matches; none were in the sidecars.
+- Focused persistence/security validation: **7 tests passed**.
+
+
 ## 2026-08-28 — Coverage-stable performance boundary
 
 ### Changed
