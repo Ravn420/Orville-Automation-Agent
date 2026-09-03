@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orville-core"
+version = "0.1.0"
+description = "Standalone task-graph orchestration engine with provider adapters and durable checkpointing"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "cryptography>=42"]
+browser = ["playwright>=1.62"]
+media = ["huggingface-hub>=0.34"]
+security = ["cryptography>=42", "tuf>=6"]
+
+dev = ["pytest>=8.0", "httpx2>=0.1"]
+
+[project.scripts]
+orville-api = "orville_core.api:main"
+orville = "orville_core.cli:main"
+orville-python-mcp = "orville_core.mcp_server:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["orville_core*"]
+
+[tool.setuptools.package-data]
+orville_core = ["*.json"]

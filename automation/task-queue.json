@@ -1,0 +1,82 @@
+{
+  "audit": [
+    {
+      "actor": "operator",
+      "after": {
+        "acceptance_criteria": [
+          "A named-path decision exists for .orville/orville.db-wal and .orville/orville.db-shm.",
+          "A bounded secret scan has been run against both named artifacts and its result is recorded.",
+          "A retention rationale is recorded without deleting data automatically.",
+          "An explicit approval record states whether destructive change is authorized."
+        ],
+        "dependencies": [],
+        "execution": {
+          "allowed_actions": [
+            "inspect_files",
+            "run_secret_scan",
+            "write_documentation"
+          ],
+          "timeout_minutes": 30
+        },
+        "id": "TODO-570aaf580e3d",
+        "priority": 100,
+        "revision": 1,
+        "status": "review",
+        "title": "Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention"
+      },
+      "at_utc": "2026-09-01T09:43:59.910951Z",
+      "before": {
+        "acceptance_criteria": [
+          "A named-path decision exists for .orville/orville.db-wal and .orville/orville.db-shm.",
+          "A bounded secret scan has been run against both named artifacts and its result is recorded.",
+          "A retention rationale is recorded without deleting data automatically.",
+          "An explicit approval record states whether destructive change is authorized."
+        ],
+        "dependencies": [],
+        "execution": {
+          "allowed_actions": [
+            "inspect_files",
+            "run_secret_scan",
+            "write_documentation"
+          ],
+          "timeout_minutes": 30
+        },
+        "id": "TODO-570aaf580e3d",
+        "priority": 100,
+        "revision": 0,
+        "status": "backlog",
+        "title": "Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention"
+      },
+      "kind": "task_edit",
+      "operation_id": "d2cc536e-4a87-4164-922d-b954caf48d31",
+      "reason": "Recorded named-path SQLite sidecar review, bounded secret scan, retention rationale, and explicit non-destructive approval status in docs/audits/SQLITE_WAL_REVIEW_2026-09-01.md.",
+      "task_id": "TODO-570aaf580e3d"
+    }
+  ],
+  "queue_revision": 1,
+  "schema_version": 1,
+  "tasks": [
+    {
+      "acceptance_criteria": [
+        "A named-path decision exists for .orville/orville.db-wal and .orville/orville.db-shm.",
+        "A bounded secret scan has been run against both named artifacts and its result is recorded.",
+        "A retention rationale is recorded without deleting data automatically.",
+        "An explicit approval record states whether destructive change is authorized."
+      ],
+      "dependencies": [],
+      "execution": {
+        "allowed_actions": [
+          "inspect_files",
+          "run_secret_scan",
+          "write_documentation"
+        ],
+        "timeout_minutes": 30
+      },
+      "id": "TODO-570aaf580e3d",
+      "priority": 100,
+      "revision": 1,
+      "status": "review",
+      "title": "Review tracked SQLite WAL and shared-memory artifacts for removal or approved retention"
+    }
+  ]
+}

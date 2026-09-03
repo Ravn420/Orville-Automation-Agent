@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "evaluation_policy": {
+    "requires_isolated_execution": true,
+    "requires_behavioral_acceptance": true,
+    "network_default": false,
+    "dependency_installation": "only_inside_approved_sandbox"
+  },
+  "cases": [
+    {
+      "id": "python-cache-key-regression",
+      "issue": "A cache helper returns the same key for distinct inputs, causing stale generated results.",
+      "patch": "tests/fixtures/coding_cases/python-cache-key-regression/fix.patch",
+      "dependencies": ["requirements.txt"],
+      "test_command": ["python", "-m", "pytest", "tests"],
+      "regression_command": ["python", "-m", "pytest", "tests", "-q"]
+    }
+  ]
+}

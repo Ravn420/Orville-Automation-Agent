@@ -70,6 +70,29 @@ class BrowserSession:
         self.record("navigation.approved", self.current_url)
         return {**self.to_dict(), "http_status": response.status if response else None, "text_excerpt": page.locator("body").inner_text(timeout=5_000)[:12_000]}
 
+    def extract_page_metadata(self) -> dict[str, object]:
+        """Return bounded, non-secret page metadata and a source reference."""
+        if self._page is None:
+            return {"title": self.title, "url": self.current_url, "metadata": {}, "text_excerpt": ""}
+        page = self._page
+        metadata: dict[str, str] = {}
+        for name in ("description", "author", "og:title", "og:description"):
+            try:
+                value = page.locator(f'meta[name="{name}"], meta[property="{name}"]').first.get_attribute("content")
+            except Exception:
+                value = None
+            if value:
+                metadata[name] = str(value)[:1000]
+        try:
+            canonical = page.locator('link[rel="canonical"]').first.get_attribute("href")
+        except Exception:
+            canonical = None
+        try:
+            visible_text = page.locator("body").inner_text(timeout=5_000)[:12_000]
+        except Exception:
+            visible_text = ""
+        return {"title": (page.title() or self.title or "")[:1000], "url": page.url or self.current_url, "canonical_url": canonical, "metadata": metadata, "text_excerpt": visible_text, "source_reference": {"url": page.url or self.current_url, "title": (page.title() or self.title or "")[:1000]}}
+
     def submit_form(self, selector: str, fields: dict[str, str], *, approved: bool = False) -> dict[str, object]:
         if not selector.strip() or not fields:
             raise ValueError("form submission requires a selector and fields")

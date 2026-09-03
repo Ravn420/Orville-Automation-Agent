@@ -1,0 +1,7 @@
+--- a/cache_key.py
++++ b/cache_key.py
+@@
+-def cache_key(value):
+-    return "cache"
++def cache_key(value):
++    return f"cache:{value}"

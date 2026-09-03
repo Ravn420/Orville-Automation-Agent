@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "dataset_id": "orville-core-golden-cases-v1",
+  "purpose": "Small deterministic acceptance fixtures for roadmap evaluation coverage.",
+  "privacy": {
+    "contains_secrets": false,
+    "capture_policy": "fixture_inputs_and_expected_outputs_only",
+    "retention": "repository-controlled"
+  },
+  "cases": [
+    {
+      "id": "planning-basic-dependency",
+      "domain": "planning",
+      "prompt": "Plan a two-step task with an explicit dependency and a testable completion condition.",
+      "required_criteria": ["dependency", "acceptance criteria"],
+      "expected": {"must_pass": true, "failure_mode": "missing required planning fields"}
+    },
+    {
+      "id": "code-generation-complete-files",
+      "domain": "code_generation",
+      "prompt": "Generate a small Python module with a relative path, setup instructions, and tests.",
+      "required_criteria": ["relative path", "setup instructions", "tests"],
+      "expected": {"must_pass": true, "failure_mode": "incomplete synthesis handoff"}
+    },
+    {
+      "id": "debugging-reproduction-first",
+      "domain": "debugging",
+      "prompt": "Diagnose a failing test and provide a reproduction command, root cause, patch, and regression test.",
+      "required_criteria": ["reproduction", "root cause", "regression test"],
+      "expected": {"must_pass": true, "failure_mode": "unverifiable diagnosis"}
+    },
+    {
+      "id": "refactoring-preserves-contract",
+      "domain": "refactoring",
+      "prompt": "Refactor a function while preserving its public behavior and documenting the verification run.",
+      "required_criteria": ["public behavior", "verification"],
+      "expected": {"must_pass": true, "failure_mode": "behavioral contract drift"}
+    },
+    {
+      "id": "research-cited-findings",
+      "domain": "research",
+      "prompt": "Summarize two independently sourced findings and separate facts from assumptions.",
+      "required_criteria": ["source", "facts", "assumptions"],
+      "expected": {"must_pass": true, "failure_mode": "unsupported or conflated findings"}
+    },
+    {
+      "id": "gui-keyboard-error-state",
+      "domain": "gui_workflows",
+      "prompt": "Describe a GUI workflow that covers keyboard navigation, approval, and a recoverable error state.",
+      "required_criteria": ["keyboard", "approval", "error state"],
+      "expected": {"must_pass": true, "failure_mode": "inaccessible or unsafe workflow"}
+    },
+    {
+      "id": "model-import-validation",
+      "domain": "model_import",
+      "prompt": "Validate an imported model manifest, reject unsupported fields, and report a deterministic error.",
+      "required_criteria": ["manifest", "unsupported", "error"],
+      "expected": {"must_pass": true, "failure_mode": "unsafe or nondeterministic import"}
+    }
+  ]
+}
