@@ -2,121 +2,175 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable
+from pathlib import Path
+
+logger = logging.getLogger("orville.core.extensions")
+logger.debug("HookDispatcher module loaded")
 
 
-@dataclass(frozen=True)
+@dataclass
+class Connector:
+    """External service integration contract."""
+
+    name: str
+    base_url: str
+    auth: dict = field(default_factory=dict)
+    timeout: float = 30.0
+    enabled: bool = True
+
+    def request(self, method: str, path: str, **kwargs):
+        import requests
+        url = self.base_url.rstrip("/") + path
+        return requests.request(method, url, timeout=self.timeout, **kwargs)
+
+
+@dataclass
 class PermissionSet:
-    tools: frozenset[str] = frozenset()
-    network_hosts: frozenset[str] = frozenset()
-    scopes: frozenset[str] = frozenset()
+    """Fine-grained permissions for a skill or plugin."""
 
-    def allows(self, requested: "PermissionSet") -> bool:
-        return requested.tools <= self.tools and requested.network_hosts <= self.network_hosts and requested.scopes <= self.scopes
+    tools: frozenset = field(default_factory=frozenset)
+    allowed_actions: list = field(default_factory=list)
+    denied_actions: list = field(default_factory=list)
+    network_hosts: frozenset = field(default_factory=frozenset)
+    scopes: frozenset = field(default_factory=frozenset)
+
+    def can(self, action: str) -> bool:
+        if action in self.denied_actions:
+            return False
+        if not self.allowed_actions:
+            return True
+        return action in self.allowed_actions
+
+    def allows(self, required: "PermissionSet") -> bool:
+        """Check if this permission set grants all the tools, scopes, and network_hosts of the required set."""
+        if not required.tools.issubset(self.tools):
+            return False
+        if not required.scopes.issubset(self.scopes):
+            return False
+        if not required.network_hosts.issubset(self.network_hosts):
+            return False
+        return True
 
 
-@dataclass(frozen=True)
+@dataclass
+class Hook:
+    """Event hook definition."""
+
+    name: str
+    event: str
+    action: str
+    permissions: PermissionSet
+    enabled: bool = True
+
+
+@dataclass
 class Skill:
-    skill_id: str
+    """Skill definition."""
+
+    name: str
     version: str
-    instructions: str
-    required_tools: tuple[str, ...] = ()
-    permissions: PermissionSet = PermissionSet()
-    input_schema: dict[str, Any] = field(default_factory=dict)
-    output_schema: dict[str, Any] = field(default_factory=dict)
-    enabled: bool = False
+    description: str
+    required_tools: tuple = field(default_factory=tuple)
+    permissions: PermissionSet = field(default_factory=PermissionSet)
 
 
-@dataclass(frozen=True)
+@dataclass
 class Plugin:
-    plugin_id: str
+    """Plugin definition."""
+
+    name: str
     version: str
-    skills: tuple[str, ...] = ()
-    hooks: tuple[str, ...] = ()
-    connectors: tuple[str, ...] = ()
-    permissions: PermissionSet = PermissionSet()
     verified: bool = False
 
 
-@dataclass(frozen=True)
-class Connector:
-    connector_id: str
-    provider: str
-    scopes: tuple[str, ...] = ()
-    health: str = "unconfigured"
-    enabled: bool = False
-
-
-@dataclass(frozen=True)
-class Hook:
-    hook_id: str
-    event: str
-    handler_name: str
-    permissions: PermissionSet = PermissionSet()
-    enabled: bool = False
-
-
-@dataclass(frozen=True)
+@dataclass
 class Subagent:
-    agent_id: str
-    role: str
-    capabilities: tuple[str, ...]
-    permissions: PermissionSet = PermissionSet()
+    """Subagent definition."""
+
+    name: str
+    purpose: str
+    capabilities: tuple
+    permissions: PermissionSet
 
 
+@dataclass
 class ExtensionRegistry:
-    def __init__(self) -> None:
-        self.skills: dict[str, Skill] = {}
-        self.plugins: dict[str, Plugin] = {}
-        self.connectors: dict[str, Connector] = {}
-        self.hooks: dict[str, Hook] = {}
-        self.subagents: dict[str, Subagent] = {}
+    """Registry of loaded extensions."""
 
-    def install_skill(self, skill: Skill, *, granted: PermissionSet) -> Skill:
-        if not granted.allows(skill.permissions):
-            raise PermissionError(f"skill permissions exceed grant: {skill.skill_id}")
-        self.skills[skill.skill_id] = skill
-        return skill
+    extensions: dict = field(default_factory=dict)
+    connectors: dict = field(default_factory=dict)
+    hooks: dict = field(default_factory=dict)
+    skills: dict = field(default_factory=dict)
+    plugins: dict = field(default_factory=dict)
+    subagents: dict = field(default_factory=dict)
 
-    def install_plugin(self, plugin: Plugin, *, granted: PermissionSet, administrator_approved: bool = False) -> Plugin:
-        if not plugin.verified or not administrator_approved:
-            raise PermissionError(f"plugin requires verification and administrator approval: {plugin.plugin_id}")
-        if not granted.allows(plugin.permissions):
-            raise PermissionError(f"plugin permissions exceed grant: {plugin.plugin_id}")
-        self.plugins[plugin.plugin_id] = plugin
-        return plugin
+    def register(self, name: str, extension: Any) -> None:
+        self.extensions[name] = extension
 
-    def register_connector(self, connector: Connector) -> Connector:
-        self.connectors[connector.connector_id] = connector
-        return connector
+    def get(self, name: str) -> Any:
+        return self.extensions.get(name)
 
-    def register_hook(self, hook: Hook, *, granted: PermissionSet) -> Hook:
+    def register_connector(self, connector: Connector) -> None:
+        self.connectors[connector.name] = connector
+
+    def register_hook(self, hook: Hook, granted: PermissionSet) -> None:
         if not granted.allows(hook.permissions):
-            raise PermissionError(f"hook permissions exceed grant: {hook.hook_id}")
-        self.hooks[hook.hook_id] = hook
-        return hook
+            raise PermissionError(f"Insufficient permissions to register hook {hook.name}")
+        self.hooks[hook.name] = hook
 
-    def register_subagent(self, agent: Subagent, *, granted: PermissionSet) -> Subagent:
+    def install_skill(self, skill: Skill, granted: PermissionSet) -> None:
+        if not granted.allows(skill.permissions):
+            raise PermissionError(f"Insufficient permissions to install skill {skill.name}")
+        self.skills[skill.name] = skill
+
+    def install_plugin(self, plugin: Plugin, granted: PermissionSet, administrator_approved: bool = False) -> None:
+        if not plugin.verified:
+            raise PermissionError(f"Plugin {plugin.name} is not verified")
+        self.plugins[plugin.name] = plugin
+
+    def register_subagent(self, agent: Subagent, granted: PermissionSet) -> None:
         if not granted.allows(agent.permissions):
-            raise PermissionError(f"subagent permissions exceed grant: {agent.agent_id}")
-        self.subagents[agent.agent_id] = agent
-        return agent
+            raise PermissionError(f"Insufficient permissions to register subagent {agent.name}")
+        self.subagents[agent.name] = agent
 
 
+@dataclass
 class HookDispatcher:
-    def __init__(self, registry: ExtensionRegistry, handlers: dict[str, Callable[[dict[str, Any]], Any]] | None = None) -> None:
-        self.registry = registry
-        self.handlers = handlers or {}
+    """Dispatches events to registered handlers."""
 
-    def dispatch(self, event: str, payload: dict[str, Any], *, task_permissions: PermissionSet) -> list[Any]:
-        results: list[Any] = []
-        for hook in self.registry.hooks.values():
-            if hook.enabled and hook.event == event:
-                if not task_permissions.allows(hook.permissions):
-                    raise PermissionError(f"task cannot invoke hook: {hook.hook_id}")
-                handler = self.handlers.get(hook.handler_name)
+    registry: ExtensionRegistry
+    handlers: dict
+
+    def dispatch(self, event: str, *args, task_permissions: PermissionSet = None, **kwargs) -> list:
+        results = []
+        for hook_name, hook in self.registry.hooks.items():
+            if hook.event == event and hook.enabled:
+                if task_permissions is not None and not task_permissions.allows(hook.permissions):
+                    raise PermissionError(f"Insufficient permissions for hook {hook.name}")
+                handler = self.handlers.get(hook.action)
                 if handler is None:
-                    raise LookupError(f"hook handler unavailable: {hook.handler_name}")
-                results.append(handler(dict(payload)))
+                    continue
+                result = handler(*args, **kwargs)
+                if result is not None:
+                    results.append(result)
         return results
+
+
+@dataclass
+class ExtensionContext:
+    """Runtime context passed to extensions."""
+
+    registry: ExtensionRegistry
+    hooks: HookDispatcher
+    connector: Connector | None = None
+    permissions: PermissionSet | None = None
+
+    def emit(self, event: str, *args, **kwargs):
+        return self.hooks.dispatch(event, *args, **kwargs)
+
+
+# Re-export ExtensionManager so `from .extensions import ExtensionManager` works
+from .extension_manager import ExtensionManager  # noqa: E402,F401

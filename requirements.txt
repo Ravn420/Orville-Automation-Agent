@@ -1,0 +1,24 @@
+# Orville runtime dependencies for the Windows GUI + local API
+# Install with:  .venv/Scripts/python.exe -m pip install -r requirements.txt
+
+# --- Local API server (spawned by windows_gui.start_api) ---
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+
+# --- Data / validation (fastapi dependencies, pinned for reproducibility) ---
+pydantic>=2.0
+starlette>=0.37
+anyio>=4.0
+
+# --- noVNC WebSocket bridge (Browser tab / VNC feature) ---
+websockify>=0.11.0
+
+# --- Security / crypto used by orville_core ---
+cryptography>=42
+
+# --- HTTP utilities used across orville_core ---
+requests>=2.31
+
+# --- Build tooling (needed only to produce the EXE) ---
+pyinstaller>=6.0

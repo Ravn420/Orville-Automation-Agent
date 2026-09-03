@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+import multiprocessing
 import os
 import sys
 import threading
@@ -17,6 +18,7 @@ from orville_core.gui_state import (
     DEPENDENCY_STATE_COPY,
     GUI_ENGINE_ACTIONS,
     WORKFLOW_STATE_COPY,
+    _redact_display_text,
     classify_dependency_state,
     classify_workflow_state,
     build_engine_action_request,
@@ -25,7 +27,27 @@ from orville_core.gui_state import (
     safe_display_value,
     state_message,
 )
+from orville_core import inprocess_client as _inprocess
 
+
+def get_base_path() -> Path:
+    """Get base path that works in both development and PyInstaller frozen apps.
+
+    Returns:
+        Path: Base directory path that works both in development and frozen executable
+    """
+    frozen_dir = getattr(sys, "_MEIPASS", None)
+    if frozen_dir:
+        return Path(frozen_dir)
+    return Path(__file__).resolve().parent
+
+def _websockify_cmd(ws_port: str, vnc_port: str, novnc_dir: Path) -> list:
+    """Build the websockify launch command, aware of PyInstaller frozen mode."""
+    args = [ws_port, f"localhost:{vnc_port}", "--web", str(novnc_dir)]
+    if getattr(sys, "frozen", False):
+        # Frozen: re-invoke this exe; main() intercepts the flag below.
+        return [sys.executable, "--run-websockify"] + args
+    return [sys.executable, "-m", "websockify"] + args
 
 # Orville desktop control center. The API contract and workflow actions remain unchanged;
 # this module intentionally limits changes to presentation and interaction structure.
@@ -36,9 +58,15 @@ RUN_UNAVAILABLE_MESSAGE = "Run unavailable. Check the run ID and local API statu
 
 
 def load_env() -> None:
+    # In frozen mode, sys.executable points to the EXE; in development it points to Python interpreter
+    # We check multiple locations to find the .env.production file
+    executable_dir = Path(sys.executable).resolve().parent
     for path in (
-        Path(sys.executable).resolve().parent / ".env.production",
-        Path(__file__).resolve().parent / ".env.production",
+        # First check executable directory (works in both dev and frozen modes)
+        executable_dir / ".env.production",
+        # Then check base path (for packaged apps)
+        get_base_path() / ".env.production",
+        # Finally check current working directory
         Path.cwd() / ".env.production",
     ):
         if path.exists():
@@ -60,6 +88,116 @@ def start_api() -> None:
     uvicorn.run(create_app, factory=True, host=host, port=port, log_level="warning")
 
 
+class CollapsibleGroup(tk.Frame):
+    """Manus-style collapsible section with 200ms ease-out animation and chevron rotation."""
+
+    EXPANDED_COLOR = "#171717"
+    COLLAPSED_COLOR = "#777873"
+    BG = "#ebeae7"
+    ACCENT = "#8b5cf6"
+
+    def __init__(
+        self,
+        parent: tk.Misc,
+        title: str,
+        items: list[tuple[str, callable]],
+        default_expanded: bool = True,
+        **kwargs,
+    ) -> None:
+        super().__init__(parent, bg=self.BG, **kwargs)
+        self.items = items
+        self._expanded = default_expanded
+        self._animate_id: str | None = None
+        self._content_height = 0
+        self._target_height = 0
+        self._current_height = 0
+
+        header = tk.Frame(self, bg=self.BG, cursor="hand2")
+        header.pack(fill="x")
+        header.bind("<Button-1>", lambda _e: self.toggle())
+
+        self._chevron = tk.Label(
+            header,
+            text="▾",
+            bg=self.BG,
+            fg=self.EXPANDED_COLOR if default_expanded else self.COLLAPSED_COLOR,
+            font=("Segoe UI", 9, "bold"),
+            anchor="center",
+            width=2,
+        )
+        self._chevron.pack(side="left", padx=(6, 4), pady=(10, 6))
+
+        tk.Label(
+            header,
+            text=title,
+            bg=self.BG,
+            fg=self.EXPANDED_COLOR if default_expanded else self.COLLAPSED_COLOR,
+            font=("Segoe UI", 8, "bold"),
+            anchor="w",
+        ).pack(side="left", fill="x", expand=True, pady=(10, 6))
+
+        self._content = tk.Frame(self, bg=self.BG)
+        self._content.pack(fill="x")
+        self._content.pack_propagate(False)
+
+        for label, command in items:
+            btn = tk.Button(
+                self._content,
+                text=label,
+                bg=self.BG,
+                fg="#171717",
+                activebackground="#e1e0dc",
+                activeforeground="#171717",
+                borderwidth=0,
+                anchor="w",
+                padx=16,
+                pady=7,
+                font=("Segoe UI", 9),
+                cursor="hand2",
+                command=command,
+            )
+            btn.pack(fill="x")
+            btn.bind("<Enter>", lambda _e, b=btn: b.configure(bg="#e1e0dc"))
+            btn.bind("<Leave>", lambda _e, b=btn: b.configure(bg=self.BG))
+
+        self._content.update_idletasks()
+        self._content_height = self._content.winfo_reqheight()
+        self._current_height = self._content_height if self._expanded else 0
+        self._target_height = self._current_height
+
+        if not self._expanded:
+            self._content.configure(height=0)
+
+    def toggle(self) -> None:
+        self._target_height = 0 if self._expanded else self._content_height
+        self._expanded = not self._expanded
+        self._animate(self._current_height, self._target_height)
+
+    def _animate(self, start: int, end: int) -> None:
+        if self._animate_id:
+            self.after_cancel(self._animate_id)
+        steps = 10
+        duration_ms = 200
+        step_ms = max(10, duration_ms // steps)
+        delta = (end - start) / steps
+        self._current_height = start
+
+        def step(frame: int = 0) -> None:
+            if frame >= steps:
+                self._current_height = end
+                self._content.configure(height=end)
+                self._animate_id = None
+                return
+            self._current_height = int(start + delta * frame)
+            self._content.configure(height=self._current_height)
+            self._animate_id = self.after(step_ms, lambda: step(frame + 1))
+
+        step()
+        color = self.EXPANDED_COLOR if self._expanded else self.COLLAPSED_COLOR
+        self._chevron.configure(fg=color, text="▾" if self._expanded else "▸")
+        self._chevron.master.children["!label"].configure(fg=color)
+
+
 class OrvilleWindow(tk.Tk):
     """Responsive desktop workspace for the existing Orville API bridge."""
 
@@ -74,6 +212,98 @@ class OrvilleWindow(tk.Tk):
     WARNING = "#9a6700"
     DANGER = "#b42318"
 
+    # Manus animation timing contract (ms)
+    ANIM_FAST = 200   # Panel swaps, group toggle, hover shifts
+    ANIM_BASE = 150   # Field movements, status badge updates
+    ANIM_SLOW = 300   # Dashboard re-layouts, heavy panel transitions
+
+    def setup_design_system(self) -> None:
+        """Setup Manus-style design tokens and animation timing."""
+        # Colors aligned with Manus palette
+        self.colors = {
+            "bg": self.BG,
+            "surface": self.SURFACE,
+            "text": self.TEXT,
+            "muted": self.MUTED,
+            "border": self.BORDER,
+            "accent": self.ACCENT,
+            "success": self.SUCCESS,
+            "warning": self.WARNING,
+            "danger": self.DANGER,
+            "selected": "#e0f0ff",
+            "primary": "#0066ff"  # Additional Manus primary color
+        }
+
+        # Manus animation timing
+        self.animation_duration = self.ANIM_FAST
+
+        # Typography setup
+        self.fonts = {
+            "title": ("Segoe UI", 17, "bold"),
+            "heading": ("Segoe UI", 9, "bold"),
+            "body": ("Segoe UI", 9),
+            "mono": ("Segoe UI", 9),
+            "subtitle": ("Segoe UI", 9)
+        }
+
+    def create_mode_selector(self) -> None:
+        """Create Chat/Agent mode selector with 200ms animation - Critical for Manus-style UX."""
+        mode_frame = tk.Frame(self.center, bg=self.SURFACE, highlightbackground=self.BORDER, highlightthickness=1)
+        mode_frame.grid(row=1, column=0, sticky="ew", padx=8, pady=(8, 0))
+
+        self.mode_var = tk.StringVar(value="agent")
+
+        # Chat mode button
+        chat_radio = tk.Radiobutton(
+            mode_frame,
+            text="Chat",
+            variable=self.mode_var,
+            value="chat",
+            command=lambda: self.update_mode("chat"),
+            font=self.fonts["body"],
+            bg=self.SURFACE,
+            fg=self.TEXT,
+            selectcolor=self.SURFACE,
+            cursor="hand2"
+        )
+        chat_radio.pack(side=tk.LEFT, padx=10)
+
+        # Agent mode button
+        agent_radio = tk.Radiobutton(
+            mode_frame,
+            text="Agent",
+            variable=self.mode_var,
+            value="agent",
+            command=lambda: self.update_mode("agent"),
+            font=self.fonts["body"],
+            bg=self.SURFACE,
+            fg=self.TEXT,
+            selectcolor=self.SURFACE,
+            cursor="hand2"
+        )
+        agent_radio.pack(side=tk.LEFT, padx=10)
+
+        # Mode explanation
+        mode_info = tk.Label(
+            mode_frame,
+            text="(Agent mode enables tool use and autonomous tasks)",
+            font=("Segoe UI", 8),
+            bg=self.SURFACE,
+            fg=self.MUTED
+        )
+        mode_info.pack(side=tk.LEFT, padx=10)
+
+    def update_mode(self, mode: str) -> None:
+        """Handle mode change with animation effect."""
+        # Animate background color change
+        self.center.after(0, lambda: self.center.configure(bg=self.SURFACE))
+
+        # Log mode change (in production, this would rewire backend planner)
+        if mode == "chat":
+            self._write("Switched to Chat mode (single-turn, no tools)", "meta")
+        else:
+            self._write("Switched to Agent mode (autonomous planning, tools enabled)", "meta")
+
     def __init__(self) -> None:
         super().__init__()
         self.title("Orville — Control Center")
@@ -85,6 +315,14 @@ class OrvilleWindow(tk.Tk):
         self.sidebar_visible = True
         self.context_visible = True
         self._placeholder = "Describe an objective for Orville…"
+        # Debounced resize handling to prevent layout thrashing
+        self._resize_after_id: str | None = None
+        self._resize_debounce_ms = 100
+        self._last_layout_width: int = 0
+
+        # Setup Manus-style design system
+        self.setup_design_system()
+
         self._build_styles()
         self._build_ui()
         self.bind("<Configure>", self._on_resize)
@@ -153,6 +391,7 @@ class OrvilleWindow(tk.Tk):
         self.workspace.columnconfigure(2, minsize=274)
         self._build_sidebar()
         self._build_center()
+        # Build the complete context panel (tabs + text/browser body)
         self._build_context()
 
     def _build_sidebar(self) -> None:
@@ -350,7 +589,7 @@ class OrvilleWindow(tk.Tk):
 
         self.center = ttk.Frame(self.workspace, style="App.TFrame", padding=(2, 0))
         self.center.grid(row=0, column=1, sticky="nsew")
-        self.center.rowconfigure(2, weight=1)
+        self.center.rowconfigure(4, weight=1)
         self.center.columnconfigure(0, weight=1)
         heading = ttk.Frame(self.center, style="App.TFrame", padding=(10, 12, 10, 10))
         heading.grid(row=0, column=0, sticky="ew")
@@ -360,11 +599,14 @@ class OrvilleWindow(tk.Tk):
         self.task_status = tk.Label(heading, text="READY", bg="#e9f5ee", fg=self.SUCCESS, padx=9, pady=4, font=("Segoe UI", 8, "bold"))
         self.task_status.grid(row=0, column=1, rowspan=2, sticky="e")
 
+        # Add Manus-style Chat/Agent mode selector
+        self.create_mode_selector()
+
         self._build_dashboard()
 
-        ttk.Label(self.center, text="Objective workspace — Use Tab to move through controls; Alt+1 focuses the objective; Alt+2 opens workflow help.", style="Subtitle.TLabel").grid(row=1, column=0, sticky="w", padx=10, pady=(0, 4))
+        ttk.Label(self.center, text="Objective workspace — Use Tab to move through controls; Alt+1 focuses the objective; Alt+2 opens workflow help.", style="Subtitle.TLabel").grid(row=3, column=0, sticky="w", padx=10, pady=(0, 4))
         conversation = tk.Frame(self.center, bg=self.SURFACE, highlightbackground=self.BORDER, highlightthickness=1)
-        conversation.grid(row=2, column=0, sticky="nsew", padx=8)
+        conversation.grid(row=4, column=0, sticky="nsew", padx=8)
         conversation.rowconfigure(0, weight=1)
         conversation.columnconfigure(0, weight=1)
         self.output = scrolledtext.ScrolledText(conversation, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, insertbackground=self.TEXT, relief="flat", borderwidth=0, padx=24, pady=22, font=("Segoe UI", 10), spacing1=3, spacing3=7)
@@ -374,7 +616,7 @@ class OrvilleWindow(tk.Tk):
         self._write("Orville is ready. Describe an objective to create a verified task workflow.", "meta")
 
         composer = tk.Frame(self.center, bg=self.SURFACE, highlightbackground=self.BORDER, highlightthickness=1)
-        composer.grid(row=3, column=0, sticky="ew", padx=8, pady=(10, 0))
+        composer.grid(row=5, column=0, sticky="ew", padx=8, pady=(10, 0))
         composer.columnconfigure(0, weight=1)
         self.objective = tk.Text(composer, height=4, wrap="word", bg=self.SURFACE, fg=self.MUTED, insertbackground=self.TEXT, relief="flat", borderwidth=0, padx=14, pady=12, font=("Segoe UI", 10), takefocus=True)
         self.objective.grid(row=0, column=0, columnspan=3, sticky="ew")
@@ -620,7 +862,7 @@ class OrvilleWindow(tk.Tk):
     def _build_dashboard(self) -> None:
         """Build compact operational cards backed by existing read-only routes."""
         dashboard = ttk.Frame(self.center, style="App.TFrame", padding=(8, 0, 8, 8))
-        dashboard.grid(row=1, column=0, sticky="ew")
+        dashboard.grid(row=2, column=0, sticky="ew")
         for column in range(3):
             dashboard.columnconfigure(column, weight=1)
         self.dashboard_vars = {key: tk.StringVar(value="—") for key in ("active", "runs", "models", "health", "failures", "artifacts")}
@@ -648,8 +890,6 @@ class OrvilleWindow(tk.Tk):
         if not getattr(self, "dashboard_cards", None):
             return
         columns = 3 if width >= 1080 else 2 if width >= 790 else 1
-        for column in range(3):
-            self.center.columnconfigure(column, weight=0)
         dashboard = self.dashboard_cards[0].master
         for column in range(columns):
             dashboard.columnconfigure(column, weight=1)
@@ -660,15 +900,34 @@ class OrvilleWindow(tk.Tk):
         refresh_row = (len(self.dashboard_cards) + columns - 1) // columns
         self.dashboard_refresh.grid(row=refresh_row, column=0, columnspan=columns, sticky="e", padx=4, pady=(2, 0))
 
+    def _api_call(self, path: str, method: str = "GET", payload: dict | None = None, timeout: float = 8.0) -> object:
+        """Call the Orville API, preferring the in-process app over loopback HTTP.
+
+        Returns the decoded JSON body on success. Raises the underlying
+        exception on failure so callers can present their own recovery copy.
+        """
+        if _inprocess.is_running():
+            status, body = _inprocess.request(method, path, payload=payload, timeout=timeout)
+            if 200 <= status < 300:
+                return json.loads(body.decode("utf-8")) if body else {}
+            raise urllib.error.HTTPError(path, status, f"HTTP {status}", hdrs=None, fp=None)
+        data = json.dumps(payload).encode() if payload is not None else None
+        request = urllib.request.Request(
+            self.base_url + path,
+            data=data,
+            method=method,
+            headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode())
+
     def _refresh_dashboard(self) -> None:
         """Refresh dashboard cards without blocking the Tkinter event loop."""
         def worker() -> None:
             results: dict[str, object] = {}
             for key, path in (("health", "/api/v1/health"), ("state", "/api/v1/state"), ("providers", "/api/v1/providers"), ("artifacts", "/api/v1/artifacts")):
                 try:
-                    request = urllib.request.Request(self.base_url + path, headers={"Authorization": f"Bearer {self.token}"})
-                    with urllib.request.urlopen(request, timeout=5) as response:
-                        results[key] = json.loads(response.read().decode())
+                    results[key] = self._api_call(path, timeout=5)
                 except Exception:
                     results[key] = None
             self.after(0, lambda: self._update_dashboard(results))
@@ -686,15 +945,233 @@ class OrvilleWindow(tk.Tk):
         self.context.columnconfigure(0, weight=1)
         tabs = tk.Frame(self.context, bg=self.SURFACE)
         tabs.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 4))
-        for label, panel in (("Preview", "preview"), ("Files", "files"), ("Activity", "activity"), ("Details", "details")):
+        for label, panel in (("Preview", "preview"), ("Files", "files"), ("Activity", "activity"), ("Details", "details"), ("Live Browser", "browser")):
             ttk.Button(tabs, text=label, style="Tab.TButton", command=lambda value=panel: self._show_context(value)).pack(side="left")
         self.context_body = tk.Frame(self.context, bg=self.SURFACE)
         self.context_body.grid(row=1, column=0, sticky="nsew", padx=16, pady=12)
         self.context_body.rowconfigure(0, weight=1)
         self.context_body.columnconfigure(0, weight=1)
+
+        # Create container for the web browser widget
+        self.browser_container = tk.Frame(self.context_body, bg=self.SURFACE)
+        self.browser_container.grid(row=0, column=0, sticky="nsew")
+        self.browser_container.rowconfigure(0, weight=1)
+        self.browser_container.columnconfigure(0, weight=1)
+
+        # Create scrolled text for other context content
         self.context_text = scrolledtext.ScrolledText(self.context_body, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, relief="flat", borderwidth=0, font=("Segoe UI", 9), padx=2, pady=4)
-        self.context_text.grid(row=0, column=0, sticky="nsew")
+        self.context_text.grid(row=0, column=1, sticky="nsew", padx=(16, 0))
+        self.context_body.columnconfigure(1, minsize=200)
+
         self._show_context("preview")
+
+    def _show_context(self, panel: str) -> None:
+        # Hide all context content
+        self.context_text.grid_remove()
+        for widget in self.browser_container.winfo_children():
+            widget.grid_remove()
+
+        if panel == "browser":
+            # Show the browser widget for VNC integration
+            self._build_browser_panel()
+            self.browser_container.grid()
+        else:
+            # Show the text area for other panels
+            self.context_text.grid()
+            self._show_context_text(panel)
+
+    def _show_context_text(self, panel: str) -> None:
+        messages = {
+            "preview": "Preview\n\nGenerated artifacts and task output will appear here when the existing workflow returns them.",
+            "files": "Files\n\nNo artifact list loaded. Use “List Artifacts” to query the existing API.",
+            "activity": "Activity\n\nTask events and API responses will be summarized here.",
+            "details": "Details\n\nEndpoint\nConfigured runtime endpoint (hidden)\n\nAuthentication\nConfigured through protected runtime state",
+        }
+        self.context_text.configure(state="normal")
+        self.context_text.delete("1.0", "end")
+        self.context_text.insert("1.0", messages.get(panel, ""))
+        self.context_text.configure(state="disabled")
+
+    def _build_browser_panel(self) -> None:
+        # Clear existing browser content
+        for widget in self.browser_container.winfo_children():
+            widget.destroy()
+
+        # Create browser controls frame
+        controls = tk.Frame(self.browser_container, bg=self.SURFACE)
+        controls.grid(row=0, column=0, sticky="ew", padx=8, pady=8)
+        controls.columnconfigure(1, weight=1)
+
+        # VNC server controls
+        tk.Label(controls, text="VNC Server:", bg=self.SURFACE, fg=self.MUTED).grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.vnc_port_var = tk.StringVar(value="5901")
+        vnc_port_entry = ttk.Entry(controls, textvariable=self.vnc_port_var, width=8)
+        vnc_port_entry.grid(row=0, column=1, sticky="w")
+
+        self.start_vnc_button = ttk.Button(controls, text="Start VNC Server", style="Primary.TButton", command=self._toggle_vnc_server)
+        self.start_vnc_button.grid(row=0, column=2, padx=(8, 0))
+
+        # Status label
+        self.vnc_status_var = tk.StringVar(value="VNC Server: OFF")
+        tk.Label(controls, textvariable=self.vnc_status_var, bg=self.SURFACE, fg=self.WARNING).grid(row=1, column=0, columnspan=3, sticky="w", pady=(4, 0))
+
+        # WebSocket bridge controls
+        tk.Label(controls, text="WebSocket Bridge:", bg=self.SURFACE, fg=self.MUTED).grid(row=2, column=0, sticky="w", padx=(0, 8), pady=(8, 0))
+        self.ws_port_var = tk.StringVar(value="6080")
+        ws_port_entry = ttk.Entry(controls, textvariable=self.ws_port_var, width=8)
+        ws_port_entry.grid(row=2, column=1, sticky="w", pady=(8, 0))
+
+        self.ws_status_var = tk.StringVar(value="WebSocket Bridge: OFF")
+        tk.Label(controls, textvariable=self.ws_status_var, bg=self.SURFACE, fg=self.WARNING).grid(row=3, column=0, columnspan=3, sticky="w", pady=(4, 0))
+
+        # VNC URL and controls
+        url_frame = tk.Frame(self.browser_container, bg=self.SURFACE)
+        url_frame.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
+        url_frame.columnconfigure(1, weight=1)
+
+        tk.Label(url_frame, text="VNC URL:", bg=self.SURFACE, fg=self.MUTED).grid(row=0, column=0, sticky="w")
+        self.vnc_url_var = tk.StringVar(value="http://localhost:6080/vnc.html")
+        vnc_url_entry = ttk.Entry(url_frame, textvariable=self.vnc_url_var, width=40)
+        vnc_url_entry.grid(row=0, column=1, sticky="ew", padx=(8, 0))
+
+        # Browse button
+        browse_button = ttk.Button(url_frame, text="Open in Browser", style="Secondary.TButton", command=self._open_vnc_url)
+        browse_button.grid(row=0, column=2, padx=(8, 0))
+
+        # VNC viewer area
+        self.vnc_viewer = scrolledtext.ScrolledText(self.browser_container, wrap="none", bg="black", fg="white", relief="sunken", borderwidth=2, font=("Courier", 10), padx=4, pady=4)
+        self.vnc_viewer.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
+        self.vnc_viewer.insert("1.0", "VNC Viewer Status:\n\nClick 'Start VNC Server' to begin.")
+
+        # VNC server process tracking
+        self.vnc_process = None
+        self.ws_process = None
+
+        # Configure grid weights for proper resizing
+        self.browser_container.rowconfigure(2, weight=1)
+        self.browser_container.columnconfigure(0, weight=1)
+
+    def _toggle_vnc_server(self) -> None:
+        """Start or stop the VNC server and websockify bridge."""
+        if self.vnc_process and self.vnc_process.poll() is None:
+            # VNC is running — stop it
+            self._stop_vnc_server()
+            self.start_vnc_button.configure(text="Start VNC Server")
+            self.vnc_status_var.set("VNC Server: OFF")
+        else:
+            # VNC is stopped — start it
+            self._start_vnc_server()
+            self.start_vnc_button.configure(text="Stop VNC Server")
+            self.vnc_status_var.set("VNC Server: ON")
+
+    def _start_vnc_server(self) -> None:
+        """Start Xvfb, x11vnc, and websockify bridge via WSL Ubuntu."""
+        import subprocess  # ensure available
+
+        try:
+            # Helper: run a command inside the Ubuntu WSL instance
+            def wsl(cmd: str) -> subprocess.Popen:
+                return subprocess.Popen(
+                    ["wsl.exe", "-e", "bash", "-c", cmd],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+
+            # 1. Start Xvfb virtual display (if not already running / already running in WSL)
+            self.xvfb_process = getattr(self, "xvfb_process", None)
+            if self.xvfb_process is None or self.xvfb_process.poll() is not None:
+                self.xvfb_process = wsl(
+                    "Xvfb :99 -screen 0 1280x720x24 >/dev/null 2>&1 &"
+                )
+                import time
+                time.sleep(1)
+
+            # Set the DISPLAY variable for subsequent processes in this Python process
+            os.environ["DISPLAY"] = ":99"
+
+            # 2. Start x11vnc server on display :99 → :1 (port 5901)
+            #    - -forever keeps it running, -nopw disables auth, -localhost binds to 127.0.0.1
+            self.vnc_process = wsl(
+                "x11vnc -display :99 -forever -nopw -listen localhost -rfbport 5901 >/dev/null 2>&1 &"
+            )
+            import time
+            time.sleep(1)  # let x11vnc initialize
+
+            # 3. Start websockify to bridge VNC (port 5901) → WebSocket (port 6080)
+            #    --web points to the noVNC static files directory (relative to the Orville project)
+            self.ws_process = subprocess.Popen(
+                [
+                    "websockify",
+                    "--web",
+                    "orville/gui/novnc",
+                    "6080",
+                    "localhost:5901",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            import time
+            time.sleep(1)  # let websockify initialize
+
+            self.vnc_url_var.set("http://localhost:6080/vnc.html")
+            self._update_vnc_viewer("VNC server started. Open the URL above to view the live browser.")
+
+        except Exception as e:
+            self._update_vnc_viewer(f"Failed to start VNC server: {e}")
+
+    def _stop_vnc_server(self) -> None:
+        """Stop websockify (Windows) and x11vnc / Xvfb (inside WSL)."""
+        import subprocess
+
+        # Kill websockify (runs on Windows side as a Python subprocess)
+        if self.ws_process and self.ws_process.poll() is None:
+            self.ws_process.terminate()
+            try:
+                self.ws_process.wait(timeout=3)
+            except Exception:
+                self.ws_process.kill()
+            self.ws_process = None
+
+        # Kill x11vnc + Xvfb processes inside WSL Ubuntu
+        try:
+            subprocess.run(
+                ["wsl.exe", "-e", "bash", "-c",
+                 "pkill -f 'x11vnc.*-rfbport 5901' 2>/dev/null; "
+                 "pkill -f 'Xvfb :99' 2>/dev/null; true"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+            )
+        except Exception:
+            pass
+
+        # Mark processes as stopped (the WSL helper processes that returned immediately
+        # because they backgrounded the real processes are no longer useful references)
+        if self.vnc_process and self.vnc_process.poll() is None:
+            self.vnc_process.terminate()
+            self.vnc_process = None
+        if hasattr(self, "xvfb_process") and self.xvfb_process and self.xvfb_process.poll() is None:
+            self.xvfb_process.terminate()
+            self.xvfb_process = None
+
+        self._update_vnc_viewer("VNC server stopped.")
+
+    def _update_vnc_viewer(self, message: str) -> None:
+        """Append a timestamped message to the VNC viewer scrolled text."""
+        from datetime import datetime
+        ts = datetime.now().strftime("%H:%M:%S")
+        self.vnc_viewer.configure(state="normal")
+        self.vnc_viewer.insert("end", f"[{ts}] {message}\n")
+        self.vnc_viewer.see("end")
+        self.vnc_viewer.configure(state="disabled")
+
+    def _cleanup_vnc_on_close(self) -> None:
+        """Stop VNC processes when the main window is closing."""
+        try:
+            if self.vnc_process and self.vnc_process.poll() is None:
+                self._stop_vnc_server()
+        except Exception:
+            pass
 
     def open_provider_setup(self) -> None:
         """Open the guided local/cloud provider setup and safe health-check window."""
@@ -923,13 +1400,126 @@ class OrvilleWindow(tk.Tk):
         ttk.Button(controls, text="Import local model", style="Secondary.TButton", command=self.import_local_model).pack(side="left", padx=3)
         refresh()
 
+    def _toggle_vnc_server(self) -> None:
+        """Start or stop the noVNC WebSocket bridge."""
+        if self.vnc_process is not None and self.vnc_process.poll() is None:
+            # Stop VNC server and WebSocket bridge
+            self._stop_vnc()
+            return
+
+        vnc_port = self.vnc_port_var.get().strip()
+        ws_port = self.ws_port_var.get().strip()
+
+        if not vnc_port or not ws_port:
+            messagebox.showwarning("Invalid Port", "Please specify both VNC and WebSocket ports.")
+            return
+
+        novnc_dir = get_base_path() / "orville" / "gui" / "novnc"
+        if not novnc_dir.exists():
+            messagebox.showerror("Error", f"noVNC directory not found: {novnc_dir}")
+            return
+
+        vnc_html = novnc_dir / "vnc.html"
+        if not vnc_html.exists():
+            messagebox.showerror("Error", f"noVNC vnc.html not found: {vnc_html}")
+            return
+
+        # Start websockify to bridge WebSocket to VNC
+        try:
+            self.ws_process = subprocess.Popen(
+                _websockify_cmd(ws_port, vnc_port, novnc_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            self.ws_status_var.set(f"WebSocket Bridge: ON (port {ws_port})")
+            self.ws_status_var.set(f"WebSocket Bridge: ON (port {ws_port})")
+        except Exception as e:
+            messagebox.showerror("WebSocket Error", f"Failed to start websockify: {e}")
+            return
+
+        self.vnc_status_var.set(f"VNC Server: ON (port {vnc_port})")
+        self.vnc_status_var.set(f"VNC Server: ON (port {vnc_port})")
+
+        # Update URL with correct port
+        self.vnc_url_var.set(f"http://localhost:{ws_port}/vnc.html")
+
+        # Brief delay then try to connect to VNC
+        self.after(1000, self._check_vnc_connection)
+
+    def _stop_vnc_server(self) -> None:
+        """Stop the VNC server and WebSocket bridge."""
+        # Stop websockify bridge
+        if self.ws_process is not None:
+            self.ws_process.terminate()
+            try:
+                self.ws_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.ws_process.kill()
+            self.ws_process = None
+
+        # Stop VNC processes (Xvfb, Chrome, x11vnc)
+        if hasattr(self, 'vnc_xvfb'):
+            self.vnc_xvfb.terminate()
+            try:
+                self.vnc_xvfb.wait(timeout=2)
+            except (subprocess.TimeoutExpired, ValueError):
+                self.vnc_xvfb.kill()
+            self.vnc_xvfb = None
+
+        if hasattr(self, 'vnc_chrome'):
+            self.vnc_chrome.terminate()
+            try:
+                self.vnc_chrome.wait(timeout=2)
+            except (subprocess.TimeoutExpired, ValueError):
+                self.vnc_chrome.kill()
+            self.vnc_chrome = None
+
+        if hasattr(self, 'vnc_vnc'):
+            self.vnc_vnc.terminate()
+            try:
+                self.vnc_vnc.wait(timeout=2)
+            except (subprocess.TimeoutExpired, ValueError):
+                self.vnc_vnc.kill()
+            self.vnc_vnc = None
+
+        # Reset status variables
+        self.vnc_status_var.set("VNC Server: OFF")
+        self.ws_status_var.set("WebSocket Bridge: OFF")
+
+    def _check_vnc_connection(self) -> None:
+        """Check if the WebSocket bridge is responding."""
+        if self.ws_process is None or self.ws_process.poll() is not None:
+            self.vnc_status_var.set("VNC Server: OFF")
+            self.ws_status_var.set("WebSocket Bridge: OFF")
+            messagebox.showerror("Connection Failed", "WebSocket bridge terminated unexpectedly.")
+            return
+
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(("localhost", int(self.ws_port_var.get().strip())))
+            sock.close()
+            if result == 0:
+                self.vnc_status_var.set(f"VNC Server: ON (port {self.vnc_port_var.get()})")
+                self.ws_status_var.set(f"WebSocket Bridge: ON (port {self.ws_port_var.get()})")
+                self.vnc_viewer.delete("1.0", "end")
+                self.vnc_viewer.insert("1.0", f"VNC Connection Active\n\nWebSocket Bridge: localhost:{self.ws_port_var.get()}\nnoVNC Client: http://localhost:{self.ws_port_var.get()}/vnc.html\n\nThe browser view is now available.\n\nTip: Open the URL in a browser for full noVNC functionality.")
+            else:
+                self.after(500, self._check_vnc_connection)
+        except Exception:
+            self.after(500, self._check_vnc_connection)
+
+    def _open_vnc_url(self) -> None:
+        """Open the VNC URL in the default web browser."""
+        url = self.vnc_url_var.get().strip()
+        if url and url.startswith(("http://", "https://")):
+            webbrowser.open(url)
+
     def _manager_request(self, path: str, method: str, payload: dict | None, callback) -> None:
         def worker() -> None:
-            data = json.dumps(payload).encode() if payload is not None else None
-            request = urllib.request.Request(self.base_url + path, data=data, method=method, headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(request, timeout=8) as response:
-                    result = json.loads(response.read().decode())
+                result = self._api_call(path, method=method, payload=payload, timeout=8)
                 self.after(0, lambda: callback(result))
             except Exception:
                 self.after(0, lambda: callback({"error": RUN_UNAVAILABLE_MESSAGE}))
@@ -1015,25 +1605,22 @@ class OrvilleWindow(tk.Tk):
             self.output.insert("end", text + "\n\n")
         self.output.see("end")
         self.output.configure(state="disabled")
-        self.context_text.configure(state="normal")
-        self.context_text.delete("1.0", "end")
-        self.context_text.insert("1.0", text)
-        self.context_text.configure(state="disabled")
+        context_text = getattr(self, "context_text", None)
+        if context_text is not None:
+            context_text.configure(state="normal")
+            context_text.delete("1.0", "end")
+            context_text.insert("1.0", text)
+            context_text.configure(state="disabled")
 
     def _request(self, path: str, method: str = "GET", payload: dict | None = None, callback=None) -> None:
 
         self.task_status.configure(text="WORKING", bg="#f4edff", fg=self.ACCENT)
 
         def worker() -> None:
-            data = json.dumps(payload).encode() if payload is not None else None
-            request = urllib.request.Request(self.base_url + path, data=data, method=method, headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(request, timeout=8) as response:
-                    result = json.loads(response.read().decode())
-                    self.after(0, lambda: callback(result) if callback else self._request_succeeded(result))
-
+                result = self._api_call(path, method=method, payload=payload, timeout=8)
+                self.after(0, lambda: callback(result) if callback else self._request_succeeded(result))
             except urllib.error.HTTPError as exc:
-                exc.read()
                 self.after(0, lambda: self._request_failed(f"The objective request could not be completed (HTTP {exc.code})."))
             except Exception:
                 self.after(0, lambda: self._request_failed("The objective request could not be completed. Check that the local Orville service is running, then try again."))
@@ -1051,11 +1638,11 @@ class OrvilleWindow(tk.Tk):
 
     def _wait_for_api(self) -> None:
         try:
-            request = urllib.request.Request(self.base_url + "/api/v1/health", headers={"Authorization": f"Bearer {self.token}"})
-            with urllib.request.urlopen(request, timeout=2):
-                self.connection_badge.configure(text="●  ONLINE", fg=self.SUCCESS)
-                self._write("Orville API is running.", "meta")
-                return
+            self._api_call("/api/v1/health", timeout=2)
+            mode = "in-process" if _inprocess.is_running() else "local server"
+            self.connection_badge.configure(text="●  ONLINE", fg=self.SUCCESS)
+            self._write(f"Orville API is running ({mode}).", "meta")
+            return
         except Exception:
             self.after(500, self._wait_for_api)
 
@@ -1150,8 +1737,22 @@ class OrvilleWindow(tk.Tk):
 
 
 def main() -> None:
+    multiprocessing.freeze_support()
+    # Frozen mode: act as the websockify process when re-invoked with the flag.
+    if "--run-websockify" in sys.argv:
+        idx = sys.argv.index("--run-websockify")
+        sys.argv = [sys.argv[0]] + sys.argv[idx + 1:]
+        from websockify.websocketproxy import websockify_init
+        websockify_init()
+        return
     load_env()
-    threading.Thread(target=start_api, daemon=True).start()
+    # Prefer the in-process API (no socket, no uvicorn, no env token needed).
+    # Fall back to the loopback HTTP server only if the API/httpx dependencies
+    # are unavailable in this environment.
+    try:
+        _inprocess.ensure_started()
+    except Exception:
+        threading.Thread(target=start_api, daemon=True).start()
     app = OrvilleWindow()
     app.mainloop()
 

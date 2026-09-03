@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import importlib
 import time
 import re
 from dataclasses import asdict
@@ -24,7 +25,7 @@ from .persistence import SQLiteCheckpointStore
 from .artifacts import ArtifactStore
 from .memory import MemoryStore
 from .engine import OrchestrationEngine
-from .extensions import Connector, ExtensionRegistry, PermissionSet
+from .extensions import Connector, ExtensionManager, ExtensionRegistry, PermissionSet
 from .integration import model_task_handler, streaming_model_task_handler
 from .models import Checkpoint, TaskGraph, TaskNode
 from .providers import MediaRequest, ModelCapabilities, ProviderConfig, ProviderError, ProviderRegistry, create_provider
@@ -537,8 +538,16 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         except ValueError:
             blackbox_relay = None
     extension_registry = ExtensionRegistry()
-    extension_registry.register_connector(Connector("local-workspace", "orville", ("read", "diff", "run"), "available", True))
+    extension_registry.register_connector(Connector(name="local-workspace", base_url="orville", auth={"scopes": ["read", "diff", "run"]}))
+
+    # Extension Management
+    extensions_dir = Path(checkpoint_root.parent / "extensions")
+    config_dir = Path(checkpoint_root.parent / "config")
+    extension_manager = ExtensionManager(extension_registry, extensions_dir, config_dir)
+    app.state.extension_manager = extension_manager
+
     privacy_policy_store = PrivacyRoutingPolicyStore(checkpoint_root.parent / "orville-routing-policy.json")
+
     remote_policy_store = RemotePolicyStore(privacy_policy_store, os.getenv("ORVILLE_POLICY_STORE_URL"), os.getenv("ORVILLE_POLICY_STORE_TOKEN"))
     if remote_policy_store.configured:
         remote_policy_store.load()
@@ -1499,7 +1508,73 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             },
         }
 
+    @app.get("/api/v1/extensions", dependencies=[Depends(authenticate)])
+    def list_extensions(request: Request) -> dict[str, Any]:
+    """Return list of installed extensions as before."""
+    manager: ExtensionManager = request.app.state.extension_manager
+    return {"extensions": manager.list_installed()}
+
+
+@app.get("/api/v1/check-dependencies", dependencies=[Depends(authenticate)])
+async def check_dependencies(request: Request, timeout: int = 5) -> dict[str, dict[str, bool]]:
+    """Attempt to import a set of common heavy packages and report if they are available.
+    Each import is performed in a thread with ``asyncio.wait_for`` to impose a per‑package timeout.
+    """
+    package_names = ["numpy", "pandas", "torch", "orjson"]
+    results = {}
+    for pkg in package_names:
+        try:
+            await asyncio.wait_for(asyncio.to_thread(importlib.import_module, pkg), timeout=timeout)
+            results[pkg] = True
+        except Exception:
+            results[pkg] = False
+    return {"dependencies": results}
+
+        manager: ExtensionManager = request.app.state.extension_manager
+        return {"extensions": manager.list_installed()}
+
+    @app.post("/api/v1/extensions/install", dependencies=[Depends(authenticate)])
+    def install_extension(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        manager: ExtensionManager = request.app.state.extension_manager
+        try:
+            archive_path = Path(payload["archive_path"])
+            ext_id = manager.install_from_archive(archive_path)
+            return {"status": "installed", "extension_id": ext_id}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @app.post("/api/v1/extensions/enable", dependencies=[Depends(authenticate)])
+    def enable_extension(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        manager: ExtensionManager = request.app.state.extension_manager
+        ext_id = payload["extension_id"]
+        if manager.enable_extension(ext_id):
+            return {"status": "enabled", "extension_id": ext_id}
+        raise HTTPException(status_code=400, detail="Failed to enable extension")
+
+    @app.post("/api/v1/extensions/disable", dependencies=[Depends(authenticate)])
+    def disable_extension(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        manager: ExtensionManager = request.app.state.extension_manager
+        ext_id = payload["extension_id"]
+        if manager.disable_extension(ext_id):
+            return {"status": "disabled", "extension_id": ext_id}
+        raise HTTPException(status_code=400, detail="Failed to disable extension")
+
+    @app.post("/api/v1/extensions/uninstall", dependencies=[Depends(authenticate)])
+    def uninstall_extension(payload: dict[str, Any], request: Request) -> dict[str, Any]:
+        manager: ExtensionManager = request.app.state.extension_manager
+        ext_id = payload["extension_id"]
+        if manager.uninstall_extension(ext_id):
+            return {"status": "uninstalled", "extension_id": ext_id}
+        raise HTTPException(status_code=400, detail="Failed to uninstall extension")
+
+    @app.get("/api/v1/extensions/search", dependencies=[Depends(authenticate)])
+    def search_extensions(query: str, request: Request) -> dict[str, Any]:
+        adapter = VSCodeAdapter()
+        results = adapter.search_marketplace(query)
+        return {"results": results}
+
     @app.get("/api/v1/health", dependencies=[Depends(authenticate)])
+
     def health() -> dict[str, str]:
         return {"status": "ok", "service": "orville-api"}
 

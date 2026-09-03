@@ -19,10 +19,6 @@ htmlcov/
 *.egg-info/
 
 # Orville runtime state and credentials
-.orville_manus_worker_state.json
-.orville_manus_worker_state.json.*
-.orville_manus_worker.lock
-.orville_manus_worker.log
 *.sqlite
 *.sqlite3
 *.db
