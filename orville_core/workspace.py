@@ -167,8 +167,13 @@ class WorkspaceSession:
             raise WorkspaceError("timeout must be between 0 and 900 seconds")
         started = monotonic()
         safe_env = {"PATH": os.environ.get("PATH", ""), "LANG": "C.UTF-8"}
+        sensitive_patterns = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "AUTHORIZATION", "CREDENTIAL", "PRIVATE_KEY")
         if env:
-            safe_env.update({str(key): str(value) for key, value in env.items() if key.upper() not in {"API_KEY", "TOKEN", "SECRET", "PASSWORD", "AUTHORIZATION"}})
+            safe_env.update({
+                str(key): str(value)
+                for key, value in env.items()
+                if not any(pattern in key.upper() for pattern in sensitive_patterns)
+            })
         try:
             completed = subprocess.run(argv, cwd=self.root, env=safe_env, shell=False, capture_output=True, text=True, timeout=timeout_seconds, check=False)
             stdout, stderr = completed.stdout, completed.stderr

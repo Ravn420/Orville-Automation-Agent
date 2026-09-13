@@ -58,15 +58,12 @@ RUN_UNAVAILABLE_MESSAGE = "Run unavailable. Check the run ID and local API statu
 
 
 def load_env() -> None:
-    # In frozen mode, sys.executable points to the EXE; in development it points to Python interpreter
-    # We check multiple locations to find the .env.production file
-    executable_dir = Path(sys.executable).resolve().parent
+    # Use get_base_path() which works correctly in both dev and frozen PyInstaller modes
+    base_dir = get_base_path()
     for path in (
-        # First check executable directory (works in both dev and frozen modes)
-        executable_dir / ".env.production",
-        # Then check base path (for packaged apps)
-        get_base_path() / ".env.production",
-        # Finally check current working directory
+        # First check base path (works in both dev and frozen modes)
+        base_dir / ".env.production",
+        # Then check current working directory
         Path.cwd() / ".env.production",
     ):
         if path.exists():

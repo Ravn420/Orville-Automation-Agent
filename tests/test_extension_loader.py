@@ -20,7 +20,6 @@ def test_load_missing_main(tmp_path):
     registry = ExtensionRegistry()
     ext_dir = tmp_path / "myext"
     ext_dir.mkdir()
-    (ext_dir / "manifest.json").write_text('{"id":"myext","name":"My Ext"}
-# added test coverage for ExtensionLoader lifecycle', encoding="utf-8")
+    (ext_dir / "manifest.json").write_text('{"id":"myext","name":"My Ext"}', encoding="utf-8")
     loader = ExtensionLoader(registry, tmp_path)
     assert loader.load_extension(ext_dir) is False

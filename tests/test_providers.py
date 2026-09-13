@@ -74,6 +74,9 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(response.text, "{}")
         self.assertEqual(response.usage["input_tokens"], 4)
         self.assertIn("generateContent", http.calls[0][1])
+        self.assertNotIn("key=", http.calls[0][1])
+        self.assertNotIn("secret", http.calls[0][1])
+        self.assertEqual(http.calls[0][2]["headers"]["x-goog-api-key"], "secret")
         self.assertIn("systemInstruction", http.calls[0][2]["payload"])
         self.assertNotIn("secret", config.redacted().values())
 

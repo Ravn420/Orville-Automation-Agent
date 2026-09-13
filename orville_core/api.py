@@ -763,14 +763,16 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         return result
 
     @app.get("/api/v1/connectors/{connector_uid}/oauth/callback", response_class=HTMLResponse)
-    def complete_connector_oauth(connector_uid: str, code: str = Query(min_length=1), state: str = Query(min_length=1)) -> str:
+    def complete_connector_oauth(connector_uid: str, code: str = Query(min_length=1), state: str = Query(min_length=1)) -> HTMLResponse:
+        import html
         try:
             connection_store.complete_oauth(connector_uid, code, state)
         except ConnectorConnectionError as exc:
             audit_store.append("local", "connector.connect.oauth.callback", connector_uid, "failed", metadata={"error": str(exc)})
-            return HTMLResponse(f"<h1>Orville connector sign-in failed</h1><p>{str(exc)}</p><p>Return to Signal Room and review the connection status.</p>", status_code=400).body.decode("utf-8")
+            safe_error = html.escape(str(exc))
+            return HTMLResponse(f"<!DOCTYPE html><html><body><h1>Orville connector sign-in failed</h1><p>{safe_error}</p><p>Return to Signal Room and review the connection status.</p></body></html>", status_code=400)
         audit_store.append("local", "connector.connect.oauth.callback", connector_uid, "completed")
-        return "<h1>Orville connector connected</h1><p>You may close this window and return to Signal Room.</p>"
+        return HTMLResponse("<!DOCTYPE html><html><body><h1>Orville connector connected</h1><p>You may close this window and return to Signal Room.</p></body></html>", status_code=200)
 
     @app.post("/api/v1/connectors/{connector_uid}/refresh", dependencies=[Depends(authenticate)])
     def refresh_connector(connector_uid: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -1510,36 +1512,42 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
 
     @app.get("/api/v1/extensions", dependencies=[Depends(authenticate)])
     def list_extensions(request: Request) -> dict[str, Any]:
-    """Return list of installed extensions as before."""
-    manager: ExtensionManager = request.app.state.extension_manager
-    return {"extensions": manager.list_installed()}
-
-
-@app.get("/api/v1/check-dependencies", dependencies=[Depends(authenticate)])
-async def check_dependencies(request: Request, timeout: int = 5) -> dict[str, dict[str, bool]]:
-    """Attempt to import a set of common heavy packages and report if they are available.
-    Each import is performed in a thread with ``asyncio.wait_for`` to impose a per‑package timeout.
-    """
-    package_names = ["numpy", "pandas", "torch", "orjson"]
-    results = {}
-    for pkg in package_names:
-        try:
-            await asyncio.wait_for(asyncio.to_thread(importlib.import_module, pkg), timeout=timeout)
-            results[pkg] = True
-        except Exception:
-            results[pkg] = False
-    return {"dependencies": results}
-
+        """Return list of installed extensions as before."""
         manager: ExtensionManager = request.app.state.extension_manager
         return {"extensions": manager.list_installed()}
+
+
+    @app.get("/api/v1/check-dependencies", dependencies=[Depends(authenticate)])
+    async def check_dependencies(request: Request, timeout: int = 5) -> dict[str, dict[str, bool]]:
+        """Attempt to import a set of common heavy packages and report if they are available.
+        Each import is performed in a thread with ``asyncio.wait_for`` to impose a per‑package timeout.
+        """
+        package_names = ["numpy", "pandas", "torch", "orjson"]
+        results = {}
+        for pkg in package_names:
+            try:
+                await asyncio.wait_for(asyncio.to_thread(importlib.import_module, pkg), timeout=timeout)
+                results[pkg] = True
+            except Exception:
+                results[pkg] = False
+        return {"dependencies": results}
 
     @app.post("/api/v1/extensions/install", dependencies=[Depends(authenticate)])
     def install_extension(payload: dict[str, Any], request: Request) -> dict[str, Any]:
         manager: ExtensionManager = request.app.state.extension_manager
         try:
-            archive_path = Path(payload["archive_path"])
+            raw_path = payload.get("archive_path")
+            if not raw_path or not isinstance(raw_path, str):
+                raise HTTPException(status_code=400, detail="archive_path is required")
+            archive_path = Path(raw_path).resolve()
+            if not archive_path.exists() or not archive_path.is_file():
+                raise HTTPException(status_code=400, detail="archive file does not exist")
+            if archive_path.suffix.lower() not in {".zip", ".orv"}:
+                raise HTTPException(status_code=400, detail="archive must be a .zip or .orv file")
             ext_id = manager.install_from_archive(archive_path)
             return {"status": "installed", "extension_id": ext_id}
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 

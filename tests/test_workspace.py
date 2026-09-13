@@ -81,6 +81,21 @@ class WorkspaceTests(unittest.TestCase):
             finally:
                 workspace.cleanup()
 
+    def test_subprocess_env_scrubbing_filters_sensitive_keys(self):
+        with tempfile.TemporaryDirectory() as source_dir:
+            source = Path(source_dir)
+            workspace = WorkspaceSession.create(source, workspace_parent=source.parent, workspace_id="env_test")
+            try:
+                # Run python command to print env vars
+                script = "import os; print(os.environ.get('SAFE_VAR', 'none') + ':' + os.environ.get('OPENAI_API_KEY', 'scrubbed') + ':' + os.environ.get('MY_TOKEN', 'scrubbed'))"
+                result = workspace.run(
+                    ["python", "-c", script],
+                    env={"SAFE_VAR": "visible", "OPENAI_API_KEY": "sk-secret", "MY_TOKEN": "tok-123"}
+                )
+                self.assertEqual(result.stdout.strip(), "visible:scrubbed:scrubbed")
+            finally:
+                workspace.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

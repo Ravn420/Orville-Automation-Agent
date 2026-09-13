@@ -191,6 +191,21 @@ class OrchestrationTests(unittest.TestCase):
             self.assertEqual(payload["schema_version"], Checkpoint.CURRENT_SCHEMA_VERSION)
             self.assertEqual(payload["run_status"], "completed")
 
+    def test_task_error_secrets_are_redacted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            def failing_handler(task, context):
+                raise RuntimeError("Failed with token Bearer sk-live-secret-key-123456789")
+
+            graph = TaskGraph("error-redact", "Error Redact", [TaskNode("failing", "Failing", "fail")])
+            store = CheckpointStore(directory)
+            result = OrchestrationEngine(store, {"fail": failing_handler}).run(graph, run_id="error-run")
+            checkpoint = store.load("error-run")
+            self.assertEqual(checkpoint.run_status, RunStatus.FAILED)
+            task = checkpoint.graph.tasks[0]
+            self.assertIn("[REDACTED]", task.error)
+            self.assertNotIn("sk-live-secret-key-123456789", task.error)
+
+
 
 class GraphInputOwnershipTests(unittest.TestCase):
     def test_missing_required_input_is_rejected_before_execution(self):

@@ -51,4 +51,8 @@ Thumbs.db
 *.zip
 *.7z
 *.bak
-.codebuddy
+
+# Virtual environments and local tool directories
+.venv/
+.codebuddy/
+NUL

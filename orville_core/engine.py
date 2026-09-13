@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from .checkpoint import CheckpointStore
 from .models import Checkpoint, Event, OperationCheckpoint, RunStatus, TaskGraph, TaskNode, TaskStatus
+from .security import SecretRedactor
 from .workspace_locks import WorkspaceLeaseError, WorkspaceLeaseRegistry
 
 TaskHandler = Callable[[TaskNode, dict[str, Any]], Any]
@@ -225,7 +226,7 @@ class OrchestrationEngine:
             self._record_operation(checkpoint, task, "after", "succeeded")
         except Exception as exc:  # noqa: BLE001 - task failures are persisted, not swallowed
             task.status = TaskStatus.FAILED
-            task.error = f"{type(exc).__name__}: {exc}"
+            task.error = SecretRedactor.redact(f"{type(exc).__name__}: {exc}")
             self._record(checkpoint, "task_failed", task.task_id, {"attempt": task.attempts, "error": task.error})
             self._record_operation(checkpoint, task, "after", "failed", details={"error": task.error})
             checkpoint.context.pop("_progress_callback", None)
@@ -303,7 +304,7 @@ class OrchestrationEngine:
         for task, output, error in results:
             if error is not None:
                 task.status = TaskStatus.FAILED
-                task.error = f"{type(error).__name__}: {error}"
+                task.error = SecretRedactor.redact(f"{type(error).__name__}: {error}")
                 self._record(checkpoint, "task_failed", task.task_id, {"attempt": task.attempts, "parallel": True, "error": task.error})
                 self._record_operation(checkpoint, task, "after", "failed")
                 continue

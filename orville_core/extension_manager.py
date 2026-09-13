@@ -71,6 +71,13 @@ class ExtensionManager:
         temp_extract = self.extensions_dir / f"temp_{archive_path.stem}"
         try:
             with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                resolved_temp = temp_extract.resolve()
+                for member in zip_ref.namelist():
+                    target = (temp_extract / member).resolve()
+                    try:
+                        target.relative_to(resolved_temp)
+                    except ValueError:
+                        raise ValueError(f"Zip slip detected in archive member: {member}")
                 zip_ref.extractall(temp_extract)
 
             manifest_path = temp_extract / "manifest.json"
@@ -80,7 +87,9 @@ class ExtensionManager:
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
 
-            ext_id = manifest["id"]
+            ext_id = manifest.get("id")
+            if not ext_id or not isinstance(ext_id, str) or "/" in ext_id or "\\" in ext_id or ".." in ext_id:
+                raise ValueError(f"Invalid extension ID: {ext_id}")
             final_path = self.extensions_dir / ext_id
 
             if final_path.exists():

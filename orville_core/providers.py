@@ -349,8 +349,7 @@ class GeminiAdapter(BaseHttpProvider):
         return payload
 
     def _path(self, operation: str) -> str:
-        suffix = f"?{urlencode({'key': self.config.api_key})}" if self.config.api_key else ""
-        return f"v1beta/models/{self.config.model}:{operation}{suffix}"
+        return f"v1beta/models/{self.config.model}:{operation}"
 
     @staticmethod
     def _response(raw: dict[str, Any], provider_id: str, model: str) -> LLMResponse:
@@ -366,7 +365,7 @@ class GeminiAdapter(BaseHttpProvider):
         return self._response(raw, self.config.provider_id, self.config.model)
 
     def stream(self, request: LLMRequest) -> Iterable[StreamChunk]:
-        for raw in self._stream_request(self._path("streamGenerateContent") + "&alt=sse", self._payload(request)):
+        for raw in self._stream_request(self._path("streamGenerateContent") + "?alt=sse", self._payload(request)):
             response = self._response(raw, self.config.provider_id, self.config.model)
             yield StreamChunk(response.provider_id, response.model, response.text, raw, response.finish_reason, response.tool_calls, response.usage)
 

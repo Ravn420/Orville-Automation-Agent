@@ -7,16 +7,21 @@
     ],
     "motion": {
       "duration_ms": {
-        "fast": 120,
-        "slow": 320,
+        "fast": 150,
+        "slow": 300,
         "standard": 200
+      },
+      "easing": {
+        "ease_in": "cubic-bezier(0.55, 0.06, 0.68, 0.19)",
+        "ease_out": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "linear": "linear"
       },
       "reduced_motion": "disable_nonessential_motion"
     },
     "spacing": null,
     "typography": null
   },
-  "design_hash": "61c166f530ff5cc744b396798a92f7fa90e15bd5b0793b897f138921e6ac60c7",
+  "design_hash": "74d4ae4673029f452b993a34f19017f37d368375b38ecda5dff141393f7ca937",
   "schema": 1,
   "structure": {
     "aria_labels": [

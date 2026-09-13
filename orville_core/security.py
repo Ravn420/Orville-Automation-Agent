@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -119,8 +120,21 @@ class NetworkPolicy:
         normalized = host.lower().strip().rstrip(".")
         if normalized not in self.allowed_hosts:
             raise SecurityViolation(f"network host is not allowlisted: {host}")
-        if not self.allow_private and (normalized in {"localhost", "127.0.0.1", "::1"} or normalized.startswith("192.168.") or normalized.startswith("10.")):
-            raise SecurityViolation(f"private network access is disabled: {host}")
+        if not self.allow_private:
+            if normalized in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
+                raise SecurityViolation(f"private network access is disabled: {host}")
+            try:
+                ip = ipaddress.ip_address(normalized)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                    raise SecurityViolation(f"private network access is disabled: {host}")
+            except ValueError:
+                if (
+                    normalized.startswith("192.168.")
+                    or normalized.startswith("10.")
+                    or normalized.startswith("169.254.")
+                    or normalized.startswith("127.")
+                ):
+                    raise SecurityViolation(f"private network access is disabled: {host}")
 
 
 class SecretRedactor:

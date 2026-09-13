@@ -15,10 +15,12 @@ Successfully applied all critical fixes required for building Orville as a stand
 ## Fixed Issues
 
 ### ✅ 1. Missing freeze_support() - FIXED
+
 **File:** `windows_gui.py:1727`
 **Status:** Already Implemented
 
 The required `multiprocessing.freeze_support()` call was already present in the main() function:
+
 ```python
 def main() -> None:
     multiprocessing.freeze_support()  # ✓ Present
@@ -27,10 +29,12 @@ def main() -> None:
 ```
 
 ### ✅ 2. Hardcoded Path References - FIXED
+
 **File:** `windows_gui.py:33-42`
 **Status:** Already Implemented
 
 The `get_base_path()` helper function was already implemented:
+
 ```python
 def get_base_path() -> Path:
     """Get base path that works in both development and PyInstaller frozen apps."""
@@ -41,10 +45,12 @@ def get_base_path() -> Path:
 ```
 
 ### ✅ 3. sys.executable Path Issues - FIXED
+
 **File:** `windows_gui.py:52-65`
 **Status:** ENHANCED
 
 Added comprehensive comments explaining the frozen mode path resolution:
+
 ```python
 def load_env() -> None:
     # In frozen mode, sys.executable points to the EXE; in development it points to Python interpreter
@@ -62,10 +68,12 @@ def load_env() -> None:
 ```
 
 ### ✅ 4. PyInstaller Spec File - CREATED
+
 **File:** `Orville-GUI-Final-Fixed.spec`
 **Status:** NEW FILE
 
 Created comprehensive spec file with:
+
 - All required dependencies bundled
 - noVNC assets included
 - `.env.production` and `icon.ico` bundled
@@ -73,10 +81,12 @@ Created comprehensive spec file with:
 - Correct configuration for GUI mode (console=False)
 
 ### ✅ 5. Requirements File - VERIFIED
+
 **File:** `requirements.txt`
 **Status:** ALREADY EXISTS
 
 Verified all required dependencies are present:
+
 - websockify>=0.11.0
 - fastapi>=0.110
 - uvicorn>=0.29
@@ -84,6 +94,7 @@ Verified all required dependencies are present:
 - pyinstaller>=6.0
 
 ### ✅ 6. Test Fix - APPLIED
+
 **File:** `tests/test_memory_api.py:88-107`
 **Issue:** Race condition in TTL expiration test
 **Fix:** Added `time.sleep(1.5)` after creating short-lived memory to ensure expiration
@@ -93,11 +104,13 @@ Verified all required dependencies are present:
 ## Build Instructions
 
 ### Quick Build
+
 ```powershell
 .\build-exe.ps1
 ```
 
 ### Manual Build
+
 ```powershell
 # 1. Install dependencies
 pip install -e ".[api]"
@@ -121,10 +134,10 @@ Before distribution, verify:
 
 - [ ] Executable starts without errors
 - [ ] GUI loads and displays correctly
-- [ ] API starts and responds at http://127.0.0.1:8787/docs
+- [ ] API starts and responds at <http://127.0.0.1:8787/docs>
 - [ ] Environment variables load from `.env.production`
 - [ ] VNC integration works (if websockify installed)
-- [ ] noVNC web assets accessible at http://localhost:6080/vnc.html
+- [ ] noVNC web assets accessible at <http://localhost:6080/vnc.html>
 - [ ] Can create and execute objectives
 - [ ] Can browse artifacts
 - [ ] Can configure providers (without exposing secrets)
@@ -166,6 +179,7 @@ dist/
 ## Dependencies Bundled
 
 All Python dependencies are bundled including:
+
 - FastAPI + Uvicorn (API server)
 - Tkinter (GUI)
 - Cryptography (security)
