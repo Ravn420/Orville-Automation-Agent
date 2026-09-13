@@ -971,7 +971,7 @@ class OrvilleWindow(tk.Tk):
             self.objective.configure(fg=self.MUTED)
 
     def _write(self, value: object, tag: str | None = None) -> None:
-        text = json.dumps(safe_display_value(value), indent=2, ensure_ascii=False) if not isinstance(value, str) else _redact_display_text(value)
+        text = json.dumps(safe_display_value(value), indent=2, ensure_ascii=False) if not isinstance(value, str) else safe_display_value(value)
         self.output.configure(state="normal")
         if tag:
             self.output.insert("end", text + "\n\n", tag)
@@ -979,10 +979,11 @@ class OrvilleWindow(tk.Tk):
             self.output.insert("end", text + "\n\n")
         self.output.see("end")
         self.output.configure(state="disabled")
-        self.context_text.configure(state="normal")
-        self.context_text.delete("1.0", "end")
-        self.context_text.insert("1.0", text)
-        self.context_text.configure(state="disabled")
+        if hasattr(self, "context_text") and self.context_text:
+            self.context_text.configure(state="normal")
+            self.context_text.delete("1.0", "end")
+            self.context_text.insert("1.0", text)
+            self.context_text.configure(state="disabled")
 
     def _request(self, path: str, method: str = "GET", payload: dict | None = None) -> None:
         self.task_status.configure(text="WORKING", bg="#f4edff", fg=self.ACCENT)
