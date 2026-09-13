@@ -759,7 +759,7 @@ def create_provider(config: ProviderConfig, http: JsonHttpClient | None = None) 
         return CustomLocalAdapter(config, http)
     if provider_type in {"blackbox-relay", "managed-blackbox", "orville-blackbox-relay"}:
         return ManagedBlackboxRelayAdapter(config, http)
-    if provider_type in {"blackbox", "openai", "openai-compatible", "openai-compatible-local", "openrouter", "groq", "together", "deepseek", "mistral", "xai", "perplexity", "cohere", "fireworks", "cerebras", "nvidia-nim", "azure-openai", "bedrock-compatible"}:
+    if provider_type in {"blackbox", "openai", "openai-compatible", "openai-compatible-local", "openrouter", "portkey", "aws-mantle", "mantle", "aws-bedrock", "bedrock", "groq", "together", "deepseek", "mistral", "xai", "perplexity", "cohere", "fireworks", "cerebras", "nvidia-nim", "azure-openai", "bedrock-compatible"}:
         return OpenAICompatibleAdapter(config, http)
     if provider_type in {"huggingface", "hugging-face", "hf-inference"}:
         return HuggingFaceAdapter(config, http)

@@ -1205,12 +1205,12 @@ class OrvilleWindow(tk.Tk):
                 advanced_widgets.extend((label_widget, entry_widget))
 
         ttk.Label(body, text="Provider type", background=self.SURFACE, foreground=self.MUTED).grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-        provider_combo = ttk.Combobox(body, textvariable=provider_type, values=("ollama", "gemini", "openai_compatible", "anthropic"), state="readonly", width=55)
+        provider_combo = ttk.Combobox(body, textvariable=provider_type, values=("ollama", "gemini", "openai_compatible", "anthropic", "openrouter", "portkey", "aws_mantle", "aws_bedrock", "ai_horde"), state="readonly", width=55)
         provider_combo.grid(row=0, column=1, sticky="ew", pady=5)
         row("Provider ID", provider_id, 1, advanced=True)
         row("Model name", model, 2)
         row("Base URL", base_url, 3, advanced=True)
-        row("API key (optional)", api_key, 4, show="•", advanced=True)
+        row("API key", api_key, 4, show="•", advanced=True)
         row("Timeout seconds", timeout, 5, advanced=True)
         row("Capabilities (comma-separated)", capabilities, 6, advanced=True)
         privacy_label = ttk.Label(body, text="Privacy", background=self.SURFACE, foreground=self.MUTED)
@@ -1249,6 +1249,16 @@ class OrvilleWindow(tk.Tk):
                 provider_id.set("gemini"); base_url.set("https://generativelanguage.googleapis.com"); model.set("gemini-2.5-flash")
             elif selected == "anthropic":
                 provider_id.set("anthropic"); base_url.set("https://api.anthropic.com"); model.set("claude-3-5-sonnet-latest")
+            elif selected == "openrouter":
+                provider_id.set("openrouter"); base_url.set("https://openrouter.ai/api/v1"); model.set("anthropic/claude-3.5-sonnet"); capabilities.set("text,code,streaming,tool_calling")
+            elif selected == "portkey":
+                provider_id.set("portkey"); base_url.set("https://api.portkey.ai/v1"); model.set("anthropic/claude-3.5-sonnet"); capabilities.set("text,code,streaming,tool_calling")
+            elif selected == "aws_mantle":
+                provider_id.set("aws-mantle"); base_url.set("https://api.mantleai.com/v1"); model.set("gpt-4o"); capabilities.set("text,code,streaming,tool_calling")
+            elif selected == "aws_bedrock":
+                provider_id.set("aws-bedrock"); base_url.set("https://bedrock-runtime.us-east-1.amazonaws.com"); model.set("anthropic.claude-3-5-sonnet-20241022-v2:0"); capabilities.set("text,code,streaming,tool_calling")
+            elif selected == "ai_horde":
+                provider_id.set("ai-horde"); base_url.set("https://stablehorde.net"); model.set("llama-3.1-70b"); capabilities.set("text,code")
             else:
                 provider_id.set("openai-compatible"); base_url.set("http://127.0.0.1:8000/v1"); model.set("local-model")
 
