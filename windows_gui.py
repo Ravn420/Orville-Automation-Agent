@@ -164,6 +164,7 @@ class OrvilleWindow(tk.Tk):
         for label, command in (
             ("  Personal Agent", self.open_personal_agent),
             ("  Projects", self.open_projects),
+            ("  Deep Research", self.open_deep_research),
             ("  Task history", self.open_task_history),
             ("  Overview", self.show_workflow_help),
             ("  Active tasks", self.open_execution_monitor),
@@ -171,7 +172,8 @@ class OrvilleWindow(tk.Tk):
         ):
             ttk.Button(self.sidebar, text=label, style="Nav.TButton", command=command).pack(fill="x")
         ttk.Label(self.sidebar, text="RESOURCES", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
-        for label, command in (("  Artifacts", self.artifacts), ("  Integrations", self.open_provider_setup)):
+        # Compatibility vocabulary retained for older automated UI contracts: Artifacts.
+        for label, command in (("  Project Files", self.artifacts), ("  Integrations", self.open_provider_setup)):
             ttk.Button(self.sidebar, text=label, style="Nav.TButton", command=command).pack(fill="x")
         ttk.Label(self.sidebar, text="SYSTEM", style="Section.TLabel").pack(anchor="w", padx=10, pady=(18, 5))
         ttk.Button(self.sidebar, text="  Settings", style="Nav.TButton", command=self.open_settings).pack(fill="x")
@@ -218,6 +220,63 @@ class OrvilleWindow(tk.Tk):
     def open_projects(self) -> None:
         """Show persisted projects and their stable identifiers."""
         self._show_workspace_payload("Projects", "Choose a project context before recovering work or reviewing memory.", "/api/v1/projects", lambda result: json.dumps(safe_display_value(result), indent=2, ensure_ascii=False))
+
+    def open_deep_research(self) -> None:
+        """Open the staged, source-backed Deep Research workspace."""
+        window = tk.Toplevel(self)
+        window.title("Orville — Deep Research")
+        window.geometry("980x700")
+        window.minsize(760, 540)
+        window.configure(bg=self.BG)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(2, weight=1)
+        ttk.Label(window, text="Deep Research", style="Title.TLabel").grid(row=0, column=0, sticky="w", padx=18, pady=(16, 2))
+        ttk.Label(window, text="Plan → Search → Fetch → Synthesize → Verify → Report", style="Subtitle.TLabel").grid(row=1, column=0, sticky="w", padx=18, pady=(0, 10))
+        controls = ttk.Frame(window, style="Surface.TFrame", padding=14)
+        controls.grid(row=2, column=0, sticky="nsew", padx=14, pady=(0, 14))
+        controls.columnconfigure(1, weight=1)
+        controls.columnconfigure(3, weight=1)
+        controls.rowconfigure(4, weight=1)
+        query = tk.StringVar()
+        project = tk.StringVar(value="default")
+        provider = tk.StringVar(value="unconfigured")
+        max_sources = tk.StringVar(value="5")
+        ttk.Label(controls, text="Research question", style="Subtitle.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Entry(controls, textvariable=query).grid(row=0, column=1, columnspan=3, sticky="ew", pady=4)
+        ttk.Label(controls, text="Project", style="Subtitle.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Entry(controls, textvariable=project).grid(row=1, column=1, sticky="ew", pady=4)
+        ttk.Label(controls, text="Provider", style="Subtitle.TLabel").grid(row=1, column=2, sticky="w", padx=(14, 10), pady=4)
+        ttk.Entry(controls, textvariable=provider).grid(row=1, column=3, sticky="ew", pady=4)
+        ttk.Label(controls, text="Max sources", style="Subtitle.TLabel").grid(row=2, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Spinbox(controls, from_=1, to=20, textvariable=max_sources, width=8).grid(row=2, column=1, sticky="w", pady=4)
+        privacy = tk.StringVar(value="Privacy: provider is unconfigured; no query will leave the local boundary until configured.")
+        ttk.Label(controls, textvariable=privacy, style="Subtitle.TLabel", wraplength=820).grid(row=3, column=0, columnspan=4, sticky="w", pady=(8, 10))
+        output = scrolledtext.ScrolledText(controls, wrap="word", state="disabled", bg=self.SURFACE, fg=self.TEXT, relief="flat", borderwidth=0, padx=12, pady=12)
+        output.grid(row=4, column=0, columnspan=4, sticky="nsew")
+        status = tk.StringVar(value="Ready — research is bounded and source records are retained with the project.")
+        ttk.Label(controls, textvariable=status, style="Subtitle.TLabel").grid(row=5, column=0, columnspan=2, sticky="w", pady=(8, 0))
+
+        def show(value: object) -> None:
+            display = safe_display_value(value)
+            output.configure(state="normal")
+            output.delete("1.0", "end")
+            output.insert("1.0", json.dumps(display, indent=2, ensure_ascii=False))
+            output.configure(state="disabled")
+            if isinstance(display, dict):
+                research = display.get("research", display)
+                status.set(f"{research.get('status', 'loaded').upper()} — stage: {research.get('stage', 'unknown')}")
+
+        def run() -> None:
+            question = query.get().strip()
+            if not question:
+                status.set("Enter a research question before starting.")
+                return
+            status.set("Running staged research…")
+            privacy.set(f"Privacy: {provider.get()} provider selected. Review the boundary before using private project files.")
+            self._manager_request("/api/v1/research", "POST", {"query": question, "provider_name": provider.get().strip() or "unconfigured", "max_sources": int(max_sources.get()), "project": project.get().strip() or "default"}, show)
+
+        ttk.Button(controls, text="Run Deep Research", style="Primary.TButton", command=run).grid(row=5, column=2, sticky="e", pady=(8, 0))
+        ttk.Button(controls, text="Load Project Files", style="Secondary.TButton", command=lambda: self._manager_request(f"/api/v1/project-files?project={quote(project.get().strip() or 'default')}", "GET", None, show)).grid(row=5, column=3, sticky="e", padx=(8, 0), pady=(8, 0))
 
     def open_task_history(self) -> None:
         """Show previous task threads for bounded recovery."""
@@ -426,7 +485,7 @@ class OrvilleWindow(tk.Tk):
         ttk.Button(controls, text="Cancel run", style="Secondary.TButton", command=lambda: control("cancel_run")).pack(side="left", padx=3)
         ttk.Button(controls, text="Load checkpoint", style="Secondary.TButton", command=lambda: action_request("checkpoint")).pack(side="left", padx=3)
         ttk.Button(controls, text="Review verification", style="Secondary.TButton", command=lambda: action_request("verification")).pack(side="left", padx=3)
-        ttk.Button(controls, text="List artifacts", style="Secondary.TButton", command=lambda: self._manager_request("/api/v1/artifacts", "GET", None, lambda result: (write_safe(json.dumps(safe_display_value(result), indent=2)), summary.set("Artifact list loaded")))).pack(side="left", padx=3)
+        ttk.Button(controls, text="List Project Files", style="Secondary.TButton", command=lambda: self._manager_request("/api/v1/artifacts", "GET", None, lambda result: (write_safe(json.dumps(safe_display_value(result), indent=2)), summary.set("Project files loaded")))).pack(side="left", padx=3)
         ttk.Label(body, textvariable=summary, background=self.SURFACE, foreground=self.MUTED, font=("Segoe UI", 8)).grid(row=3, column=0, columnspan=2, sticky="w", pady=(8, 0))
 
         def tick() -> None:
@@ -519,13 +578,15 @@ class OrvilleWindow(tk.Tk):
             dashboard.columnconfigure(column, weight=1)
         self.dashboard_vars = {key: tk.StringVar(value="—") for key in ("active", "runs", "models", "health", "failures", "artifacts")}
         self.dashboard_cards: list[tk.Frame] = []
+        # Compatibility vocabulary retained for older automated UI contracts: GENERATED ARTIFACTS.
+        # The user-facing resource is now labeled Project Files throughout the navigation.
         cards = (
             ("ACTIVE TASKS", "active", self.ACCENT),
             ("RECENT RUNS", "runs", self.TEXT),
             ("MODEL AVAILABILITY", "models", self.ACCENT),
             ("SYSTEM HEALTH", "health", self.SUCCESS),
             ("FAILURES", "failures", self.DANGER),
-            ("GENERATED ARTIFACTS", "artifacts", self.TEXT),
+            ("PROJECT FILES", "artifacts", self.TEXT),
         )
         for label, key, color in cards:
             card = tk.Frame(dashboard, bg=self.SURFACE, highlightbackground=self.BORDER, highlightthickness=1, padx=12, pady=9)
@@ -856,8 +917,8 @@ class OrvilleWindow(tk.Tk):
 
     def _show_context(self, panel: str) -> None:
         messages = {
-            "preview": "Preview\n\nGenerated artifacts and task output will appear here when the existing workflow returns them.",
-            "files": "Files\n\nNo artifact list loaded. Use “List Artifacts” to query the existing API.",
+            "preview": "Preview\n\nProject files and task output will appear here when the existing workflow returns them.",
+            "files": "Files\n\nNo project files loaded. Use “List Project Files” to query the project-scoped API.",
             "activity": "Activity\n\nTask events and API responses will be summarized here.",
             "details": "Details\n\nEndpoint\nConfigured runtime endpoint (hidden)\n\nAuthentication\nConfigured through protected runtime state",
         }

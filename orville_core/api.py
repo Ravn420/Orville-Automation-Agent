@@ -22,6 +22,8 @@ from uuid import uuid4
 from .checkpoint import CheckpointStore
 from .persistence import SQLiteCheckpointStore
 from .artifacts import ArtifactStore
+from .project_files import ProjectFilesStore
+from .deep_research import DeepResearchEngine, ResearchConfig
 from .memory import MemoryStore
 from .engine import OrchestrationEngine
 from .extensions import Connector, ExtensionRegistry, PermissionSet
@@ -486,6 +488,8 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     else:
         raise ValueError("storage must be 'sqlite' or 'json'")
     artifacts = ArtifactStore(checkpoint_root.parent / "artifacts")
+    project_files = ProjectFilesStore(checkpoint_root.parent / "project_files")
+    deep_research = DeepResearchEngine()
     memory_store = MemoryStore(database_path or (checkpoint_root.parent / "orville.db"))
     platform_store = PlatformStore(database_path or (checkpoint_root.parent / "orville.db"))
     model_catalog = LocalModelCatalog(checkpoint_root.parent / "orville-models.json", TrustStore(checkpoint_root.parent / "orville-trust-store.json"))
@@ -2055,6 +2059,38 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
     @app.get("/api/v1/artifacts", dependencies=[Depends(authenticate)])
     def list_artifacts() -> dict[str, Any]:
         return {"artifacts": [record.to_dict() for record in artifacts.list()]}
+
+    @app.get("/api/v1/project-files", dependencies=[Depends(authenticate)])
+    def list_project_files(project: str = "default") -> dict[str, Any]:
+        try:
+            return project_files.project_manifest(project)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/research", dependencies=[Depends(authenticate)])
+    def run_deep_research(payload: dict[str, Any]) -> dict[str, Any]:
+        query = str(payload.get("query", "")).strip()
+        if not query:
+            raise HTTPException(status_code=400, detail="research query is required")
+        raw_sources = payload.get("sources")
+        engine = deep_research
+        if isinstance(raw_sources, list):
+            safe_sources = [item for item in raw_sources if isinstance(item, dict)]
+            engine = DeepResearchEngine(lambda _query, limit: safe_sources[:limit])
+        try:
+            config = ResearchConfig(
+                max_sources=int(payload.get("max_sources", 5)),
+                max_excerpt_chars=int(payload.get("max_excerpt_chars", 4000)),
+                timeout_seconds=int(payload.get("timeout_seconds", 30)),
+                include_private_files=bool(payload.get("include_private_files", False)),
+                provider_name=str(payload.get("provider_name", "unconfigured")),
+                report_format=str(payload.get("report_format", "markdown")),
+            )
+            run = engine.run(query, config=config)
+            audit_store.append("local", "research.run", query[:120], run.status, metadata={"stage": run.stage, "source_count": len(run.sources)})
+            return {"research": run.to_dict()}
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/v1/artifacts/preview/{relative_path:path}", dependencies=[Depends(authenticate)])
     def preview_artifact(relative_path: str, max_bytes: int = 12_000) -> dict[str, Any]:
