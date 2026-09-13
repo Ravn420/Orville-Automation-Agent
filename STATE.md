@@ -1037,3 +1037,69 @@ The next eligible TODO, `TODO-500f367e0031`, is complete locally. `docs/THREAT_M
 
 
 **Run lifecycle narrative checkpoint — 2026-08-28:** Closed `TODO-582e0f5dec5a`. Added `docs/RUN_LIFECYCLE_NARRATIVE.md`, defining the canonical state sequence and ten ordered walkthrough scenes from workspace readiness through terminal completion, plus approval, provider, pause/resume, cancellation, partial-stream, verification-failure, evidence, and safety branches. Focused narrative-contract tests passed 2 tests and Python compilation passed. No external credentials, provider calls, publication, or destructive actions were used.
+
+## Subagent Spawned — 2026-09-02
+
+**Active Subagent**: Verification Agent (Evaluation Framework Specialist)  
+**Subagent ID**: SUBAGENT-EVAL-001  
+**Status**: Active and initialized  
+**Handoff Document**: `tmp/subagent-evaluation-framework-handoff.md`  
+**Spawn Marker**: `tmp/SUBAGENT_SPAWNED`  
+
+### Assigned Tasks
+
+The Verification Agent subagent has been spawned to address pending evaluation framework tasks from TODO.md:
+
+1. **TODO-37bc97abee20**: Define task-specific evaluation datasets and golden cases
+2. **TODO-06227efe167c**: Evaluate generated software in isolated, reproducible environments  
+3. **TODO-745d5e6b79eb**: Add repository-level coding evaluations
+4. **TODO-f452603d4f34**: Track comprehensive run metadata
+5. **TODO-5b61f3b41e3b**: Implement OpenTelemetry-compatible observability
+6. **TODO-8bd066b79e4b**: Add trace comparison across runs
+
+### Subagent Scope and Constraints
+
+**Work Domain**: Evaluation framework design, implementation, and validation  
+**Security Boundaries**: 
+- Synthetic credentials only
+- Isolated environments required
+- Path containment enforced  
+- Resource limits: 5min execution, 2GB memory, 1GB disk per evaluation
+- Fail-closed design with automatic termination on escape attempts
+
+**Deliverables Expected**:
+- `orville_core/evaluation_datasets.py` and related modules
+- Dataset catalog with 50+ golden cases across 7 task categories
+- Behavioral evaluation runner with isolated test environment
+- Repository-level evaluation for 10 realistic issue scenarios
+- OpenTelemetry integration with full trace support
+- Updated STATE.md and TASK_GRAPH.md entries
+
+**Approval Gates**: Subagent requires explicit Orchestration Agent approval for:
+1. Code execution in evaluation environments
+2. External dataset downloads
+3. Non-synthetic credential use
+4. Network access beyond repository
+5. File system access outside `tmp/orville-evaluation/`
+
+### Handoff Protocol
+
+Subagent will report progress by:
+- Updating `tmp/SUBAGENT_SPAWNED` with status
+- Creating validation evidence in `artifacts/evaluation_*/`
+- Appending checkpoint updates to STATE.md
+- Requesting explicit approval at checkpoint gates
+- Following AGENTS.md trust boundaries and approval requirements
+
+**Orchestration Agent Role**:
+- Monitor subagent progress via marker file updates
+- Provide explicit approval at security-critical junctures
+- Review validation evidence before accepting completion
+- Ensure adherence to repository operating rules
+- Maintain continuity between subagent and broader project state
+
+**Next Expected Update**: Checkpoint 1 completion (Dataset catalog) - Due EOD 2026-09-02
+
+---
+
+*This subagent spawn represents continued work on the evaluation framework pillar, following the established Phase 4-5 transition boundary. All material assumptions are documented in the handoff file. No sensitive operations are approved. All evaluation work will use synthetic data only.*

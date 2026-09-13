@@ -1617,3 +1617,191 @@ The evaluator preserves reproducibility metadata and removes the temporary candi
 | Scope | Ten ordered scenes cover workspace, intake, planning, approval, execution, live progress, controlled branch, verification, artifact handoff, and completion |
 | Safety | Explicit credential, publication, destructive-action, fabricated-output, and deployment-boundary rules are included |
 | Limitations | Visual recording, live provider behavior, and production acceptance remain separate environment-owned work |
+
+## Subagent Workstream — Verification Agent Evaluation Framework
+
+**Workstream ID**: SUBAGENT-EVAL-001  
+**Owner**: Verification Agent (Subagent)  
+**Orchestration Owner**: Orchestration Agent  
+**Status**: In Progress  
+**Priority**: Medium (Evaluation Infrastructure)  
+**Expected Duration**: 3-5 work cycles  
+
+### Associated TODO Items
+
+| Task ID | Description | Status | Phase | Evidence |
+|---------|-------------|--------|-------|----------|
+| TODO-37bc97abee20 | Define task-specific evaluation datasets and golden cases | In Progress | Phase 5 | `tmp/subagent-evaluation-framework-handoff.md` |
+| TODO-06227efe167c | Evaluate generated software in isolated, reproducible environments | Pending | Phase 5 | Handoff defined |
+| TODO-745d5e6b79eb | Add repository-level coding evaluations | Pending | Phase 5 | Scope defined |
+| TODO-f452603d4f34 | Track comprehensive run metadata | Pending | Phase 5 | Requirements specified |
+| TODO-5b61f3b41e3b | Implement OpenTelemetry-compatible observability | Pending | Phase 5 | Architecture planned |
+| TODO-8bd066b79e4b | Add trace comparison across runs | Pending | Phase 5 | Design documented |
+
+### Workstream Dependencies
+
+**Hard Dependencies**: None (standalone evaluation infrastructure)  
+**Soft Dependencies**: 
+- Existing agent contracts (`orville_core/agent_contracts.py`)
+- Current workspace and validation utilities
+- Provider routing and model selection logic
+- Security and secret redaction infrastructure
+
+**Blocking Dependencies**: None (all dependencies satisfied)
+
+### Phase Breakdown
+
+#### Phase 1: Dataset Catalog Foundation
+- **Deliverable**: `orville_core/evaluation_datasets.py`
+- **Success Criteria**: 7 task categories, 50+ golden cases, validated schema
+- **Estimated Effort**: 1 work cycle
+- **Security Review**: Required at completion (secret-free data, path validation)
+
+#### Phase 2: Behavioral Evaluation Runner
+- **Deliverable**: `orville_core/behavioral_evaluation.py` with isolated test runner
+- **Deliverable**: Test harness with pass/fail determination logic
+- **Success Criteria**: Can evaluate 5 categories of generated Python code
+- **Estimated Effort**: 1-2 work cycles
+- **Security Review**: Critical (sandboxing, resource limits, path containment)
+
+#### Phase 3: Repository-Level Evaluation
+- **Deliverable**: `orville_core/repository_evaluation.py`
+- **Deliverable**: 10 realistic Orville repository issue scenarios
+- **Success Criteria**: Patch application, validation, regression checks
+- **Estimated Effort**: 1 work cycle
+- **Security Review**: High (repository modification containment)
+
+#### Phase 4: Observability Integration
+- **Deliverable**: `orville_core/observability_tracing.py`
+- **Deliverable**: OpenTelemetry-compatible trace exporter
+- **Success Criteria**: Full agent operation coverage, deterministic span IDs
+- **Estimated Effort**: 1 work cycle
+- **Security Review**: Medium (metadata redaction, no credential exposure)
+
+### Security and Approval Gates
+
+**Per-Phase Approval Required**:
+1. **Phase 1**: Dataset schema approval (content review only)
+2. **Phase 2**: Sandbox execution approval (security-critical)
+3. **Phase 3**: Repository write approval (targeted paths only)
+4. **Phase 4**: External export approval (telemetry endpoint configuration)
+
+**Risks Requiring Explicit Approval**:
+- Network access for dataset downloads
+- File system modification beyond `tmp/orville-evaluation/`
+- Credential use of any kind (even synthetic)
+- Code execution in non-sandboxed environments
+- External service integration (telemetry backends)
+
+### Integration Points
+
+**API Surface**:
+- New routes under `/api/v1/evaluation/*` (GET datasets, POST evaluation runs)
+- Trace export endpoint for observability integration
+- Evaluation results query interface
+
+**Configuration**:
+- `config/evaluation-datasets.json.example` (dataset definition template)
+- `config/evaluation-metrics.json.example` (metric configuration template)
+- Environment variables for resource limits and sandbox paths
+
+**CLI Tools**:
+- `tools/run_evaluation.py` (standalone evaluation runner)
+- `tools/validate_datasets.py` (dataset schema validator)
+- `tools/trace_export.py` (manual trace export utility)
+
+### Validation Evidence
+
+**Phase 1 Evidence**:
+- Dataset catalog JSON with 50+ golden cases
+- Schema validation test results
+- Example dataset loading demonstrations
+- Security audit confirming no credential exposure
+
+**Phase 2 Evidence**:
+- Behavioral evaluation test results for 5 code categories
+- Isolated environment execution logs
+- Resource usage metrics showing bounds compliance
+- Escape attempt detection logs (expected: 0 successful escapes)
+
+**Phase 3 Evidence**:
+- Patch application success metrics for 10 scenarios
+- Regression test results
+- Repository modification audit log
+- Validation accuracy measurements
+
+**Phase 4 Evidence**:
+- OpenTelemetry trace export compatibility results
+- Span correlation verification
+- Metadata redaction validation
+- Performance overhead measurements (< 2x baseline)
+
+### Timeline and Checkpoints
+
+**Checkpoint Schedule**:
+| Checkpoint | Phase | Expected Date | Reviewer | Deliverables |
+|------------|-------|---------------|----------|--------------|
+| Checkpoint 1 | Dataset Catalog | EOD 2026-09-02 | Orchestration Agent | Dataset module, 50 cases, schema validation |
+| Checkpoint 2 | Behavioral Eval | EOD 2026-09-03 | Orchestration Agent + Security Agent | Runner, sandbox, test results |
+| Checkpoint 3 | Repository Eval | EOD 2026-09-04 | Orchestration Agent | 10 scenarios, patch validation |
+| Checkpoint 4 | Observability | EOD 2026-09-05 | Orchestration Agent | Trace integration, metrics |
+| Final Review | All Phases | EOD 2026-09-06 | Orchestration Agent + Verification Agent | Integration, full validation |
+
+**Failure Recovery**:
+- Rollback to Phase 1 snapshot if Phase 2 security requirements cannot be met
+- Defer repository evaluation if realistic scenarios cannot be created safely
+- Fallback to local-only observability if external export fails validation
+
+### Success Metrics
+
+**Quantitative**:
+- ≥50 golden cases across 7 categories
+- 100% schema validation pass rate
+- 0 credential leaks in all evaluation runs
+- 0 successful sandbox escapes
+- <2x performance overhead for observability
+- ≥90% test coverage for new modules
+
+**Qualitative**:
+- Evaluation framework is usable by other agents
+- Datasets represent realistic task complexity
+- Behavioral criteria are unambiguous and automatable
+- Observability traces are useful for debugging
+- Security review finds no unresolved critical issues
+
+### Communication Protocol
+
+**Progress Reporting**:
+- Subagent updates `tmp/SUBAGENT_SPAWNED` with current phase and status
+- Observable events written to `logs/subagent-evaluation.log`
+- Evidence artifacts cataloged in `artifacts/evaluation_*/`
+- Checkpoint completion reported to STATE.md
+
+**Escalation Procedure**:
+- Any security concern → immediate pause and notify Orchestration Agent
+- Resource limit breach → automatic termination and report
+- Unclear approval boundary → pause and request explicit approval
+- External dependency requirement → block and document for Orchestration Agent decision
+
+### Completion Criteria
+
+**Full Workstream Completion**:
+1. All 4 phases implemented and validated per success metrics
+2. All approval gates passed with explicit approval records
+3. Integration tests pass without affecting existing functionality
+4. Documentation is complete and accurate
+5. Security review finds no unresolved critical issues
+6. Validation evidence is cataloged and preserved
+7. STATE.md and TASK_GRAPH.md updated with completion status
+8. Subagent marker file `tmp/SUBAGENT_SPAWNED` removed
+9. Handoff document archived to `artifacts/subagent_handoff_archive.md`
+
+**Partial Completion (Expected)**:
+- Some evaluation scenarios may remain pending if they require external services
+- Observatory backend integration may remain mock-only pending deployment
+- Performance optimizations may be deferred to later milestones
+- Documentation may be refined based on usage feedback
+
+---
+
+*This subagent workstream is created per AGENTS.md operating rules. The Verification Agent has bounded autonomy within stated constraints and must seek explicit approval for any material assumption violations, security concerns, or scope changes. All assumptions are documented. No sensitive operations are approved.*

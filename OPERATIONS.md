@@ -50,4 +50,4 @@ SQLite checkpoints are updated after each material engine transition. If a proce
 
 ## Validation
 
-Run the complete backend suite with `python -m unittest discover -s tests -v`, compile with `python -m compileall -q orville_core tests examples`, and build the GUI with `pnpm run check && pnpm run build`. A clean-environment acceptance run must also verify installation from `pyproject.toml`, database creation, token rejection, objective persistence across API process recreation, artifact traversal rejection, and SSE event replay.
+Run the complete backend suite with `python -m unittest discover -s tests -v`, compile with `python -m compileall -q orville_core tests examples windows_gui.py`, and run the GUI checks with `python tools\signal_room_checks.py webui`. A clean-environment acceptance run must also verify installation from `pyproject.toml`, database creation, token rejection, objective persistence across API process recreation, artifact traversal rejection, and SSE event replay.

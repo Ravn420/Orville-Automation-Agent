@@ -8,7 +8,7 @@ The repository is usable without Manus-specific services. Provider, browser, dep
 
 | Requirement | Purpose | Verification |
 |---|---|---|
-| Python 3.12 or newer | Runtime and package tooling | `python --version` |
+| Python 3.10 or newer | Runtime and package tooling | `python --version` |
 | `pip` and `venv` | Isolated installation | `python -m pip --version` |
 | PowerShell 5.1+ on Windows | Windows scripts and deployment dispatcher | `$PSVersionTable.PSVersion` |
 | Docker Compose | Optional web-hosting or persistent-computing target | `docker compose version` |

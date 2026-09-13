@@ -11,7 +11,7 @@ Orville's current reference GUI is a native Windows control center backed by the
 | Requirement | Minimum | Notes |
 |---|---|---|
 | Operating system | Windows 10/11 supported desktop environment | Tkinter is required for source execution; WebView2 is used by the packaged Signal Room launcher when available. |
-| Python | 3.10 or newer | Use Python 3.12 when available for the project’s primary development environment. |
+| Python | 3.10 or newer | Python 3.10+ is the supported baseline’s primary development environment. |
 | Build tools | PowerShell, pip, and PyInstaller for packaged GUI builds | Docker is required only for the containerized backend deployment path. |
 | Optional services | Ollama, another local endpoint, or an explicitly configured provider | No provider credential is required for the local demonstration. |
 | Runtime data | `%LOCALAPPDATA%\Orville\data` in installed mode, or `data\` beside the executable in portable mode | Keep mutable state outside source control. |
@@ -25,7 +25,7 @@ Credentials must be supplied only through the approved protected environment or 
 From the repository root:
 
 ```powershell
-py -3.10 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[api]"

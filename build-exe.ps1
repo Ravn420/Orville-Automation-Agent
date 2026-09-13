@@ -6,7 +6,11 @@ Write-Host "Building Orville Windows Executable..." -ForegroundColor Cyan
 # Step 1: Verify prerequisites
 Write-Host "`n[Step 1/5] Checking prerequisites..." -ForegroundColor Yellow
 
-$pythonVersion = python --version 2>&1
+# Use virtual environment Python if available
+$pythonCmd = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
+$pipCmd = if (Test-Path ".venv\Scripts\pip.exe") { ".venv\Scripts\pip.exe" } else { "pip" }
+
+$pythonVersion = & $pythonCmd --version 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Python not found. Please install Python 3.12+" -ForegroundColor Red
     exit 1
@@ -14,21 +18,21 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "  ✓ Found $pythonVersion" -ForegroundColor Green
 
 # Check for PyInstaller
-$pyinstaller = pip show pyinstaller 2>&1
+$pyinstaller = & $pipCmd show pyinstaller 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  Installing PyInstaller..." -ForegroundColor Yellow
-    pip install "pyinstaller>=6.0"
+    & $pipCmd install "pyinstaller>=6.0"
 }
 
 # Check for required dependencies
 Write-Host "  Checking dependencies..." -ForegroundColor Yellow
-pip install -e ".[api]" | Out-Null
-pip install "websockify>=0.11.0" | Out-Null
+& $pipCmd install -e ".[api]" | Out-Null
+& $pipCmd install "websockify>=0.11.0" | Out-Null
 Write-Host "  ✓ Dependencies installed" -ForegroundColor Green
 
 # Step 2: Run tests
 Write-Host "`n[Step 2/5] Running test suite..." -ForegroundColor Yellow
-python -m pytest tests/ -q --tb=short -x
+& $pythonCmd -m pytest tests/ -q --tb=short -x
 if ($LASTEXITCODE -ne 0) {
     Write-Host "WARNING: Some tests failed. Continue anyway? (Y/N)" -ForegroundColor Yellow
     $response = Read-Host
@@ -59,7 +63,7 @@ if (-not (Test-Path $specFile)) {
 }
 
 Write-Host "  Using spec file: $specFile" -ForegroundColor Gray
-pyinstaller --noconfirm --clean $specFile
+& $pythonCmd -m PyInstaller --noconfirm --clean $specFile
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Build failed!" -ForegroundColor Red
@@ -71,20 +75,31 @@ Write-Host "  ✓ Build complete" -ForegroundColor Green
 # Step 5: Verify and test
 Write-Host "`n[Step 5/5] Verifying build..." -ForegroundColor Yellow
 
+# Check for the expected executable name from spec file
 $exePath = "dist\Orville.exe"
 if (-not (Test-Path $exePath)) {
-    Write-Host "ERROR: Executable not found at $exePath" -ForegroundColor Red
-    exit 1
+    # Fallback: check if any .exe was created in dist
+    $exes = Get-ChildItem dist\ -Filter "*.exe"
+    if ($exes) {
+        $exePath = $exes[0].FullName
+        Write-Host "  ✓ Found executable: $exePath" -ForegroundColor Green
+    } else {
+        Write-Host "ERROR: No executable found in dist/" -ForegroundColor Red
+        exit 1
+    }
 }
 
 $exeSize = (Get-Item $exePath).Length / 1MB
 Write-Host "  ✓ Executable created: $exePath" -ForegroundColor Green
 Write-Host "  Size: $([math]::Round($exeSize, 2)) MB" -ForegroundColor Gray
 
-# List bundled files
-Write-Host "`n  Bundled files:" -ForegroundColor Gray
-Get-ChildItem dist\Orville\ -File | Select-Object -First 10 | ForEach-Object {
-    Write-Host "    - $($_.Name)" -ForegroundColor Gray
+# List bundled files if directory exists
+$distDir = Join-Path (Split-Path $exePath -Parent) (Split-Path $exePath -LeafBase)
+if (Test-Path $distDir) {
+    Write-Host "`n  Bundled files:" -ForegroundColor Gray
+    Get-ChildItem $distDir -File | Select-Object -First 10 | ForEach-Object {
+        Write-Host "    - $($_.Name)" -ForegroundColor Gray
+    }
 }
 
 Write-Host "`n✅ Build successful!" -ForegroundColor Green

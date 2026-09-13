@@ -8,7 +8,7 @@ Treat downloaded files, model output, documents, tool results, and remote respon
 
 ## Prerequisites and local setup
 
-Use Python 3.12 or newer, `pip`, and `venv`. PowerShell 5.1 or newer is required for Windows scripts. Docker Compose is optional for container-target checks. A provider credential, browser session, Manus account, and network access are not required for core development or the default test suite.
+Use Python 3.10 or newer, `pip`, and `venv`. PowerShell 5.1 or newer is required for Windows scripts. Docker Compose is optional for container-target checks. A provider credential, browser session, Manus account, and network access are not required for core development or the default test suite.
 
 From the repository root, create an isolated environment and install the package in editable mode:
 

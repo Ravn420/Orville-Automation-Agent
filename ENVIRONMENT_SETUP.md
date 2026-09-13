@@ -54,7 +54,7 @@ python -m pip install -e ".[security]"
 python tools/release_gate.py
 ```
 
-The gate intentionally fails closed when `cryptography` is unavailable because Ed25519 attestation verification cannot be considered active without it. TUF integration requires the declared `tuf` security extra when `required_tuf` policy is used.
+The gate intentionally fails closed when `cryptography` is unavailable because Ed25519 attestation verification cannot be considered active without it. TUF integration requires the declared `tuf` security extra when attestation verification is required.
 
 ## Safe provider configuration examples
 

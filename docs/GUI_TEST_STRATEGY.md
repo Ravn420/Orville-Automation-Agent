@@ -41,7 +41,7 @@ From the repository root:
 
 ```text
 python -m unittest tests.test_gui_quality -v
-python -m compileall -q tests/test_gui_quality.py
+python -m compileall -q tests/test_gui_quality.py orville_core/gui_state.py windows_gui.py
 ```
 
 Existing focused tests for individual workflows remain authoritative and should be run alongside this aggregate suite. Live browser automation, screen-reader testing, visual screenshot comparison, performance measurement, and backend-integrated e2e execution are not claimed by this local contract.
