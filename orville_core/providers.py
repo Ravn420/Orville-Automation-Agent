@@ -748,6 +748,285 @@ class CustomLocalAdapter(OllamaAdapter):
     pass
 
 
+# Provider-specific adapter classes
+
+
+class OpenRouterAdapter(OpenAICompatibleAdapter):
+    """Adapter for OpenRouter (AI model gateway).
+
+    OpenRouter provides access to multiple AI models through a unified OpenAI-compatible API.
+    Supports text, code, vision, streaming, tool calling, and structured output.
+    Models: openai/gpt-4o, google/gemini-flash-1.5, anthropic/claude-3-opus, etc.
+    """
+
+    def _headers(self) -> dict[str, str]:
+        headers = super()._headers()
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
+            headers["HTTP-Referer"] = "https://orville.automation"
+            headers["X-Title"] = "Orville Automation"
+        return headers
+
+
+class PortkeyAdapter(OpenAICompatibleAdapter):
+    """Adapter for Portkey (AI gateway).
+
+    Portkey provides a unified gateway for multiple AI models.
+    Supports text, code, vision, streaming, tool calling, and structured output.
+    """
+
+    def _headers(self) -> dict[str, str]:
+        headers = super()._headers()
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
+            headers["x-portkey-provider"] = "openai"
+        return headers
+
+
+class BedrockAdapter(OpenAICompatibleAdapter):
+    """Adapter for AWS Bedrock managed model access.
+
+    AWS Bedrock provides access to multiple foundation models through AWS signatures.
+    Supports text, code, vision, streaming, and structured output.
+    Models: amazon.titan-text-express-v1, anthropic.claude-3-sonnet-20240229-v1:0, etc.
+    Note: Does not support tool calling or image generation.
+    """
+
+    _SIGNING_ALGORITHM = "AWS4-HMAC-SHA256"
+
+    def _headers(self) -> dict[str, str]:
+        import datetime
+        import hashlib
+        import hmac
+
+        headers = dict(self.config.headers)
+        headers["host"] = urlencode({}, doseq=False).replace("+", "%20")
+        if not self.config.api_key:
+            return headers
+
+        # Parse AWS credentials from api_key: access_key:secret_key
+        parts = self.config.api_key.split(":")
+        if len(parts) >= 2:
+            access_key = parts[0]
+            secret_key = parts[1]
+        else:
+            return headers
+
+        now = datetime.datetime.utcnow()
+        amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+        date_stamp = now.strftime("%Y%m%d")
+        region = "us-east-1"
+        service = "bedrock-runtime"
+
+        headers["x-amz-date"] = amz_date
+
+        # Create canonical request
+        canonical_uri = "/model/" + self.config.model + "/converse"
+        canonical_querystring = ""
+        payload = "{}"
+        payload_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+        canonical_headers = f"host:{self.config.base_url.split('//')[1].split('/')[0]}\n"
+        canonical_headers += f"x-amz-date:{amz_date}\n"
+        signed_headers = "host;x-amz-date"
+
+        canonical_request = (
+            f"POST\n{canonical_uri}\n{canonical_querystring}\n"
+            f"{canonical_headers}\n{signed_headers}\n{payload_hash}"
+        )
+
+        # Create string to sign
+        credential_scope = f"{date_stamp}/{region}/{service}/aws4_request"
+        string_to_sign = (
+            f"{self._SIGNING_ALGORITHM}\n{amz_date}\n"
+            f"{credential_scope}\n{hashlib.sha256(canonical_request.encode('utf-8')).hexdigest()}"
+        )
+
+        # Calculate signature
+        def get_signature_key(key: str, date_stamp: str, region_name: str, service_name: str) -> bytes:
+            k_date = hmac.new(("AWS4" + key).encode("utf-8"), date_stamp.encode("utf-8"), hashlib.sha256).digest()
+            k_region = hmac.new(k_date, region_name.encode("utf-8"), hashlib.sha256).digest()
+            k_service = hmac.new(k_region, service_name.encode("utf-8"), hashlib.sha256).digest()
+            k_signing = hmac.new(k_service, "aws4_request".encode("utf-8"), hashlib.sha256).digest()
+            return k_signing
+
+        signing_key = get_signature_key(secret_key, date_stamp, region, service)
+        signature = hmac.new(signing_key, string_to_sign.encode("utf-8"), hashlib.sha256).hexdigest()
+
+        headers["Authorization"] = (
+            f"{self._SIGNING_ALGORITHM} Credential={access_key}/{credential_scope}, "
+            f"SignedHeaders={signed_headers}, Signature={signature}"
+        )
+
+        return headers
+
+    def generate(self, request: LLMRequest) -> LLMResponse:
+        # AWS Bedrock uses native Bedrock API format
+        payload: dict[str, Any] = {
+            "messages": [{"role": m.get("role", "user"), "content": [{"text": m.get("content", "")}]} for m in request.messages],
+            "inferenceConfig": {},
+        }
+        if request.temperature is not None:
+            payload["inferenceConfig"]["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            payload["inferenceConfig"]["maxTokens"] = request.max_tokens
+
+        url = urljoin(self.config.base_url.rstrip("/") + "/", f"model/{self.config.model}/converse")
+        raw = self.http.request("POST", url, headers=self._headers(), json_payload=payload, timeout=self.config.timeout_seconds)
+
+        output = raw.get("output", {}).get("message", {})
+        content = output.get("content", [{}])[0].get("text", "")
+        usage = raw.get("usage", {})
+        stop_reason = raw.get("stopReason")
+
+        return LLMResponse(
+            provider_id=self.config.provider_id,
+            model=self.config.model,
+            content=content,
+            raw=raw,
+            finish_reason=stop_reason,
+            tool_calls=[],
+            usage={"input_tokens": int(usage.get("inputTokens", 0)), "output_tokens": int(usage.get("outputTokens", 0))},
+        )
+
+    def stream(self, request: LLMRequest):
+        # AWS Bedrock streaming uses event streams
+        payload: dict[str, Any] = {
+            "messages": [{"role": m.get("role", "user"), "content": [{"text": m.get("content", "")}]} for m in request.messages],
+            "inferenceConfig": {},
+        }
+        if request.temperature is not None:
+            payload["inferenceConfig"]["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            payload["inferenceConfig"]["maxTokens"] = request.max_tokens
+
+        url = urljoin(self.config.base_url.rstrip("/") + "/", f"model/{self.config.model}/converse-stream")
+        # Use streaming request
+        for raw in self._stream_request(f"model/{self.config.model}/converse-stream", payload):
+            event = raw.get("output", {}).get("message", {})
+            content = event.get("content", [{}])[0].get("text", "")
+            yield StreamChunk(self.config.provider_id, self.config.model, content, raw, raw.get("stopReason"))
+
+
+class MantleAdapter(BaseHttpProvider):
+    """Adapter for AWS Mantle (internal/greenfield AI inference).
+
+    Supports text and code generation only. Minimal feature set.
+    """
+
+    def generate(self, request: LLMRequest) -> LLMResponse:
+        payload: dict[str, Any] = {
+            "prompt": request.messages[-1].get("content", "") if request.messages else "",
+            "max_tokens": request.max_tokens or 1024,
+        }
+        if request.temperature is not None:
+            payload["temperature"] = request.temperature
+
+        raw = self._request("generate", payload)
+        return LLMResponse(
+            provider_id=self.config.provider_id,
+            model=self.config.model,
+            content=raw.get("text", ""),
+            raw=raw,
+            finish_reason=raw.get("finish_reason"),
+            tool_calls=[],
+            usage=raw.get("usage", {}),
+        )
+
+    def stream(self, request: LLMRequest):
+        if not self.config.capabilities.streaming:
+            raise ProviderError("Streaming not supported")
+        payload: dict[str, Any] = {
+            "prompt": request.messages[-1].get("content", "") if request.messages else "",
+            "max_tokens": request.max_tokens or 1024,
+            "stream": True,
+        }
+        if request.temperature is not None:
+            payload["temperature"] = request.temperature
+
+        for raw in self._stream_request("generate", payload):
+            yield StreamChunk(
+                provider_id=self.config.provider_id,
+                model=self.config.model,
+                content=raw.get("text", ""),
+                raw=raw,
+                finish_reason=raw.get("finish_reason"),
+            )
+
+    def health_check(self) -> dict[str, Any]:
+        try:
+            self._request("health", {}, method="GET")
+            return {"ok": True, "provider_id": self.config.provider_id, "model": self.config.model}
+        except ProviderError:
+            return {"ok": False, "provider_id": self.config.provider_id, "model": self.config.model}
+
+
+class GordonAdapter(BaseHttpProvider):
+    """Adapter for Gordon (Docker AI).
+
+    Docker's AI assistant. Supports text and code generation.
+    """
+
+    def _headers(self) -> dict[str, str]:
+        headers = dict(self.config.headers)
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
+            headers["User-Agent"] = "Orville-Automation/1.0"
+        return headers
+
+    def generate(self, request: LLMRequest) -> LLMResponse:
+        payload: dict[str, Any] = {
+            "messages": request.messages,
+            "model": self.config.model,
+        }
+        if request.temperature is not None:
+            payload["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            payload["max_tokens"] = request.max_tokens
+
+        raw = self._request("chat/completions", payload)
+        choice = raw.get("choices", [{}])[0]
+        message = choice.get("message", {})
+        usage = raw.get("usage", {})
+        return LLMResponse(
+            provider_id=self.config.provider_id,
+            model=self.config.model,
+            content=message.get("content", ""),
+            raw=raw,
+            finish_reason=choice.get("finish_reason"),
+            tool_calls=[],
+            usage={"input_tokens": int(usage.get("prompt_tokens", 0)), "output_tokens": int(usage.get("completion_tokens", 0))},
+        )
+
+    def stream(self, request: LLMRequest):
+        if not self.config.capabilities.streaming:
+            raise ProviderError("Streaming not supported")
+        payload: dict[str, Any] = {
+            "messages": request.messages,
+            "model": self.config.model,
+            "stream": True,
+        }
+        for raw in self._stream_request("chat/completions", payload):
+            choices = raw.get("choices", [{}])
+            delta = choices[0].get("delta", {})
+            yield StreamChunk(
+                provider_id=self.config.provider_id,
+                model=self.config.model,
+                content=delta.get("content", ""),
+                raw=raw,
+                finish_reason=choices[0].get("finish_reason"),
+            )
+
+    def health_check(self) -> dict[str, Any]:
+        try:
+            raw = self.http.request("GET", urljoin(self.config.base_url.rstrip("/") + "/", "models"), headers=self._headers(), timeout=self.config.timeout_seconds)
+            models = raw.get("data", [])
+            available = any(m.get("id") == self.config.model for m in models)
+            return {"ok": available, "provider_id": self.config.provider_id, "model": self.config.model, "models_seen": len(models)}
+        except ProviderError:
+            return {"ok": False, "provider_id": self.config.provider_id, "model": self.config.model}
+
+
 def create_provider(config: ProviderConfig, http: JsonHttpClient | None = None) -> LLMProvider:
     provider_type = config.provider_type.lower().replace("_", "-")
     if provider_type == "gemini":
@@ -760,12 +1039,22 @@ def create_provider(config: ProviderConfig, http: JsonHttpClient | None = None) 
         return CustomLocalAdapter(config, http)
     if provider_type in {"blackbox-relay", "managed-blackbox", "orville-blackbox-relay"}:
         return ManagedBlackboxRelayAdapter(config, http)
-    if provider_type in {"blackbox", "openai", "openai-compatible", "openai-compatible-local", "openrouter", "groq", "together", "deepseek", "mistral", "xai", "perplexity", "cohere", "fireworks", "cerebras", "nvidia-nim", "azure-openai", "bedrock-compatible"}:
+    if provider_type in {"blackbox", "openai", "openai-compatible", "openai-compatible-local", "groq", "together", "deepseek", "mistral", "xai", "perplexity", "cohere", "fireworks", "cerebras", "nvidia-nim", "azure-openai"}:
         return OpenAICompatibleAdapter(config, http)
     if provider_type in {"huggingface", "hugging-face", "hf-inference"}:
         return HuggingFaceAdapter(config, http)
     if provider_type in {"stable-horde", "stablehorde", "ai-horde", "aihorde"}:
         return StableHordeAdapter(config, http)
+    if provider_type in {"openrouter", "open-router"}:
+        return OpenRouterAdapter(config, http)
+    if provider_type in {"portkey", "portkey-gateway"}:
+        return PortkeyAdapter(config, http)
+    if provider_type in {"bedrock", "aws-bedrock", "bedrock-runtime"}:
+        return BedrockAdapter(config, http)
+    if provider_type in {"mantle", "aws-mantle"}:
+        return MantleAdapter(config, http)
+    if provider_type in {"gordon", "docker-gordon", "docker-ai"}:
+        return GordonAdapter(config, http)
     raise ValueError(f"unsupported provider type: {config.provider_type}")
 
 

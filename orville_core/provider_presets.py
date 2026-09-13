@@ -34,4 +34,10 @@ def provider_presets() -> tuple[ProviderPreset, ...]:
         ProviderPreset("stripe", "Stripe", ("api_key",), "https://api.stripe.com", "https://docs.stripe.com/api", credential_header="Authorization"),
         ProviderPreset("hubspot", "HubSpot", ("oauth2", "api_key"), "https://api.hubapi.com", "https://developers.hubspot.com/docs/api/overview", "https://app.hubspot.com/oauth/authorize", "https://api.hubapi.com/oauth/v1/token", scopes=("crm.objects.contacts.read", "crm.objects.contacts.write")),
         ProviderPreset("n8n", "n8n", ("api_key",), "https://n8n.example.com", "https://docs.n8n.io/api/", credential_header="X-N8N-API-KEY", api_key_header="X-N8N-API-KEY"),
+        # LLM Provider presets
+        ProviderPreset("openrouter", "OpenRouter", ("api_key",), "https://openrouter.ai/api/v1", "https://openrouter.ai/docs", credential_header="Authorization", api_key_header="Authorization"),
+        ProviderPreset("bedrock", "AWS Bedrock", ("api_key",), "https://bedrock-runtime.us-east-1.amazonaws.com", "https://docs.aws.amazon.com/bedrock/", credential_header="Authorization", api_key_header="Authorization"),
+        ProviderPreset("portkey", "Portkey", ("api_key",), "https://api.portkey.ai/v1", "https://docs.portkey.ai/", credential_header="Authorization", api_key_header="Authorization"),
+        ProviderPreset("mantle", "AWS Mantle", ("api_key",), "https://mantle.inference-optimized.us-east-1.amazonaws.com", "https://aws.amazon.com/mantle/", credential_header="Authorization", api_key_header="Authorization"),
+        ProviderPreset("gordon", "Gordon (Docker AI)", ("api_key",), "https://api.gordon.docker.com", "https://docs.docker.com/ai/", credential_header="Authorization", api_key_header="Authorization"),
     )
