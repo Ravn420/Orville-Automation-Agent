@@ -43,6 +43,7 @@ from .endpoint_probe import EndpointProbeResult, probe_endpoint, validate_endpoi
 from .connector_adapters import ConnectorTransferRequest
 from .cloud_relay import BlackboxFallbackPolicy, FallbackDecision
 from .blackbox_contract import BlackboxApiKeyContract, BlackboxContractError, validate_blackbox_error_payload
+from .agent_runtime import AgentExecutionResult, AgentProfile, AgentRuntimeStore, ChildTask
 from .blackbox_capabilities import BlackboxCapabilityError, BlackboxCapabilityNegotiator, BlackboxCapabilityResult
 from .blackbox_model_discovery import BlackboxModelDiscovery, BlackboxModelDiscoveryError, BlackboxModelDiscoveryResult, discover_blackbox_models
 from .cloud_onboarding import initial_cloud_onboarding
@@ -234,6 +235,10 @@ __all__ = [
     "probe_endpoint",
     "validate_endpoint_url",
     "ConnectorTransferRequest",
+    "AgentExecutionResult",
+    "AgentProfile",
+    "AgentRuntimeStore",
+    "ChildTask",
     "CapabilityCallResult",
     "ConnectorCapabilityAudit",
     "ConnectorGovernanceError",

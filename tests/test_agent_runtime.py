@@ -46,3 +46,61 @@ def test_depth_limit(tmp_path):
     child, _ = runtime.create_child_task(parent.thread_id, "Child", agent_id="worker")
     with pytest.raises(ValueError, match="depth limit"):
         runtime.create_child_task(child.thread_id, "Grandchild", agent_id="worker")
+
+
+def test_execute_thread_persists_redacted_result_and_replays_without_rerunning(tmp_path):
+    database = tmp_path / "orville.db"
+    threads = TaskThreadStore(database)
+    runtime = AgentRuntimeStore(database, threads)
+    thread = threads.create_thread("Summarize the local report")
+    calls = []
+
+    def handler(request, context):
+        calls.append((request, context["thread_id"]))
+        return {"answer": "ready", "api_key": "sk_test_secret_value"}
+
+    first = runtime.execute_thread(thread.thread_id, handler)
+    replay = runtime.execute_thread(thread.thread_id, handler)
+
+    assert first.status == ThreadStatus.STOPPED
+    assert first.output == {"answer": "ready", "api_key": "[REDACTED]"}
+    assert replay.replayed is True
+    assert replay.output == first.output
+    assert len(calls) == 1
+    assert threads.get_thread(thread.thread_id).stop_reason == "completed"
+
+
+def test_execute_thread_records_failure_and_requires_explicit_retry(tmp_path):
+    database = tmp_path / "orville.db"
+    threads = TaskThreadStore(database)
+    runtime = AgentRuntimeStore(database, threads)
+    thread = threads.create_thread("Run a bounded operation")
+    attempts = []
+
+    def handler(_request, _context):
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise RuntimeError("token=sk_test_secret_value upstream unavailable")
+        return "recovered"
+
+    failed = runtime.execute_thread(thread.thread_id, handler)
+    assert failed.status == ThreadStatus.FAILED
+    assert failed.error == "token=[REDACTED] upstream unavailable"
+    assert runtime.execute_thread(thread.thread_id, handler).status == ThreadStatus.FAILED
+    recovered = runtime.execute_thread(thread.thread_id, handler, retry_failed=True)
+    assert recovered.status == ThreadStatus.STOPPED
+    assert recovered.output == "recovered"
+    assert len(attempts) == 2
+
+
+def test_execute_thread_rejects_disabled_profile_without_starting(tmp_path):
+    database = tmp_path / "orville.db"
+    threads = TaskThreadStore(database)
+    runtime = AgentRuntimeStore(database, threads)
+    runtime.register_agent(AgentProfile("disabled", "Disabled", enabled=False))
+    thread = threads.create_thread("Do not run", agent_id="disabled")
+
+    with pytest.raises(PermissionError, match="disabled"):
+        runtime.execute_thread(thread.thread_id, lambda *_: "unsafe")
+
+    assert threads.get_thread(thread.thread_id).status == ThreadStatus.PLANNED

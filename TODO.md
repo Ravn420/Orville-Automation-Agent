@@ -1349,7 +1349,7 @@ The instructional walkthrough was rendered as `/home/ubuntu/orville-runs-walkthr
 
 - [!] Define standalone Windows equivalents and explicitly document proprietary Manus capabilities that cannot be reproduced literally. Implemented and focused-validated in `docs/STANDALONE_WINDOWS_EQUIVALENTS.md` and `tests/test_standalone_windows_equivalents.py`, but completion is blocked because shared control files and unrelated roadmap changes are concurrently modified in this worktree; state/changelog/task-graph synchronization and a focused commit cannot be performed safely without mixing work. <!-- task-id:TODO-3ca9e5661f74 -->
 
-- [ ] Implement the highest-value missing agent runtime, browser/research, workspace, memory, approval, and automation foundations. <!-- task-id:TODO-ef21104055e5 -->
+- [x] Implement the highest-value missing agent runtime, browser/research, workspace, memory, approval, and automation foundations. Bounded agent-runtime slice completed: `AgentRuntimeStore.execute_thread` now validates enabled profiles, persists lifecycle/result/error messages, redacts secrets, bounds output size, replays completed results without rerunning handlers, and requires explicit retry for failed threads. Evidence: `orville_core/agent_runtime.py`, `tests/test_agent_runtime.py`, and `docs/AGENT_RUNTIME_EXECUTION.md`; 13 focused runtime/thread tests, package import, Python compilation, and `git diff --check` passed. Browser/research, workspace, memory, approval, and automation expansions remain separate roadmap items. <!-- task-id:TODO-ef21104055e5 -->
 
 - [ ] Implement document, spreadsheet, presentation, data, media, and code artifact workflows. <!-- task-id:TODO-6f0f192e0f8d -->
 

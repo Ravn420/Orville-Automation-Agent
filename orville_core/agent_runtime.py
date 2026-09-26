@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -11,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from .security import SecretRedactor
 from .task_threads import TaskThread, TaskThreadStore, ThreadStatus
 
 
@@ -43,6 +45,17 @@ class ChildTask:
     depth: int
     required: bool = True
     created_at: str = field(default_factory=_now)
+
+
+@dataclass(frozen=True)
+class AgentExecutionResult:
+    """Safe, durable outcome of one local agent-handler invocation."""
+
+    thread_id: str
+    status: ThreadStatus
+    output: Any = None
+    error: str | None = None
+    replayed: bool = False
 
 
 class AgentRuntimeStore:
@@ -120,6 +133,72 @@ class AgentRuntimeStore:
         with self._session() as db:
             db.execute("UPDATE agent_profiles SET enabled = ?, updated_at = ? WHERE agent_id = ?", (int(enabled), _now(), agent_id))
         return self.get_agent(agent_id)
+
+    def execute_thread(
+        self,
+        thread_id: str,
+        handler: Callable[[str, dict[str, Any]], Any],
+        *,
+        retry_failed: bool = False,
+        max_output_bytes: int = 65_536,
+    ) -> AgentExecutionResult:
+        """Run one local handler with durable lifecycle, replay, and redaction boundaries.
+
+        The handler receives only the thread request and a safe execution context. A
+        completed thread is replayed from its persisted result instead of invoking
+        the handler again. Failed threads require an explicit retry flag.
+        """
+        if not callable(handler):
+            raise TypeError("handler must be callable")
+        if max_output_bytes < 1:
+            raise ValueError("max_output_bytes must be positive")
+        thread = self.thread_store.get_thread(thread_id)
+        if thread.status == ThreadStatus.STOPPED:
+            for message in reversed(self.thread_store.list_messages(thread_id)):
+                if message.kind == "agent_result":
+                    return AgentExecutionResult(thread_id, ThreadStatus.STOPPED, message.content.get("output"), replayed=True)
+            return AgentExecutionResult(thread_id, ThreadStatus.STOPPED, replayed=True)
+        profile = self.get_agent(thread.agent_id) if thread.agent_id != "default" else None
+        if profile is not None and not profile.enabled:
+            raise PermissionError(f"agent is disabled: {thread.agent_id}")
+        if thread.status == ThreadStatus.FAILED:
+            if not retry_failed:
+                return AgentExecutionResult(thread_id, ThreadStatus.FAILED, error=thread.stop_reason or "thread failed")
+            self.thread_store.transition(thread_id, ThreadStatus.RECOVERING, stop_reason="explicit_retry")
+            thread = self.thread_store.get_thread(thread_id)
+        if thread.status in {ThreadStatus.PLANNED, ThreadStatus.RECOVERING}:
+            self.thread_store.transition(thread_id, ThreadStatus.RUNNING)
+            thread = self.thread_store.get_thread(thread_id)
+        if thread.status != ThreadStatus.RUNNING:
+            raise ValueError(f"thread is not executable: {thread.status.value}")
+
+        context = {
+            "thread_id": thread.thread_id,
+            "project_id": thread.project_id,
+            "agent_id": thread.agent_id,
+            "skills": list(profile.skills) if profile else [],
+            "connectors": list(profile.connectors) if profile else [],
+            "tool_permissions": list(profile.tool_permissions) if profile else [],
+        }
+        self.thread_store.append_message(thread_id, role="system", kind="agent_execution_started", content={"agent_id": thread.agent_id})
+        try:
+            output = SecretRedactor.redact(handler(thread.request, context))
+            encoded = json.dumps(output, ensure_ascii=False)
+            if len(encoded.encode("utf-8")) > max_output_bytes:
+                raise ValueError("agent output exceeds configured size limit")
+        except Exception as exc:
+            error = SecretRedactor.redact_exception(exc)
+            self.thread_store.append_message(thread_id, role="system", kind="agent_error", content={"error": error})
+            self.thread_store.transition(thread_id, ThreadStatus.FAILED, stop_reason=error)
+            return AgentExecutionResult(thread_id, ThreadStatus.FAILED, error=error)
+
+        self.thread_store.append_message(thread_id, role="assistant", kind="agent_result", content={"output": output})
+        current = self.thread_store.get_thread(thread_id)
+        if current.status == ThreadStatus.CANCEL_REQUESTED:
+            self.thread_store.transition(thread_id, ThreadStatus.CANCELLED, stop_reason="cancelled_during_execution")
+            return AgentExecutionResult(thread_id, ThreadStatus.CANCELLED, output=output, error="cancelled_during_execution")
+        self.thread_store.transition(thread_id, ThreadStatus.STOPPED, stop_reason="completed")
+        return AgentExecutionResult(thread_id, ThreadStatus.STOPPED, output=output)
 
     def create_child_task(self, parent_thread_id: str, request: str, *, agent_id: str = "default", required: bool = True, project_id: str | None = None) -> tuple[TaskThread, ChildTask]:
         parent = self.thread_store.get_thread(parent_thread_id)

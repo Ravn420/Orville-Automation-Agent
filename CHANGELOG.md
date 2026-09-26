@@ -1,5 +1,21 @@
 # Orville Changelog
 
+## 2026-09-26 — Bounded agent-runtime execution
+
+### Changed
+
+- Closed `TODO-ef21104055e5` with a bounded local execution slice in `AgentRuntimeStore.execute_thread`.
+- Added enabled-profile validation before lifecycle mutation, durable execution/result/error messages, secret redaction, bounded serialized output, completed-result replay, and explicit retry handling for failed threads.
+- Exported `AgentExecutionResult`, `AgentProfile`, `AgentRuntimeStore`, and `ChildTask` through the package API.
+- Added `docs/AGENT_RUNTIME_EXECUTION.md` and regression coverage in `tests/test_agent_runtime.py`.
+
+### Validation
+
+- Focused agent-runtime/task-thread validation: **13 tests passed**.
+- Package import, Python compilation, and `git diff --check` passed.
+- Full local suite: **895 passed, 1 warning, 6 subtests**; one performance-boundary timing assertion exceeded its 5-second budget once and passed on isolated rerun.
+- No model-provider calls, credentials, external side effects, or deployments were used.
+
 ## 2026-08-28 — Coverage-stable performance boundary
 
 ### Changed
