@@ -1,16 +1,28 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from tools.todo_autopilot import AutomationError, editing_prompt, find_todos, mark_complete, preview, process_one, select_item
 
 
+def _clean_env() -> dict[str, str]:
+    """Return environment with GIT_CONFIG variables removed to avoid conflicts in Copilot."""
+    return {k: v for k, v in os.environ.items() if not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"))}
+
+
 def git(cwd: Path, *args: str) -> None:
-    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True)
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True, env=_clean_env())
+
+
+def run_git(cwd: Path, *args: str, **kwargs: Any) -> subprocess.CompletedProcess[str]:
+    """Run a git command with cleaned environment."""
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, env=_clean_env(), **kwargs)
 
 
 def make_repo(tmp_path: Path, todo: str = "- [ ] Add the feature\n") -> Path:
@@ -74,7 +86,7 @@ def test_process_one_does_not_mark_or_commit_when_validation_fails(tmp_path: Pat
     with pytest.raises(AutomationError, match="command failed"):
         process_one(todo, args)
     assert "- [ ]" in (todo / "TODO.md").read_text(encoding="utf-8")
-    assert subprocess.run(["git", "log", "-1", "--format=%s"], cwd=todo, capture_output=True, text=True).stdout.startswith("test: baseline")
+    assert run_git(todo, "log", "-1", "--format=%s").stdout.startswith("test: baseline")
     assert (todo / "feature.py").exists()
     assert json.loads((todo / ".orville_todo_autopilot.json").read_text(encoding="utf-8"))["runs"][0]["status"] == "failed"
 
@@ -92,7 +104,7 @@ def test_process_one_marks_only_after_validation_and_commits(tmp_path: Path) -> 
     })()
     result = process_one(todo, args)
     assert result["status"] == "completed"
-    completed_todo = subprocess.run(["git", "show", f"{result['branch']}:TODO.md"], cwd=todo, capture_output=True, text=True, check=True).stdout
+    completed_todo = run_git(todo, "show", f"{result['branch']}:TODO.md", check=True).stdout
     assert "- [x]" in completed_todo
-    assert "todo: complete" in subprocess.run(["git", "log", result["branch"], "-1", "--format=%s"], cwd=todo, capture_output=True, text=True).stdout
-    assert subprocess.run(["git", "branch", "--show-current"], cwd=todo, capture_output=True, text=True).stdout.strip() == "master"
+    assert "todo: complete" in run_git(todo, "log", result["branch"], "-1", "--format=%s").stdout
+    assert run_git(todo, "branch", "--show-current").stdout.strip() == "master"
