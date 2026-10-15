@@ -31,7 +31,7 @@ def create_source_citation(citation_id: str, source_url: str, *, title: str = ""
         raise ValueError("citation_id is required")
     bounded_quote = quote[:4000]
     bounded_value = extracted_value[:2000]
-    digest = sha256(f"{source_url}|{title[:500]}|{bounded_quote}".encode("utf-8")).hexdigest()
+    digest = sha256(f"{source_url}|{title[:500]}|{bounded_quote}".encode()).hexdigest()
     return SourceCitation(citation_id.strip(), source_url[:2000], title[:500], bounded_quote, bounded_value, verification_status, digest)
 
 

@@ -1,14 +1,15 @@
 """Bounded local map/reduce research execution with resumable item results."""
 from __future__ import annotations
+
 import json
 import os
-import sqlite3
+from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Event
-from typing import Any, Callable, Iterable
+from typing import Any
 from uuid import uuid4
 
 

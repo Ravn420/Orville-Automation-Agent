@@ -114,6 +114,8 @@ def test_sandbox_plan_preserves_windows_absolute_paths_from_request():
         },
         SandboxPolicy(),
     )
-    assert str(plan.model_path) == "C:/model"
-    assert str(plan.scratch_path) == "C:/scratch"
-    assert str(plan.output_path) == "C:/out"
+    # On Windows, Path objects use backslashes by default, but the intent is
+    # to preserve Windows absolute paths. Accept both path separators.
+    assert str(plan.model_path).replace("\\", "/") == "C:/model"
+    assert str(plan.scratch_path).replace("\\", "/") == "C:/scratch"
+    assert str(plan.output_path).replace("\\", "/") == "C:/out"

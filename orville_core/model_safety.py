@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 SAFE_FORMATS = frozenset({"gguf", "safetensors", "onnx"})
 UNSAFE_FORMATS = frozenset({"pkl", "pickle", "pt", "pth", "bin", "joblib"})
 

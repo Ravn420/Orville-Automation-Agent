@@ -3,11 +3,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Mapping
+from typing import Any
 
 from .observability import JsonlTraceRecorder
 from .security import SecretRedactor
-
 
 CAPTURE_KINDS = {"prompt", "completion", "tool_arguments", "tool_result"}
 

@@ -1,10 +1,11 @@
 """Approval records for browser actions that may submit or download data."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass
@@ -46,7 +47,7 @@ def create_browser_approval(approval_id: str, session_id: str, action: str, targ
         raise ValueError("approval TTL must be between 1 and 3600 seconds")
     current = now or datetime.now(UTC)
     safe_target = target[:1000]
-    record = BrowserApproval(approval_id, session_id, action, safe_target, tuple(sorted(str(key)[:200] for key in (fields or {}).keys())), current.isoformat(), (current + timedelta(seconds=ttl_seconds)).isoformat())
+    record = BrowserApproval(approval_id, session_id, action, safe_target, tuple(sorted(str(key)[:200] for key in (fields or {}))), current.isoformat(), (current + timedelta(seconds=ttl_seconds)).isoformat())
     record.validate(current)
     return record
 

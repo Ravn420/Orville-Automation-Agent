@@ -2,17 +2,13 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-import shutil
 import subprocess
-import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from .research_data import ProjectExporter
-from .workspace import WorkspaceError, WorkspaceSession
+from .workspace import WorkspaceSession
 
 
 @dataclass(frozen=True)

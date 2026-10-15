@@ -6,11 +6,10 @@ single-use receipt immediately before execution.
 """
 from __future__ import annotations
 
+import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
-import secrets
-
 
 SENSITIVE_OPERATION_KINDS = frozenset(
     {
@@ -54,7 +53,7 @@ class ConfirmationRequest:
         *,
         ttl_seconds: int = 300,
         now: datetime | None = None,
-    ) -> "ConfirmationRequest":
+    ) -> ConfirmationRequest:
         if operation not in SENSITIVE_OPERATION_KINDS:
             raise ValueError(f"unsupported sensitive operation: {operation}")
         if not all(value.strip() for value in (target, scope, requester)):
@@ -63,7 +62,7 @@ class ConfirmationRequest:
             raise ValueError("confirmation TTL must be between 1 and 900 seconds")
         created = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
         expires = created + timedelta(seconds=ttl_seconds)
-        material = "\x1f".join((operation, target, scope, requester, created.isoformat()))
+        material = f"{operation}\x1f{target}\x1f{scope}\x1f{requester}\x1f{created.isoformat()}"
         return cls(operation, target, scope, requester, created, expires, sha256(material.encode()).hexdigest())
 
 

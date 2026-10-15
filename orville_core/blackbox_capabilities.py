@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-
 BLACKBOX_CAPABILITIES = frozenset({"chat", "streaming", "tool_calling", "multimodal_generation", "embeddings", "agent_tasks", "github_operations", "remote_task_resumption"})
 
 

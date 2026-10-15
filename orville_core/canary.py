@@ -12,12 +12,12 @@ import sqlite3
 import threading
 import time
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Protocol
+from typing import Any, Protocol
 
-from .canary_policy import CanaryPolicy, CanaryPolicyError
+from .canary_policy import CanaryPolicy
 
 
 class CanaryError(RuntimeError):

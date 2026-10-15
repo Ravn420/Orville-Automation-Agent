@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
-from typing import Any, Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
 
-from .adapters import AdapterHealth, AdapterRegistry, AdapterStatus
+from .adapters import AdapterRegistry
 
 
 @dataclass(frozen=True)

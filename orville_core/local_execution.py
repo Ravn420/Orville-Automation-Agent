@@ -3,11 +3,18 @@ from __future__ import annotations
 
 import tempfile
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .local_models import LocalModelCatalog
-from .sandbox import SandboxExecutor, SandboxPlan, SandboxPolicy, SandboxResult, SandboxUnavailable
+from .sandbox import (
+    SandboxExecutor,
+    SandboxPlan,
+    SandboxPolicy,
+    SandboxResult,
+    SandboxUnavailable,
+)
 from .sandbox_adapters import discover_sandbox_adapters
 
 

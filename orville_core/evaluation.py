@@ -1,8 +1,9 @@
 """Deterministic acceptance evaluation for Orville task outputs."""
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Any, Callable, Iterable
+from collections.abc import Callable, Iterable
+from dataclasses import asdict, dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)

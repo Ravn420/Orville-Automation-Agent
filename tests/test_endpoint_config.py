@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from orville_core import EndpointConfigError, LocalModelSpec, ProviderEndpointSpec
@@ -18,7 +20,7 @@ def test_provider_endpoint_spec_rejects_unsafe_urls_and_raw_credentials():
 
 
 def test_local_model_spec_validates_checksum_and_metadata():
-    spec = LocalModelSpec("model", "/models/model.gguf", "a" * 64, "gguf", architecture="llama", quantization="Q4", runtime="ollama", capabilities=("text",), license_name="MIT", validation_status="valid")
+    spec = LocalModelSpec("model", Path("/models/model.gguf"), "a" * 64, "gguf", architecture="llama", quantization="Q4", runtime="ollama", capabilities=("text",), license_name="MIT", validation_status="valid")
     assert spec.redacted()["checksum_sha256"] == "a" * 64
     with pytest.raises(EndpointConfigError, match="64-character"):
-        LocalModelSpec("model", "/models/model.gguf", "bad", "gguf")
+        LocalModelSpec("model", Path("/models/model.gguf"), "bad", "gguf")

@@ -196,13 +196,7 @@ def validate_value(value: Any, schema: dict[str, Any], *, depth: int = 0) -> Non
         for item in value:
             validate_value(item, schema["items"], depth=depth + 1)
         return
-    if "string" in types and isinstance(value, str):
-        pass
-    elif "boolean" in types and isinstance(value, bool):
-        pass
-    elif "integer" in types and isinstance(value, int) and not isinstance(value, bool):
-        pass
-    elif "number" in types and isinstance(value, (int, float)) and not isinstance(value, bool):
+    if "string" in types and isinstance(value, str) or "boolean" in types and isinstance(value, bool) or "integer" in types and isinstance(value, int) and not isinstance(value, bool) or "number" in types and isinstance(value, (int, float)) and not isinstance(value, bool):
         pass
     else:
         raise SchemaError(f"value type does not match {sorted(types)}")
@@ -367,7 +361,7 @@ class TaskThreadStore:
             db.execute("UPDATE waiting_requests SET status = ?, response = ? WHERE event_id = ? AND status = 'pending'", (status, json.dumps(SecretRedactor.redact(response)), event_id))
             if db.total_changes != 1:
                 raise RuntimeError("waiting event changed concurrently")
-        thread = self.get_thread(event.thread_id)
+        self.get_thread(event.thread_id)
         if accept:
             self.transition(event.thread_id, ThreadStatus.RUNNING)
         else:

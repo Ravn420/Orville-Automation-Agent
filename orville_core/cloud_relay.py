@@ -6,10 +6,11 @@ short-lived Orville session token or a redacted status response.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from time import monotonic
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlparse
 
 

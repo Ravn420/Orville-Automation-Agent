@@ -14,11 +14,17 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request
 
-from .provider_mcp_security import McpStateHandleStore, ProviderMcpSecurityError, mark_tool_output, no_redirect_opener, validate_remote_endpoint
-
-from fastapi import FastAPI, Request as FastAPIRequest
+from fastapi import FastAPI
+from fastapi import Request as FastAPIRequest
 from fastapi.responses import JSONResponse, Response
 
+from .provider_mcp_security import (
+    McpStateHandleStore,
+    ProviderMcpSecurityError,
+    mark_tool_output,
+    no_redirect_opener,
+    validate_remote_endpoint,
+)
 
 JSONRPC_VERSION = "2.0"
 DEFAULT_REST_URL = "http://127.0.0.1:8787"

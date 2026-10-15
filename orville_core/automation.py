@@ -11,12 +11,12 @@ import hashlib
 import json
 import sqlite3
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from uuid import uuid4
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 class TriggerType(StrEnum):
@@ -290,7 +290,7 @@ class WorkflowStore:
 class AutomationDispatcher:
     """Bridge durable triggers to versioned workflows with idempotency and outcome recording."""
 
-    def __init__(self, schedule_store: Any, workflow_store: WorkflowStore, executor: "WorkflowExecutor") -> None:
+    def __init__(self, schedule_store: Any, workflow_store: WorkflowStore, executor: WorkflowExecutor) -> None:
         self.schedule_store = schedule_store
         self.workflow_store = workflow_store
         self.executor = executor

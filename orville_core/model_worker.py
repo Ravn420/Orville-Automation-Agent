@@ -8,7 +8,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from .worker_protocol import WorkerRequest, WorkerResponse, decode_message, encode_message
+from .worker_protocol import (
+    WorkerRequest,
+    WorkerResponse,
+    decode_message,
+    encode_message,
+)
 
 
 def handle_request(request: WorkerRequest) -> WorkerResponse:

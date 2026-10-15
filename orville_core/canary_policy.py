@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 
 class CanaryPolicyError(ValueError):
@@ -176,7 +177,7 @@ class CanaryPolicy:
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "CanaryPolicy":
+    def from_dict(cls, data: Mapping[str, Any]) -> CanaryPolicy:
         try:
             health_data = data.get("health", {})
             rollback_data = data.get("rollback", {})

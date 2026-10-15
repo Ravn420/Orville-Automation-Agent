@@ -86,7 +86,7 @@ def _verify_text(text: str, policy: DocumentVerificationPolicy) -> tuple[list[st
     images = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", text)
     citations = re.findall(r"(?<!\w)\[(\d+)\](?!\w)", text)
     headings = re.findall(r"^#{1,6}\s+\S+", text, flags=re.MULTILINE)
-    charts = [item for item in images if re.search(r"chart|figure|plot|graph", item[0], re.I)]
+    charts = [item for item in images if re.search(r"chart|figure|plot|graph", item[0], re.IGNORECASE)]
     if policy.require_citations and not citations:
         findings.append("citations_missing")
     if policy.require_links and not links:

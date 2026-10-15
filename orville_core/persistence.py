@@ -110,4 +110,4 @@ class SQLiteCheckpointStore:
 
     def close(self) -> None:
         """Compatibility hook; connections are intentionally short-lived."""
-        return None
+        return

@@ -7,11 +7,16 @@ import os
 import shutil
 import subprocess
 import tempfile
-from xml.sax.saxutils import escape as xml_escape
 from pathlib import Path
-from typing import Any
+from xml.sax.saxutils import escape as xml_escape
 
-from .sandbox import SandboxExecutor, SandboxPlan, SandboxResult, SandboxUnavailable, filtered_environment
+from .sandbox import (
+    SandboxExecutor,
+    SandboxPlan,
+    SandboxResult,
+    SandboxUnavailable,
+    filtered_environment,
+)
 
 
 class LinuxBubblewrapExecutor:

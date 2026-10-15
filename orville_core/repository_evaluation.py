@@ -10,10 +10,15 @@ import hashlib
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 from .evaluation import EvaluationResult, evaluate_output
-from .sandbox import SandboxExecutor, SandboxPlan, SandboxPolicy, SandboxResult, SandboxUnavailable
+from .sandbox import (
+    SandboxExecutor,
+    SandboxPlan,
+    SandboxPolicy,
+    SandboxResult,
+    SandboxUnavailable,
+)
 
 
 @dataclass(frozen=True)

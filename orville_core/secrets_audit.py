@@ -12,7 +12,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 _SECRET_PATTERNS = (
     re.compile(r"(?i)(api[_-]?key|token|secret|password|authorization)\s*[\"']?\s*[:=]\s*[\"']?[^\s,;\"']+"),
     re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+"),

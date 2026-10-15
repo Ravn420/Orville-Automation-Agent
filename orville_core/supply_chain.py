@@ -9,7 +9,6 @@ from typing import Any
 
 from .security import SecurityViolation
 
-
 REVIEW_KINDS = frozenset({"package", "script", "artifact"})
 
 

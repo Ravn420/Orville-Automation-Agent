@@ -11,11 +11,12 @@ import base64
 import json
 import shutil
 import subprocess
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -73,7 +74,7 @@ class TrustStore:
         temporary.replace(self.path)
 
     @classmethod
-    def bootstrap(cls, path: Path, roots: Mapping[str, str], *, approved: bool = False) -> "TrustStore":
+    def bootstrap(cls, path: Path, roots: Mapping[str, str], *, approved: bool = False) -> TrustStore:
         if not approved:
             raise AttestationError("trust-store bootstrap requires explicit approval")
         store = cls(path)
@@ -210,7 +211,9 @@ def verify_attestation(*, envelope: Mapping[str, Any] | None, subject_digest: st
         if not signature or not public_key:
             raise AttestationError("attestation signature or trusted public key is missing")
         try:
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+                Ed25519PublicKey,
+            )
         except ImportError as exc:
             raise AttestationError("cryptography package is unavailable for attestation verification") from exc
         message = json.dumps(signed_payload, sort_keys=True, separators=(",", ":")).encode()

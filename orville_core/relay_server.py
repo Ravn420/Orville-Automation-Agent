@@ -6,15 +6,15 @@ provider-neutral OpenAI-compatible surface to Orville clients.
 """
 from __future__ import annotations
 
+import json
 import os
 import time
 from collections import defaultdict, deque
 from threading import Lock
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from urllib.parse import urlparse
-import json
+from urllib.request import Request, urlopen
 
 try:
     from fastapi import FastAPI, Header, HTTPException

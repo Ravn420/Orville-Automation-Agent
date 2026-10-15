@@ -23,7 +23,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from .provider_mcp_security import ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
+from .provider_mcp_security import (
+    ProviderMcpSecurityError,
+    no_redirect_opener,
+    validate_remote_endpoint,
+)
 
 
 class ConnectorConnectionError(RuntimeError):
@@ -92,7 +96,7 @@ def _unprotect(value: str) -> str:
             raise ConnectorConnectionError("connector credential could not be decrypted with the configured runtime master key") from exc
         except UnicodeDecodeError as exc:
             raise ConnectorConnectionError("connector credential contains invalid protected text") from exc
-    encoded = value[len(_DPAPI_PREFIX):] if value.startswith(_DPAPI_PREFIX) else value
+    encoded = value.removeprefix(_DPAPI_PREFIX)
     try:
         raw = base64.b64decode(encoded.encode("ascii"), validate=True)
     except (UnicodeEncodeError, ValueError) as exc:

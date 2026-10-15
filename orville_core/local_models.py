@@ -10,8 +10,10 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .attestations import AttestationError, AttestationPolicy, TrustStore, verify_attestation
 from .attestation_service import AttestationVerificationService
+from .attestations import (
+    TrustStore,
+)
 from .model_safety import inspect_safety
 from .model_security import classify_asset, classify_serialization, inspect_directory
 
@@ -43,7 +45,7 @@ class LocalModelRecord:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "LocalModelRecord":
+    def from_dict(cls, data: dict[str, Any]) -> LocalModelRecord:
         values = dict(data)
         values.setdefault("storage_mode", "reference")
         values.setdefault("provenance", {})
@@ -278,7 +280,7 @@ class LocalModelCatalog:
             raise KeyError(f"local model not found: {model_id}")
         if delete_files:
             from .security import SecurityViolation
-            record = next(record for record in records if record.model_id == model_id)
+            next(record for record in records if record.model_id == model_id)
             raise SecurityViolation("file deletion requires an explicit external confirmation flow")
         self._write(retained)
 
