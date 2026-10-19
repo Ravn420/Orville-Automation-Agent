@@ -9,7 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .connector_adapters import AdapterResult, ConnectorAdapterError, ConnectorAdapterRegistry, OperationSpec
+from .connector_adapters import (
+    AdapterResult,
+    ConnectorAdapterError,
+    ConnectorAdapterRegistry,
+    OperationSpec,
+)
 
 
 @dataclass(frozen=True)

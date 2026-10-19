@@ -5,74 +5,166 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import time
 import re
+import time
 from dataclasses import asdict
-from pathlib import Path
-from typing import Any
 from datetime import UTC, datetime
 from enum import StrEnum
-from time import monotonic
+from pathlib import Path
 from threading import Thread
+from time import monotonic
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request as UrlRequest, urlopen
+from urllib.request import Request as UrlRequest
+from urllib.request import urlopen
 from uuid import uuid4
 
-from .checkpoint import CheckpointStore
-from .persistence import SQLiteCheckpointStore
-from .artifacts import ArtifactStore
-from .project_files import ProjectFilesStore
-from .deep_research import DeepResearchEngine, ResearchConfig
-from .memory import MemoryStore
-from .engine import OrchestrationEngine
-from .extensions import Connector, ExtensionRegistry, PermissionSet
-from .integration import model_task_handler, streaming_model_task_handler
-from .models import Checkpoint, TaskGraph, TaskNode
-from .providers import MediaRequest, ModelCapabilities, ProviderConfig, ProviderError, ProviderRegistry, create_provider
-from .routing import ProviderRouter, RoutingRequest, validate_endpoint
-from .workflow import ProjectState, SoftwareObjective, TaskIntake, default_agent_registry
-from .security import NetworkPolicy, SecretRedactor, SecurityViolation
-from .attestations import TrustStore
-from .platform import PlanMilestone, PlatformStore, TaskLifecycle
-from .automation import AutomationDispatcher, TriggerType, WorkflowExecutor, WorkflowStep, WorkflowStore
-from .governance import GovernanceStore
-from .preview import PreviewManager
-from .research_data import CsvAnalyzer, ProjectExporter, ResearchCatalog
-from .identity import ProjectRole, SQLiteMembershipDirectory
 from .adapters import default_adapter_registry
-from .secrets_audit import AuditStore, SecretReferenceStore
-from .scheduler import EventIntake, ScheduleStore
-from .preview_runtime import PreviewRuntime
-from .readiness import ProductionReadiness
-from .config import RuntimeConfig
-from .workspace import WorkspaceError, WorkspaceSession
+from .agent_runtime import AgentProfile, AgentRuntimeStore
+from .artifacts import ArtifactStore
+from .attestations import TrustStore
+from .automation import (
+    AutomationDispatcher,
+    TriggerType,
+    WorkflowExecutor,
+    WorkflowStep,
+    WorkflowStore,
+)
+from .blackbox_capabilities import BlackboxCapabilityError, BlackboxCapabilityNegotiator
+from .blackbox_contract import BlackboxApiKeyContract, BlackboxContractError
+from .blackbox_model_discovery import (
+    BlackboxModelDiscovery,
+    BlackboxModelDiscoveryError,
+)
 from .browser import BrowserSessionManager
-from .hub_models import DownloadJobManager, HubModelError, HuggingFaceHubClient, check_runtime_compatibility, detect_machine_capabilities, resolve_download_destination
-from .model_runtime import probe_runtime_capabilities
-from .local_models import LocalModelCatalog
-from .connector_bridge import ConnectorBridge, ConnectorBridgeError, connector_uid_is_valid
-from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, reject_credential_values, safe_authorization_record
+from .browser_relay import BrowserRelayError, LocalBrowserRelay
+from .canary import (
+    CanaryController,
+    CanaryError,
+    CanaryHealthEvaluator,
+    CanaryStateStore,
+    HealthObservation,
+    SyntheticDeploymentAdapter,
+)
+from .catalog_adapters import catalog_summary, load_catalog
+from .checkpoint import CheckpointStore
+from .cloud_onboarding import initial_cloud_onboarding
+from .cloud_relay import (
+    AccessMode,
+    AccessRecord,
+    BlackboxFallbackPolicy,
+    CloudRelayBoundary,
+    RelayConfig,
+    RelayError,
+    RelayRequest,
+    RelayStatus,
+)
+from .config import RuntimeConfig
+from .connector_adapters import (
+    ConnectorAdapterError,
+    ConnectorAdapterRegistry,
+    ConnectorManifest,
+    FileTransferPolicy,
+    GenericHttpAdapter,
+    priority_manifests,
+    provider_default_headers,
+)
+from .connector_bridge import (
+    ConnectorBridge,
+    ConnectorBridgeError,
+    connector_uid_is_valid,
+)
 from .connector_connections import ConnectorConnectionError, ConnectorConnectionStore
 from .connector_defaults import ConnectorDefaultsError, ConnectorDefaultsStore
-from .provider_presets import provider_presets
-from .task_threads import SchemaError, TaskThreadStore, ThreadStatus
-from .agent_runtime import AgentProfile, AgentRuntimeStore
-from .extensions import PermissionSet
-from .skills import SkillRegistry, SkillSecurityError
-from .connector_adapters import ConnectorAdapterError, ConnectorAdapterRegistry, ConnectorManifest, FileTransferPolicy, GenericHttpAdapter, priority_manifests, provider_default_headers
-from .connector_governance import ConnectorGovernanceError, ConnectorMutationPolicy, ConnectorMutationRequest
-from .usage_health import Budget, UsageHealthStore
-from .browser_relay import BrowserRelayError, LocalBrowserRelay
-from .catalog_adapters import catalog_summary, load_catalog
+from .connector_governance import (
+    ConnectorGovernanceError,
+    ConnectorMutationPolicy,
+    ConnectorMutationRequest,
+)
+from .deep_research import DeepResearchEngine, ResearchConfig
+from .engine import OrchestrationEngine
+from .extensions import Connector, ExtensionRegistry, PermissionSet
+from .governance import GovernanceStore
+from .hub_models import (
+    DownloadJobManager,
+    HubModelError,
+    HuggingFaceHubClient,
+    check_runtime_compatibility,
+    detect_machine_capabilities,
+    resolve_download_destination,
+)
+from .identity import ProjectRole, SQLiteMembershipDirectory
+from .integration import model_task_handler, streaming_model_task_handler
+from .local_models import LocalModelCatalog
+from .memory import MemoryStore
+from .model_runtime import probe_runtime_capabilities
+from .models import Checkpoint, TaskGraph, TaskNode
 from .openapi_discovery import discover_openapi
-from .cloud_relay import AccessMode, AccessRecord, BlackboxFallbackPolicy, CloudRelayBoundary, RelayConfig, RelayError, RelayRequest, RelayStatus
-from .blackbox_contract import BlackboxApiKeyContract, BlackboxContractError, validate_blackbox_error_payload
-from .blackbox_capabilities import BlackboxCapabilityError, BlackboxCapabilityNegotiator
-from .blackbox_model_discovery import BlackboxModelDiscovery, BlackboxModelDiscoveryError
-from .cloud_onboarding import initial_cloud_onboarding
-from .provider_features import DiscoveryCatalogStore, PolicyBackupStore, PrivacyRoutingPolicy, PrivacyRoutingPolicyStore, ProviderDiscoveryError, ProviderRateLimitStore, RemoteCatalogStore, RemotePolicyStore, discover_provider_models, redacted_provider_export
-from .canary import CanaryController, CanaryError, CanaryHealthEvaluator, CanaryStateStore, HealthObservation, SyntheticDeploymentAdapter
+from .persistence import SQLiteCheckpointStore
+from .platform import PlanMilestone, PlatformStore
+from .preview import PreviewManager
+from .preview_runtime import PreviewRuntime
+from .project_files import ProjectFilesStore
+from .provider_features import (
+    DiscoveryCatalogStore,
+    PolicyBackupStore,
+    PrivacyRoutingPolicy,
+    PrivacyRoutingPolicyStore,
+    ProviderDiscoveryError,
+    ProviderRateLimitStore,
+    RemoteCatalogStore,
+    RemotePolicyStore,
+    discover_provider_models,
+    redacted_provider_export,
+)
+from .provider_mcp_security import (
+    InvocationSecurityContext,
+    ProviderMcpSecurityError,
+    no_redirect_opener,
+    reject_credential_values,
+    safe_authorization_record,
+)
+from .provider_presets import provider_presets
+from .providers import (
+    MediaRequest,
+    ModelCapabilities,
+    ProviderConfig,
+    ProviderError,
+    ProviderRegistry,
+    create_provider,
+)
+from .media_generation import MediaModality, GenerationOptions, GeneratedMedia
+from .media_validation import (
+    MediaValidationPolicy,
+    MediaValidationResult,
+    validate_media,
+)
+from .media_provenance import (
+    MediaProvenanceStore,
+    MediaAsset,
+    GenerationMetadata,
+    LicenseTerms,
+    RightsVerification,
+    RightsStatus,
+    LicenseType,
+    GenerationSource,
+)
+from .readiness import ProductionReadiness
+from .research_data import CsvAnalyzer, ProjectExporter, ResearchCatalog
+from .routing import ProviderRouter, RoutingRequest, validate_endpoint
+from .scheduler import EventIntake, ScheduleStore
+from .secrets_audit import AuditStore, SecretReferenceStore
+from .security import NetworkPolicy, SecretRedactor, SecurityViolation
+from .skills import SkillRegistry, SkillSecurityError
+from .task_threads import SchemaError, TaskThreadStore, ThreadStatus
+from .usage_health import Budget, UsageHealthStore
+from .workflow import (
+    ProjectState,
+    SoftwareObjective,
+    TaskIntake,
+)
+from .workspace import WorkspaceError, WorkspaceSession
 
 try:
     from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
@@ -254,6 +346,18 @@ class MediaGenerationPayload(BaseModel):
     options: dict[str, Any] = Field(default_factory=dict)
     local_only: bool = False
     allow_fallback: bool = True
+
+
+class MediaValidationPayload(BaseModel):
+    asset_id: str = Field(min_length=1, max_length=200)
+    modality: str = Field(default="image", min_length=1, max_length=20)
+    policy: dict[str, Any] = Field(default_factory=dict)
+
+
+class MediaVerifyPayload(BaseModel):
+    verification_method: str = Field(default="standard", min_length=1, max_length=80)
+    evidence_urls: list[str] = Field(default_factory=list)
+    notes: str | None = Field(default=None, max_length=2000)
 
 
 class HubSearchPayload(BaseModel):
@@ -759,7 +863,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
             connection_store.complete_oauth(connector_uid, code, state)
         except ConnectorConnectionError as exc:
             audit_store.append("local", "connector.connect.oauth.callback", connector_uid, "failed", metadata={"error": str(exc)})
-            return HTMLResponse(f"<h1>Orville connector sign-in failed</h1><p>{str(exc)}</p><p>Return to Signal Room and review the connection status.</p>", status_code=400).body.decode("utf-8")
+            return HTMLResponse(f"<h1>Orville connector sign-in failed</h1><p>{exc!s}</p><p>Return to Signal Room and review the connection status.</p>", status_code=400).body.decode("utf-8")
         audit_store.append("local", "connector.connect.oauth.callback", connector_uid, "completed")
         return "<h1>Orville connector connected</h1><p>You may close this window and return to Signal Room.</p>"
 
@@ -874,7 +978,6 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         try:
             if connection_store.get(connector_uid) is not None:
                 record, credential = connection_store.credential(connector_uid, owner_id=payload.user_id, task_id=payload.task_id, required_scopes=frozenset(payload.scopes))
-                auth_scheme = "Bearer" if record.auth_type == "bearer" else credential
                 credential_value = f"Bearer {credential}" if record.auth_type == "bearer" else credential
                 request = UrlRequest(f"{record.base_url}/invoke", data=json.dumps({"connector_uid": connector_uid, "operation": payload.operation, "arguments": payload.arguments, "run_id": payload.run_id}).encode("utf-8"), headers={"Accept": "application/json", "Content-Type": "application/json", record.credential_header: credential_value, "User-Agent": "Orville-Connector-Bridge/1"}, method="POST")
                 with no_redirect_opener().open(request, timeout=30) as response:
@@ -1524,7 +1627,7 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
         graph.tasks[0].inputs["privacy_class"] = payload.privacy_class
         if payload.generation_mode.lower() in {"code", "code_generation", "agentic", "agentic_code"}:
             brief = json.dumps({"objective": objective.objective, "deliverables": objective.deliverables, "constraints": objective.constraints, "acceptance_criteria": objective.acceptance_criteria, "target_environment": objective.target_environment}, ensure_ascii=False)
-            common = {"required_capabilities": ["code", "streaming"], "local_only": payload.local_only, "privacy_class": payload.privacy_class, "allow_fallback": False if payload.provider_id else True, "preferred_provider_ids": [payload.provider_id] if payload.provider_id else []}
+            common = {"required_capabilities": ["code", "streaming"], "local_only": payload.local_only, "privacy_class": payload.privacy_class, "allow_fallback": not payload.provider_id, "preferred_provider_ids": [payload.provider_id] if payload.provider_id else []}
             graph.tasks = [
                 TaskNode(task_id="agent.plan", title="Plan implementation", handler="intake.objective.streaming", inputs={**common, "messages": [{"role": "system", "content": "You are Orville's orchestration planner. Analyze the request, decompose it into implementation steps, identify files, dependencies, risks, and acceptance checks. Return a precise execution plan for the coding agent."}, {"role": "user", "content": brief}]}),
                 TaskNode(task_id="agent.implement", title="Generate implementation", handler="intake.objective.streaming", depends_on=["agent.plan"], inputs={**common, "messages": [{"role": "system", "content": "You are Orville's code synthesis agent. Based on the objective and the upstream plan, produce complete runnable code with explicit file paths, dependencies, setup instructions, and tests. Include all code in fenced blocks."}, {"role": "user", "content": brief}]}),
@@ -1936,6 +2039,191 @@ def create_app(*, checkpoint_dir: str | Path = ".orville/checkpoints", database_
                 detail = f"no configured provider satisfies required capability '{required}'; configure a provider with {required} enabled"
             raise HTTPException(status_code=400, detail=detail) from exc
         return {"modality": response.modality, "provider_id": response.provider_id, "model": response.model, "assets": response.assets, "routing": {"selected_provider": route.provider_id, "attempts": [attempt.__dict__ for attempt in route.attempts]}}
+
+    # Media API endpoints
+    @app.post("/api/v1/media/generate", dependencies=[Depends(authenticate)])
+    def media_generate(payload: MediaGenerationPayload) -> dict[str, Any]:
+        """Generate media (image/audio/video) using configured providers."""
+        modality = payload.modality.strip().lower().replace("-", "_")
+        if modality not in {"image", "video", "audio"}:
+            raise HTTPException(status_code=400, detail="modality must be image, video, or audio")
+        capability_map = {"image": "image_generation", "video": "video_generation", "audio": "audio"}
+        required = capability_map[modality]
+        options = dict(payload.options)
+        if options.get("number") is not None and not 1 <= int(options["number"]) <= 4:
+            raise HTTPException(status_code=400, detail="options.number must be between 1 and 4")
+        try:
+            response, route = provider_router.generate_media(
+                MediaRequest(
+                    prompt=payload.prompt,
+                    modality=modality,
+                    negative_prompt=payload.negative_prompt,
+                    options=options
+                ),
+                RoutingRequest(
+                    required_capabilities=frozenset({required}),
+                    preferred_provider_ids=(payload.provider_id,) if payload.provider_id else (),
+                    local_only=payload.local_only,
+                    allow_fallback=payload.allow_fallback
+                )
+            )
+        except (ProviderError, ValueError) as exc:
+            detail = str(exc)
+            if "no configured provider satisfies" in detail:
+                detail = f"no configured provider satisfies required capability '{required}'; configure a provider with {required} enabled"
+            raise HTTPException(status_code=400, detail=detail) from exc
+        return {
+            "modality": response.modality,
+            "provider_id": response.provider_id,
+            "model": response.model,
+            "assets": response.assets,
+            "routing": {"selected_provider": route.provider_id, "attempts": [attempt.__dict__ for attempt in route.attempts]}
+        }
+
+    @app.post("/api/v1/media/validate", dependencies=[Depends(authenticate)])
+    def media_validate(payload: MediaValidationPayload) -> dict[str, Any]:
+        """Validate a media file against format and content policies."""
+        from pathlib import Path
+        from .media_validation import validate_media
+
+        # Look for asset in artifacts or project files
+        asset_path = None
+        for root in [artifacts.root, project_files.root]:
+            for pattern in [f"**/{payload.asset_id}*", f"**/*{payload.asset_id}*"]:
+                matches = list(root.glob(pattern))
+                if matches:
+                    asset_path = matches[0]
+                    break
+            if asset_path:
+                break
+
+        if not asset_path or not asset_path.exists():
+            raise HTTPException(status_code=404, detail=f"asset not found: {payload.asset_id}")
+
+        try:
+            policy = MediaValidationPolicy(
+                modality=payload.modality,
+                **payload.policy
+            )
+            result = validate_media(asset_path, policy=policy)
+            return {"asset_id": payload.asset_id, "validation": result.to_dict()}
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/v1/media/{media_id}", dependencies=[Depends(authenticate)])
+    def media_get(media_id: str) -> dict[str, Any]:
+        """Get media metadata by ID."""
+        # Search in artifacts and project files
+        asset_path = None
+        asset_metadata = None
+
+        for record in artifacts.list():
+            if record.artifact_id == media_id or record.name.startswith(media_id):
+                asset_path = artifacts.root / record.relative_path
+                asset_metadata = record.to_dict()
+                break
+
+        if not asset_metadata:
+            raise HTTPException(status_code=404, detail=f"media not found: {media_id}")
+
+        return {
+            "media_id": media_id,
+            "metadata": asset_metadata,
+            "path": str(asset_path) if asset_path else None
+        }
+
+    @app.get("/api/v1/media/{media_id}/provenance", dependencies=[Depends(authenticate)])
+    def media_provenance(media_id: str) -> dict[str, Any]:
+        """Get provenance information for a media asset."""
+        # Initialize provenance store
+        provenance_root = checkpoint_root.parent / "media_provenance"
+        provenance_store = MediaProvenanceStore(provenance_root)
+
+        # Find asset in provenance records
+        for record in provenance_store.list_history():
+            for asset_id in record.generated_asset_ids:
+                if asset_id == media_id:
+                    return {
+                        "media_id": media_id,
+                        "provenance": record.to_dict(),
+                        "integrity_verified": record.verify_integrity()
+                    }
+            for asset_id in record.source_asset_ids:
+                if asset_id == media_id:
+                    return {
+                        "media_id": media_id,
+                        "provenance": record.to_dict(),
+                        "integrity_verified": record.verify_integrity()
+                    }
+
+        # Check if asset exists in artifacts
+        for record in artifacts.list():
+            if record.artifact_id == media_id:
+                return {
+                    "media_id": media_id,
+                    "provenance": None,
+                    "artifact": record.to_dict(),
+                    "note": "No provenance record found for this asset"
+                }
+
+        raise HTTPException(status_code=404, detail=f"media not found: {media_id}")
+
+    @app.post("/api/v1/media/{media_id}/verify", dependencies=[Depends(authenticate)])
+    def media_verify(media_id: str, payload: MediaVerifyPayload) -> dict[str, Any]:
+        """Verify rights and provenance for a media asset."""
+        from datetime import UTC, datetime
+
+        # Initialize provenance store
+        provenance_root = checkpoint_root.parent / "media_provenance"
+        provenance_store = MediaProvenanceStore(provenance_root)
+
+        # Find the asset record
+        found_record = None
+        found_asset = None
+
+        for record in provenance_store.list_history():
+            for asset_id in record.generated_asset_ids:
+                if asset_id == media_id:
+                    found_record = record
+                    break
+            if found_record:
+                break
+
+        if not found_record:
+            raise HTTPException(status_code=404, detail=f"media not found: {media_id}")
+
+        # Create rights verification record
+        verification = RightsVerification(
+            verification_id=f"verify-{media_id}-{datetime.now(UTC).isoformat()}",
+            asset_id=media_id,
+            status=RightsStatus.VERIFIED,
+            verified_by="api_verification",
+            verified_at=datetime.now(UTC).isoformat(),
+            verification_method=payload.verification_method,
+            evidence_urls=payload.evidence_urls,
+            notes=payload.notes
+        )
+
+        # Check license terms if available
+        license_info = None
+        if found_record.license_terms:
+            license_info = {
+                "type": found_record.license_terms.license_type.value,
+                "holder": found_record.license_terms.holder,
+                "commercial_use_allowed": found_record.license_terms.allows_commercial_use(),
+                "modification_allowed": found_record.license_terms.allows_modification(),
+                "valid": found_record.license_terms.is_valid_at()
+            }
+
+        return {
+            "media_id": media_id,
+            "verification": verification.to_dict(),
+            "license": license_info,
+            "integrity_verified": found_record.verify_integrity(),
+            "generation_source": found_record.generation_metadata.source.value if found_record.generation_metadata else None
+        }
 
     @app.post("/api/v1/objectives/{run_id}/execute", dependencies=[Depends(authenticate)])
     def execute_objective(run_id: str, payload: ExecutePayload) -> dict[str, Any]:

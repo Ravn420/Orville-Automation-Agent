@@ -93,7 +93,7 @@ class TaskNode:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "TaskNode":
+    def from_dict(cls, data: dict[str, Any]) -> TaskNode:
         return cls(
             task_id=data["task_id"],
             title=data["title"],
@@ -180,7 +180,7 @@ class TaskGraph:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "TaskGraph":
+    def from_dict(cls, data: dict[str, Any]) -> TaskGraph:
         return cls(
             graph_id=data["graph_id"],
             name=data["name"],
@@ -204,7 +204,7 @@ class Event:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Event":
+    def from_dict(cls, data: dict[str, Any]) -> Event:
         return cls(
             sequence=int(data["sequence"]),
             event_type=data["event_type"],
@@ -245,7 +245,7 @@ class OperationCheckpoint:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "OperationCheckpoint":
+    def from_dict(cls, data: dict[str, Any]) -> OperationCheckpoint:
         return cls(
             checkpoint_id=str(data["checkpoint_id"]),
             task_id=str(data["task_id"]),
@@ -281,7 +281,7 @@ class Checkpoint:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Checkpoint":
+    def from_dict(cls, data: dict[str, Any]) -> Checkpoint:
         schema_version = int(data.get("schema_version", 1))
         if schema_version not in {1, 2}:
             raise ValueError(f"unsupported checkpoint schema: {data.get('schema_version')}")

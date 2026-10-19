@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -12,7 +13,7 @@ class PermissionSet:
     network_hosts: frozenset[str] = frozenset()
     scopes: frozenset[str] = frozenset()
 
-    def allows(self, requested: "PermissionSet") -> bool:
+    def allows(self, requested: PermissionSet) -> bool:
         return requested.tools <= self.tools and requested.network_hosts <= self.network_hosts and requested.scopes <= self.scopes
 
 

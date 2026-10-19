@@ -1,0 +1,28 @@
+{
+  "endpoint_https_example1.test_v1": {
+    "interval": "minutes",
+    "enabled": true,
+    "timeout": 5.0,
+    "next_run": "2026-10-15T22:23:36.093360",
+    "last_run": null,
+    "consecutive_failures": 0,
+    "max_consecutive_failures": 3,
+    "alert_on_failure": true,
+    "alert_on_degraded": true,
+    "alert_email": null,
+    "alert_webhook": null
+  },
+  "endpoint_https_example2.test_v1": {
+    "interval": "minutes",
+    "enabled": true,
+    "timeout": 5.0,
+    "next_run": "2026-10-15T22:23:36.145391",
+    "last_run": null,
+    "consecutive_failures": 0,
+    "max_consecutive_failures": 3,
+    "alert_on_failure": true,
+    "alert_on_degraded": true,
+    "alert_email": null,
+    "alert_webhook": null
+  }
+}

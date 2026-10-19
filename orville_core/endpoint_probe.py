@@ -1,13 +1,18 @@
 """Safe endpoint validation and health probing with injectable transport."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 from urllib.error import URLError
-from urllib.request import Request, urlopen
 from urllib.parse import urlparse
+from urllib.request import Request
 
-from .provider_mcp_security import ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
+from .provider_mcp_security import (
+    ProviderMcpSecurityError,
+    no_redirect_opener,
+    validate_remote_endpoint,
+)
 
 
 @dataclass(frozen=True)

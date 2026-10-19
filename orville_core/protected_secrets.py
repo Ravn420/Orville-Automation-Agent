@@ -12,9 +12,9 @@ import re
 import secrets
 import sqlite3
 import time
+from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Mapping, MutableMapping
 
 
 class ProtectedSecretError(RuntimeError):

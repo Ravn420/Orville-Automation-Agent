@@ -119,18 +119,18 @@ class NetworkPolicy:
         normalized = host.lower().strip().rstrip(".")
         if normalized not in self.allowed_hosts:
             raise SecurityViolation(f"network host is not allowlisted: {host}")
-        if not self.allow_private and (normalized in {"localhost", "127.0.0.1", "::1"} or normalized.startswith("192.168.") or normalized.startswith("10.")):
+        if not self.allow_private and (normalized in {"localhost", "127.0.0.1", "::1"} or normalized.startswith(("192.168.", "10."))):
             raise SecurityViolation(f"private network access is disabled: {host}")
 
 
 class SecretRedactor:
     """Redact common credential fields and bearer/API-key patterns from logs."""
 
-    _secret_key = re.compile(r"(api[_-]?key|token|secret|password|authorization|credential)", re.I)
-    _bearer = re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]+", re.I)
-    _token_shaped = re.compile(r"\b(?:sk|bbx|tok|key|secret)[_-][A-Za-z0-9._~+/=-]{8,}\b", re.I)
-    _account_value = re.compile(r"\baccount(?:[_ -]?(?:id|identifier|email))?\s*[:=]?\s*[A-Za-z0-9][A-Za-z0-9._-]{7,}", re.I)
-    _query_secret = re.compile(r"(api[_-]?key|token|secret|password|access[_-]?token|refresh[_-]?token)\s*=\s*([^&\s]+)", re.I)
+    _secret_key = re.compile(r"(api[_-]?key|token|secret|password|authorization|credential)", re.IGNORECASE)
+    _bearer = re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]+", re.IGNORECASE)
+    _token_shaped = re.compile(r"\b(?:sk|bbx|tok|key|secret)[_-][A-Za-z0-9._~+/=-]{8,}\b", re.IGNORECASE)
+    _account_value = re.compile(r"\baccount(?:[_ -]?(?:id|identifier|email))?\s*[:=]?\s*[A-Za-z0-9][A-Za-z0-9._-]{7,}", re.IGNORECASE)
+    _query_secret = re.compile(r"(api[_-]?key|token|secret|password|access[_-]?token|refresh[_-]?token)\s*=\s*([^&\s]+)", re.IGNORECASE)
 
     @classmethod
     def redact(cls, value: Any) -> Any:

@@ -8,12 +8,11 @@ import os
 import secrets
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlparse
 from urllib.request import HTTPRedirectHandler, build_opener
 
 from .security import SecretRedactor, SecurityViolation
-
 
 PROMPT_BOUNDARY_START = "[BEGIN UNTRUSTED CONTENT]"
 PROMPT_BOUNDARY_END = "[END UNTRUSTED CONTENT]"
@@ -166,7 +165,7 @@ class McpStateHandleStore:
     _consumed: set[str] = field(default_factory=set)
 
     @classmethod
-    def from_environment(cls) -> "McpStateHandleStore":
+    def from_environment(cls) -> McpStateHandleStore:
         raw = os.getenv("ORVILLE_MCP_STATE_SECRET", "")
         if not raw:
             raise ProviderMcpSecurityError("ORVILLE_MCP_STATE_SECRET is required for MCP state handles")

@@ -13,9 +13,14 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
+from urllib.request import Request
 
-from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, validate_remote_endpoint
-from urllib.request import Request, urlopen
+from .provider_mcp_security import (
+    InvocationSecurityContext,
+    ProviderMcpSecurityError,
+    no_redirect_opener,
+    validate_remote_endpoint,
+)
 
 
 class ConnectorBridgeError(RuntimeError):
@@ -36,7 +41,7 @@ class ConnectorBridge:
     max_response_bytes: int = 2_000_000
 
     @classmethod
-    def from_environment(cls) -> "ConnectorBridge | None":
+    def from_environment(cls) -> ConnectorBridge | None:
         raw = os.getenv("ORVILLE_CONNECTOR_BRIDGE_URL", "").strip().rstrip("/")
         if not raw:
             return None

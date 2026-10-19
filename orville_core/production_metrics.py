@@ -10,9 +10,10 @@ from __future__ import annotations
 import math
 import threading
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from statistics import mean
-from typing import Iterable, Mapping, Protocol
+from typing import Protocol
 
 
 class MetricsError(ValueError):

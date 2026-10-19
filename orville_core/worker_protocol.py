@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 PROTOCOL_VERSION = 1
 MAX_MESSAGE_BYTES = 1 * 1024 * 1024
@@ -33,7 +34,7 @@ class WorkerRequest:
                 raise ValueError("worker references must be non-empty and NUL-free")
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, Any]) -> "WorkerRequest":
+    def from_dict(cls, payload: Mapping[str, Any]) -> WorkerRequest:
         result = cls(
             request_id=str(payload.get("request_id", "")),
             operation=str(payload.get("operation", "")),

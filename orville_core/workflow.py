@@ -8,7 +8,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .models import TaskGraph, TaskNode
 
@@ -53,7 +53,7 @@ class ProjectState:
         AtomicJsonFile(path).save(asdict(self))
 
     @classmethod
-    def load(cls, path: str | Path) -> "ProjectState":
+    def load(cls, path: str | Path) -> ProjectState:
         return cls(**AtomicJsonFile(path).load())
 
 

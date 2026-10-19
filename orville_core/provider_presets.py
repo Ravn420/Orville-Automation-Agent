@@ -1,7 +1,9 @@
 """Provider authentication presets; values are public endpoints, never credentials."""
 from __future__ import annotations
+
 from dataclasses import asdict, dataclass
 from typing import Any
+
 
 @dataclass(frozen=True)
 class ProviderPreset:

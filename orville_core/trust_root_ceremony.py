@@ -11,10 +11,11 @@ import hashlib
 import json
 import os
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .tuf_metadata import TufRepositoryVerifier, TufVerificationError
 

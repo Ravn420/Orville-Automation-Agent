@@ -13,13 +13,12 @@ import os
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from time import monotonic
-from typing import Iterable
 
 from .security import FilesystemPolicy, SecurityViolation
-
 
 _CONTEXT_EXCLUDED_NAMES = frozenset({".env", ".env.local", ".env.production", ".env.development", "credentials", "credentials.json", "secrets", "secrets.json"})
 _CONTEXT_EXCLUDED_SUFFIXES = frozenset({".pem", ".key", ".p12", ".pfx", ".crt"})
@@ -64,7 +63,7 @@ class WorkspaceSession:
     _revision_metadata: dict[str, Revision] = field(default_factory=dict, repr=False)
 
     @classmethod
-    def create(cls, source_root: str | Path, *, workspace_parent: str | Path | None = None, workspace_id: str = "workspace", base_revision: str | None = None) -> "WorkspaceSession":
+    def create(cls, source_root: str | Path, *, workspace_parent: str | Path | None = None, workspace_id: str = "workspace", base_revision: str | None = None) -> WorkspaceSession:
         source = Path(source_root).expanduser().resolve()
         if not source.is_dir():
             raise WorkspaceError(f"source root is not a directory: {source}")

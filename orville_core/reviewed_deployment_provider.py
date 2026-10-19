@@ -11,9 +11,11 @@ from __future__ import annotations
 import hashlib
 import json
 import threading
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from collections.abc import Callable, Mapping
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Protocol
 
 from .canary import CanaryError, DeploymentAdapter
 from .secrets_audit import SecretScanner

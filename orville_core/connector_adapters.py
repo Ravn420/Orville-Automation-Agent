@@ -1,17 +1,26 @@
 """Provider-neutral connector adapter registry and safe generic HTTP adapter."""
 from __future__ import annotations
+
 import json
 import mimetypes
 import os
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from urllib.parse import urlparse
+from urllib.request import Request
+
+from .provider_mcp_security import (
+    InvocationSecurityContext,
+    ProviderMcpSecurityError,
+    no_redirect_opener,
+    reject_credential_values,
+    validate_remote_endpoint,
+)
 from .security import NetworkPolicy, SecretRedactor
-from .provider_mcp_security import InvocationSecurityContext, ProviderMcpSecurityError, no_redirect_opener, reject_credential_values, validate_remote_endpoint
 
 _EMPTY_SCHEMA = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
 
@@ -128,9 +137,7 @@ def provider_default_headers(connector_id: str) -> dict[str, str]:
     defaults = {"User-Agent": "Orville-Connector-Bridge/1"}
     if connector_id == "github":
         defaults.update({"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
-    elif connector_id == "slack":
-        defaults.update({"Accept": "application/json"})
-    elif connector_id.startswith("google-"):
+    elif connector_id == "slack" or connector_id.startswith("google-"):
         defaults.update({"Accept": "application/json"})
     elif connector_id == "microsoft-outlook":
         defaults.update({"Accept": "application/json", "ConsistencyLevel": "eventual"})

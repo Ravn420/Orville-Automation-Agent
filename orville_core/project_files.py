@@ -7,7 +7,6 @@ from typing import Any
 
 from .artifacts import ArtifactRecord, ArtifactStore
 
-
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 

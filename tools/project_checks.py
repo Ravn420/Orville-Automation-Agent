@@ -11,10 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(command: list[str]) -> None:
+def run(command: list[str], env: dict[str, str] | None = None) -> None:
     """Run one check from the repository root and stream its output."""
     print("$", " ".join(command), flush=True)
-    subprocess.run(command, cwd=ROOT, check=True)
+    subprocess.run(command, cwd=ROOT, check=True, env=env)
 
 
 def build() -> None:
@@ -31,7 +31,10 @@ def build() -> None:
 
 def test() -> None:
     """Run the regression suite and require failed-test triage before release."""
-    run([sys.executable, "-m", "pytest", "-q"])
+    # Set PYTHONPATH to ensure pytest can find the tools and tests modules
+    env = dict(subprocess.os.environ)
+    env["PYTHONPATH"] = str(ROOT)
+    run([sys.executable, "-m", "pytest", "-q"], env=env)
     triage_manifest = ROOT / "config" / "test_triage_manifest.json"
     if not triage_manifest.is_file():
         raise FileNotFoundError(f"required test-triage manifest is missing: {triage_manifest}")

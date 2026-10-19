@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Callable, Iterable
+from typing import Any
 from urllib.parse import urlparse
 
 

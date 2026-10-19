@@ -7,8 +7,9 @@ external provisioning.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 
 class EnterpriseReadinessError(ValueError):
@@ -97,7 +98,7 @@ class EnterpriseEnvironment:
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "EnterpriseEnvironment":
+    def from_dict(cls, data: Mapping[str, Any]) -> EnterpriseEnvironment:
         try:
             recovery = data.get("recovery", {})
             responsibility = data.get("responsibilities", {})

@@ -19,7 +19,7 @@ class RuntimeConfig:
     requests_per_minute: int = 120
 
     @classmethod
-    def from_environment(cls, environment: dict[str, str] | None = None) -> "RuntimeConfig":
+    def from_environment(cls, environment: dict[str, str] | None = None) -> RuntimeConfig:
         env = environment if environment is not None else os.environ
         token = env.get("ORVILLE_API_TOKEN", "")
         if not token or token == "replace-with-a-high-entropy-secret":

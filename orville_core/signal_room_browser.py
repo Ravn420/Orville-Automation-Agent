@@ -1,7 +1,8 @@
 """Signal Room-safe projection for browser session controls."""
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 
 def browser_signal_room_projection(session: Mapping[str, Any]) -> dict[str, Any]:

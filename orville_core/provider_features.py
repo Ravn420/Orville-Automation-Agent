@@ -3,16 +3,44 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import tempfile
+import threading
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
-import sqlite3
-import threading
-from datetime import UTC, datetime
+
+
+class _SQLiteConnection:
+    """Context manager for SQLite connections that properly closes on Windows."""
+    def __init__(self, database: str | Path, timeout: int = 30, isolation_level: str | None = None):
+        self.database = database
+        self.timeout = timeout
+        self.isolation_level = isolation_level
+        self.conn = None
+        self._is_memory = str(database) == ":memory:"
+
+    def __enter__(self):
+        if self._is_memory:
+            # For in-memory databases, use a singleton connection
+            if not hasattr(_SQLiteConnection, "_instance"):
+                _SQLiteConnection._instance = sqlite3.connect(self.database, timeout=self.timeout, isolation_level=self.isolation_level)
+                _SQLiteConnection._instance.execute("PRAGMA journal_mode=WAL")
+                _SQLiteConnection._instance.execute("PRAGMA busy_timeout=5000")
+            self.conn = _SQLiteConnection._instance
+        else:
+            self.conn = sqlite3.connect(self.database, timeout=self.timeout, isolation_level=self.isolation_level)
+            self.conn.execute("PRAGMA journal_mode=WAL")
+            self.conn.execute("PRAGMA busy_timeout=5000")
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.conn and not self._is_memory:
+            self.conn.close()
 
 PRIVACY_CLASSES = {"local_only", "cloud_approved", "restricted"}
 LOCAL_PROVIDER_TYPES = {"ollama", "custom-local", "custom-local-ollama", "ollama-compatible", "openai-compatible-local", "llama-cpp", "transformers"}
@@ -79,7 +107,7 @@ class PrivacyRoutingPolicy:
             raise ValueError(f"privacy_class must be one of {sorted(PRIVACY_CLASSES)}")
         if self.privacy_class in {"local_only", "restricted"}:
             self.local_only = True
-        self.allowed_provider_ids = sorted(set(str(item) for item in self.allowed_provider_ids if str(item).strip()))
+        self.allowed_provider_ids = sorted({str(item) for item in self.allowed_provider_ids if str(item).strip()})
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -187,19 +215,21 @@ class ProviderRateLimitStore:
     """SQLite-backed fixed-window provider call/token accounting."""
     def __init__(self, database: str | Path) -> None:
         self.database = Path(database); self.database.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self.database) as db:
+        self._lock = threading.Lock()
+        self._db = _SQLiteConnection(self.database, timeout=30, isolation_level=None)
+        with self._db as db:
             db.execute("CREATE TABLE IF NOT EXISTS provider_rate_limits (provider_id TEXT PRIMARY KEY, window_seconds INTEGER NOT NULL, max_calls INTEGER NOT NULL, max_tokens INTEGER NOT NULL)")
             db.execute("CREATE TABLE IF NOT EXISTS provider_rate_events (provider_id TEXT NOT NULL, recorded_at REAL NOT NULL, calls INTEGER NOT NULL, tokens INTEGER NOT NULL)")
 
     def set_limit(self, provider_id: str, window_seconds: int, max_calls: int = -1, max_tokens: int = -1) -> dict[str, Any]:
         if window_seconds < 1 or max_calls < -1 or max_tokens < -1: raise ValueError("invalid provider rate limit")
-        with sqlite3.connect(self.database) as db:
+        with self._db as db:
             db.execute("INSERT INTO provider_rate_limits VALUES (?, ?, ?, ?) ON CONFLICT(provider_id) DO UPDATE SET window_seconds=excluded.window_seconds, max_calls=excluded.max_calls, max_tokens=excluded.max_tokens", (provider_id, window_seconds, max_calls, max_tokens))
         return self.snapshot(provider_id)
 
     def admit(self, provider_id: str, calls: int = 1, tokens: int = 0) -> tuple[bool, str]:
         now = datetime.now(UTC).timestamp()
-        with sqlite3.connect(self.database, timeout=30, isolation_level="IMMEDIATE") as db:
+        with self._db as db:
             limit = db.execute("SELECT window_seconds, max_calls, max_tokens FROM provider_rate_limits WHERE provider_id=?", (provider_id,)).fetchone()
             if not limit: return True, "no provider rate limit configured"
             window, max_calls, max_tokens = limit
@@ -208,11 +238,12 @@ class ProviderRateLimitStore:
             if max_calls >= 0 and used[0] + calls > max_calls: return False, "provider call rate limit exceeded"
             if max_tokens >= 0 and used[1] + tokens > max_tokens: return False, "provider token rate limit exceeded"
             db.execute("INSERT INTO provider_rate_events VALUES (?, ?, ?, ?)", (provider_id, now, calls, tokens))
+            db.commit()
         return True, "within provider rate limit"
 
     def snapshot(self, provider_id: str) -> dict[str, Any]:
         now = datetime.now(UTC).timestamp()
-        with sqlite3.connect(self.database) as db:
+        with self._db as db:
             limit = db.execute("SELECT window_seconds, max_calls, max_tokens FROM provider_rate_limits WHERE provider_id=?", (provider_id,)).fetchone()
             if not limit: return {"provider_id": provider_id, "configured": False}
             used = db.execute("SELECT COALESCE(SUM(calls),0), COALESCE(SUM(tokens),0) FROM provider_rate_events WHERE provider_id=? AND recorded_at>=?", (provider_id, now - limit[0])).fetchone()

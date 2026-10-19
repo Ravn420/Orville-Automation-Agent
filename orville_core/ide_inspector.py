@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import ast
-import json
 from pathlib import Path
-from typing import Any
 
 from .agent_contracts import IDEInspectionReport
 
@@ -43,7 +41,7 @@ class IDEInspector:
                 entries.append(relative)
             if path.suffix == ".py":
                 self._inspect_python(path, relative, edges, shared, risks)
-        return IDEInspectionReport(str(self.root), tuple(paths or ["."]), tuple(sorted(set(entries))), tuple(sorted(edges)), tuple(sorted(set(configs))), tuple(sorted(shared)), tuple(), tuple(sorted(set(risks))))
+        return IDEInspectionReport(str(self.root), tuple(paths or ["."]), tuple(sorted(set(entries))), tuple(sorted(edges)), tuple(sorted(set(configs))), tuple(sorted(shared)), (), tuple(sorted(set(risks))))
 
     def _inspect_python(self, path: Path, relative: str, edges: set[tuple[str, str]], shared: set[str], risks: list[str]) -> None:
         try:

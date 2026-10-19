@@ -15,7 +15,6 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-
 SUPPORTED_MODALITIES = frozenset({"text", "code", "vision", "embeddings", "image_generation", "audio", "video_generation"})
 
 

@@ -1,17 +1,17 @@
 """Structured, correlation-safe logging for multi-agent executions."""
 from __future__ import annotations
 
+import json
+import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
-import json
 from pathlib import Path
-import sys
-from typing import Any, Iterator, TextIO
+from typing import Any, TextIO
 from uuid import uuid4
 
 from .boundary import sanitize_external_output
-
 
 _correlation_id: ContextVar[str | None] = ContextVar("orville_correlation_id", default=None)
 

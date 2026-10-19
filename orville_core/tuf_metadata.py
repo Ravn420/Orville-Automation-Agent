@@ -11,10 +11,11 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 
 class TufVerificationError(ValueError):
@@ -106,7 +107,7 @@ class TufRepositoryVerifier:
     root_metadata: dict[str, Any]
 
     @classmethod
-    def bootstrap(cls, path: Path, root_metadata: Mapping[str, Any], *, approved: bool = False, expected_sha256: str | None = None) -> "TufRepositoryVerifier":
+    def bootstrap(cls, path: Path, root_metadata: Mapping[str, Any], *, approved: bool = False, expected_sha256: str | None = None) -> TufRepositoryVerifier:
         if not approved:
             raise TufVerificationError("TUF trust-root bootstrap requires explicit approval")
         root = json.loads(json.dumps(root_metadata))
@@ -121,7 +122,7 @@ class TufRepositoryVerifier:
         return cls(root)
 
     @classmethod
-    def load(cls, path: Path) -> "TufRepositoryVerifier":
+    def load(cls, path: Path) -> TufRepositoryVerifier:
         root = json.loads(path.expanduser().resolve().read_text(encoding="utf-8"))
         _verify_role(root, root, "root")
         return cls(root)

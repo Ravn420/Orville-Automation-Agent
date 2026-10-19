@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from collections import Counter
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-import re
 from typing import Any
-
 
 _FAILURE_EVENTS = frozenset({"task_failed", "task_verification_failed", "run_failed", "task_blocked"})
 _MAX_LABEL_LENGTH = 96

@@ -7,9 +7,9 @@ requester explicitly endorses the exact action.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import StrEnum
-import re
 
 
 class ContentOrigin(StrEnum):

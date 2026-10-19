@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "manifests": {
+    "github": {
+      "uid": "github",
+      "display_name": "GitHub",
+      "version": "1.0.0",
+      "description": "GitHub API connector",
+      "status": "configuration_required",
+      "auth_type": "bearer",
+      "base_url": "https://api.github.com",
+      "scopes": [
+        "repo",
+        "user",
+        "read:org"
+      ],
+      "operations": [
+        {
+          "name": "issues.list",
+          "method": "GET",
+          "description": "GET operation for issues.list",
+          "parameters": {},
+          "returns": {},
+          "risk_class": "read",
+          "sensitive": false,
+          "deprecated": false,
+          "version": "1.0.0"
+        },
+        {
+          "name": "issues.create",
+          "method": "POST",
+          "description": "POST operation for issues.create",
+          "parameters": {},
+          "returns": {},
+          "risk_class": "read",
+          "sensitive": false,
+          "deprecated": false,
+          "version": "1.0.0"
+        }
+      ],
+      "dependencies": [],
+      "risk_class": "read",
+      "owner_id": "local",
+      "task_id": null,
+      "metadata": {},
+      "created_at": 1792087589.293016,
+      "updated_at": 1792087589.293016
+    }
+  },
+  "connections": {},
+  "defaults": [],
+  "created_at": 1792087589.2919347,
+  "updated_at": 1792087589.293016
+}

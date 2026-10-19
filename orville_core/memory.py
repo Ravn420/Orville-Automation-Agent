@@ -7,11 +7,10 @@ import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from uuid import uuid4
 from typing import Any
+from uuid import uuid4
 
 from .security import SecretRedactor
-
 
 _ALLOWED_SCOPES = {"task", "project"}
 _MAX_VALUE_BYTES = 100_000

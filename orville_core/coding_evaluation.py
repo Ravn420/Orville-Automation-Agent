@@ -1,10 +1,9 @@
 """Validation contracts for repository-level coding evaluation cases."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Mapping
-
+from typing import Any
 
 REQUIRED_STAGES = ("issue", "patch", "dependencies", "tests", "regression")
 
@@ -19,7 +18,7 @@ class CodingEvaluationCase:
     regression_command: tuple[str, ...]
 
     @classmethod
-    def from_mapping(cls, raw: Mapping[str, Any]) -> "CodingEvaluationCase":
+    def from_mapping(cls, raw: Mapping[str, Any]) -> CodingEvaluationCase:
         required = {"id", "issue", "patch", "dependencies", "test_command", "regression_command"}
         missing = sorted(required - set(raw))
         if missing:

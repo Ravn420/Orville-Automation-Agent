@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from statistics import mean
 from typing import Any
 
-
 _MAX_AGENT_LABEL = 96
 _MAX_RECORDS = 10_000
 

@@ -4,16 +4,11 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import json
-import shutil
-import subprocess
-import tempfile
 import zipfile
-from dataclasses import dataclass, field
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
-
-from .security import NetworkPolicy, SecurityViolation
+from typing import Any
 
 
 @dataclass(frozen=True)

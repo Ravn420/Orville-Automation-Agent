@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import ctypes
-import hashlib
 import json
 import os
 import platform
@@ -44,7 +43,7 @@ def resolve_download_destination(models_root: str | Path, destination: str | Pat
     if "\x00" in raw:
         raise HubModelError("download destination contains a NUL byte")
     normalized = raw.replace("\\", "/")
-    if normalized.startswith("/") or normalized.startswith("//") or re.match(r"^[A-Za-z]:($|/)", normalized):
+    if normalized.startswith(("/", "//")) or re.match(r"^[A-Za-z]:($|/)", normalized):
         raise HubModelError("download destination must be a relative directory inside Orville's models directory")
     if normalized in {".", "./"}:
         return root
@@ -151,17 +150,17 @@ class HuggingFaceHubClient:
         values = {str(info.get("pipeline_tag", "")).lower(), *(str(tag).lower() for tag in info.get("tags", []) or [])}
         repo = str(info.get("id", "")).lower()
         capabilities: set[str] = set()
-        if any(value in values for value in {"text-generation", "text2text-generation", "conversational", "text-generation-inference"}):
+        if any(value in values for value in ("text-generation", "text2text-generation", "conversational", "text-generation-inference")):
             capabilities.add("text")
-        if any(value in values for value in {"text-to-image", "image-text-to-image", "unconditional-image-generation"}):
+        if any(value in values for value in ("text-to-image", "image-text-to-image", "unconditional-image-generation")):
             capabilities.add("image_generation")
-        if any(value in values for value in {"text-to-video", "video-generation"}):
+        if any(value in values for value in ("text-to-video", "video-generation")):
             capabilities.add("video_generation")
-        if any(value in values for value in {"feature-extraction", "sentence-similarity"}):
+        if any(value in values for value in ("feature-extraction", "sentence-similarity")):
             capabilities.add("embeddings")
-        if any(value in values for value in {"image-classification", "image-to-text", "visual-question-answering"}):
+        if any(value in values for value in ("image-classification", "image-to-text", "visual-question-answering")):
             capabilities.add("vision")
-        if any(token in repo or token in values for token in {"code", "coder", "programming"}):
+        if any(token in repo or token in values for token in ("code", "coder", "programming")):
             capabilities.add("code")
         return sorted(capabilities)
 

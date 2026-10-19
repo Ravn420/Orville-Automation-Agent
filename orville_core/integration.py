@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import replace
-from typing import Any, Iterator
+from typing import Any
 
 from .agent_contracts import StreamPolicy
 from .models import TaskNode
 from .providers import LLMRequest, ProviderError
-from .sandbox_adapters import discover_sandbox_adapters
 from .routing import ProviderRouter, RoutingRequest
+from .sandbox_adapters import discover_sandbox_adapters
 from .workflow import VerificationRecord
 
 

@@ -9,8 +9,9 @@ from __future__ import annotations
 import base64
 import json
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Protocol
+from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
@@ -745,7 +746,6 @@ class StableHordeAdapter(BaseHttpProvider):
 class CustomLocalAdapter(OllamaAdapter):
     """Adapter for a user-supplied Ollama-compatible local endpoint."""
 
-    pass
 
 
 def create_provider(config: ProviderConfig, http: JsonHttpClient | None = None) -> LLMProvider:

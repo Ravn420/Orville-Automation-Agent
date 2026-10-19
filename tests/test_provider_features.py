@@ -62,10 +62,6 @@ class ProviderFeatureTests(unittest.TestCase):
         self.assertFalse(exported["providers"][0]["api_key_configured"] is False)
         self.assertNotIn("api_key", exported["providers"][0])
 
-
-if __name__ == "__main__":
-    unittest.main()
-
     def test_discovery_catalog_persists_and_switches_active_model(self):
         from orville_core.provider_features import DiscoveryCatalogStore
         with tempfile.TemporaryDirectory() as directory:
@@ -77,12 +73,12 @@ if __name__ == "__main__":
 
     def test_provider_rate_limit_accounts_calls(self):
         from orville_core.provider_features import ProviderRateLimitStore
-        with tempfile.TemporaryDirectory() as directory:
-            store = ProviderRateLimitStore(Path(directory) / "usage.db")
-            store.set_limit("local", 60, max_calls=1, max_tokens=100)
-            self.assertEqual(store.admit("local")[0], True)
-            self.assertEqual(store.admit("local")[0], False)
-            self.assertEqual(store.snapshot("local")["calls_used"], 1)
+        # Use in-memory database to avoid Windows file locking issues
+        store = ProviderRateLimitStore(":memory:")
+        store.set_limit("local", 60, max_calls=1, max_tokens=100)
+        self.assertEqual(store.admit("local")[0], True)
+        self.assertEqual(store.admit("local")[0], False)
+        self.assertEqual(store.snapshot("local")["calls_used"], 1)
 
     def test_remote_policy_store_falls_back_without_leaking_token(self):
         from orville_core.provider_features import RemotePolicyStore

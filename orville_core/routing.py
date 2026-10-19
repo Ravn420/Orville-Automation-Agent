@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
-import ipaddress
 import time
-from dataclasses import dataclass, field
-from typing import Callable, Iterable, TypeVar
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from typing import TypeVar
 from urllib.parse import urlparse
 
-from .providers import EmbeddingResponse, LLMProvider, LLMRequest, LLMResponse, MediaRequest, MediaResponse, ProviderError, ProviderRegistry, StreamChunk
+from .providers import (
+    EmbeddingResponse,
+    LLMProvider,
+    LLMRequest,
+    LLMResponse,
+    MediaRequest,
+    MediaResponse,
+    ProviderError,
+    ProviderRegistry,
+    StreamChunk,
+)
 
 CAPABILITIES = {"text", "code", "vision", "image_generation", "video_generation", "audio", "embeddings", "streaming", "structured_output", "tool_calling"}
 

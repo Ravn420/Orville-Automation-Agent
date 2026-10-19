@@ -4,7 +4,7 @@
 **Project ID:** `LEXzf7g37cAa2sJHx4PmMm`
 **Roadmap status:** In progress — local control plane, model lifecycle, GUI, security hardening, and synthetic canary foundations implemented; production operations and provider-specific integrations remain
 **Document owner:** Orchestration Agent
-**Last updated:** 2026-08-27
+**Last updated:** 2026-10-14
 
 ## 1. Roadmap Objective
 
@@ -915,6 +915,89 @@ This audit compares the roadmap with the implementation artifacts currently pres
 1. Establish the GUI foundation after the orchestration and provider interfaces stabilize.
 
 1. Add security enforcement, acceptance evaluation, observability, packaging, and deployment gates.
+
+## 18.5 Phase 3 — Environment and Integration Reliability
+
+### 3.1 Runtime health [In Progress]
+
+- [x] Implement runtime health check system with command availability validation <!-- task-id:TODO-8699b4e2dfe5 -->
+- [x] Add optional integration utilities checking (manus-mcp-cli, gh, pnpm) <!-- task-id:TODO-262ad6f0cbe2 -->
+- [x] Add Python module availability checks <!-- task-id:TODO-7ccd1ac0d553 -->
+- [x] Ensure secret-safe output (no environment variable leakage) <!-- task-id:TODO-2504c0eb1663 -->
+- [x] Implement status reporting (ok/degraded) <!-- task-id:TODO-3369cf4f8775 -->
+- [x] Add CLI command `orville --runtime-health` <!-- task-id:TODO-4b1640ccaaac -->
+- [ ] Add environment-specific health checks (cloud, local, production) <!-- task-id:TODO-9a503bb5464f -->
+- [ ] Add resource availability checks (disk, memory, CPU) <!-- task-id:TODO-d9da5ee23c7a -->
+- [ ] Add integration health checks (Manus MCP, API gateway, database, artifact storage) <!-- task-id:TODO-7fc3bf89571e -->
+- [ ] Implement health check scheduling and periodic execution <!-- task-id:TODO-71985f37407d -->
+- [ ] Add health check result persistence <!-- task-id:TODO-99dab96fbd8a -->
+- [ ] Add health check alerting and monitoring <!-- task-id:TODO-ec51acac2bb2 -->
+- [ ] Add health check history tracking <!-- task-id:TODO-728d878afddd -->
+
+### 3.2 Connector management [In Progress]
+
+- [x] Implement connector health contracts with status tracking <!-- task-id:TODO-0e3790891518 -->
+- [x] Create ConnectorInventory for managing multiple connectors <!-- task-id:TODO-cbecb0b67fec -->
+- [x] Ensure secret-safe error messages (no credential leakage) <!-- task-id:TODO-b3e393f55d17 -->
+- [x] Add rate limit tracking <!-- task-id:TODO-c9c3bec9ccfa -->
+- [x] Add authentication status tracking <!-- task-id:TODO-4cecfc8fe12b -->
+- [x] Add capability metadata <!-- task-id:TODO-ca576e451290 -->
+- [x] Add CLI command for connector health (planned) <!-- task-id:TODO-66512a28d908 -->
+- [ ] Create connector configuration file format <!-- task-id:TODO-d7c4ba0fe5fa -->
+- [ ] Implement connector configuration loader and validation <!-- task-id:TODO-92f7b6d74ef9 -->
+- [ ] Add connector dependency management <!-- task-id:TODO-dc3dc5de68f1 -->
+- [ ] Add connector versioning <!-- task-id:TODO-4b49e4115140 -->
+- [ ] Implement connector permission scopes <!-- task-id:TODO-1fbabbae43e1 -->
+- [ ] Add connector resource limits <!-- task-id:TODO-fb1e8242e65b -->
+- [ ] Add connector execution time limits <!-- task-id:TODO-3647a1bf7c93 -->
+- [ ] Add connector network boundary controls <!-- task-id:TODO-dbb739c87c9a -->
+- [ ] Create connector approval workflow <!-- task-id:TODO-ec1901f25f02 -->
+- [ ] Add connector audit logging <!-- task-id:TODO-738a4283090d -->
+- [ ] Add connector revocation mechanism <!-- task-id:TODO-1fea81e8f3e6 -->
+- [ ] Add connector usage metrics <!-- task-id:TODO-a849e7b7a29f -->
+
+### 3.3 Cloud and Local Model Endpoints [In Progress]
+
+- [x] Implement ProviderEndpointSpec for cloud provider endpoints <!-- task-id:TODO-1c1c8da139b5 -->
+- [x] Implement LocalModelSpec for local model assets <!-- task-id:TODO-793dbba774be -->
+- [x] Add URL validation (HTTP/HTTPS only, no fragments) <!-- task-id:TODO-4a820a6c367f -->
+- [x] Add secret reference validation (no raw credentials) <!-- task-id:TODO-d0a90fdb63de -->
+- [x] Add checksum validation (SHA-256, 64 hex chars) <!-- task-id:TODO-2762981c2f29 -->
+- [x] Add timeout configuration <!-- task-id:TODO-304fb299d51c -->
+- [x] Implement endpoint probing with safe HEAD checks <!-- task-id:TODO-5435a00a24fc -->
+- [x] Add URL validation with allowed hosts/ports <!-- task-id:TODO-59cb8f56150f -->
+- [x] Add private network support <!-- task-id:TODO-3e4010b0e910 -->
+- [x] Add injectable transport for testing <!-- task-id:TODO-a9b0976cd02d -->
+- [x] Add timeout handling <!-- task-id:TODO-926aa8126976 -->
+- [x] Add CLI command `orville --probe-endpoint <url>` <!-- task-id:TODO-47297a20a1ee -->
+- [ ] Add cloud provider-specific validation rules <!-- task-id:TODO-0a3cabf7bda1 -->
+- [ ] Add local model runtime validation <!-- task-id:TODO-f5da5cf11544 -->
+- [ ] Add network environment validation <!-- task-id:TODO-1dd649132b83 -->
+- [ ] Add security policy validation <!-- task-id:TODO-e5f317b0eab9 -->
+- [ ] Implement endpoint health monitoring <!-- task-id:TODO-9783cf524510 -->
+- [ ] Implement endpoint failure recovery <!-- task-id:TODO-d1e8ab272435 -->
+- [ ] Add endpoint load balancing <!-- task-id:TODO-871eed0e3813 -->
+- [ ] Add endpoint caching and fallback <!-- task-id:TODO-fc2a7f5c3879 -->
+- [ ] Create endpoint configuration file <!-- task-id:TODO-bd9d61356851 -->
+- [ ] Add endpoint validation on startup <!-- task-id:TODO-000026dfd717 -->
+- [ ] Add endpoint health check scheduling <!-- task-id:TODO-b6be46892122 -->
+- [ ] Add endpoint failure alerting <!-- task-id:TODO-62f0947ef7c6 -->
+
+### Integration and Testing [Pending]
+
+- [ ] Create end-to-end health check workflow tests <!-- task-id:TODO-bd9b9bfbaa6a -->
+- [ ] Create connector health integration tests <!-- task-id:TODO-a5fbd40d2b7c -->
+- [ ] Create endpoint validation integration tests <!-- task-id:TODO-847b6d156d57 -->
+- [ ] Create Phase 3 integration test suite <!-- task-id:TODO-6e037c785052 -->
+- [ ] Run full test suite for Phase 3 components <!-- task-id:TODO-6e542e9cbfae -->
+
+### Documentation [Pending]
+
+- [ ] Write Phase 3 operational guide <!-- task-id:TODO-291dabfa0d93 -->
+- [ ] Write connector management guide <!-- task-id:TODO-4a5b08d0acd5 -->
+- [ ] Write endpoint validation guide <!-- task-id:TODO-f934c43edc5f -->
+- [ ] Update README with Phase 3 features <!-- task-id:TODO-deece57a3d8b -->
+- [ ] Create Phase 3 troubleshooting guide <!-- task-id:TODO-4cb00557bd7b -->
 
 ## 19. Priority Backlog
 
@@ -2522,3 +2605,36 @@ The durable scheduling and signed webhook milestone is implemented: ScheduleStor
 - [ ] Implement bounded source-backed Deep Research with explicit Plan, Search, Fetch, Synthesize, Verify, and Report stages. <!-- task-id:TODO-deep-research-expansion --> <!-- task-id:TODO-ea5c0fed149d -->
 - [ ] Add the dedicated Deep Research workspace to Signal Room and expose privacy boundaries and source verification state. <!-- task-id:TODO-deep-research-ui --> <!-- task-id:TODO-294c628ff875 -->
 - [ ] Maintain the hard three-task background-worker concurrency limit and verify staged Plan → Work → Check execution behavior. <!-- task-id:TODO-staged-workflow-expansion --> <!-- task-id:TODO-a7fc274289ff -->
+
+## Phase 3: Environment and Integration Reliability
+
+### Phase 3.1 — Runtime Health (Core Implementation Complete)
+
+- [x] Create integration health check system for Manus MCP, API gateway, database, and artifact storage <!-- task-id:TODO-ff843f1fa25e -->
+  - ✅ `orville_core/health_integration.py` - Integration health checks
+  - ✅ `orville_core/health_persistence.py` - Health check result persistence
+  - ✅ `orville_core/health_models.py` - Shared data structures
+  - ✅ `orville_core/runtime_health.py` - Updated to integrate new health checks
+  - ✅ `tests/test_health_integration.py` - Comprehensive test suite (19/19 tests passing)
+  - ✅ `orville --runtime-health` CLI command
+
+- [ ] Implement health check scheduling and periodic execution <!-- task-id:TODO-9aee28d921fd -->
+- [ ] Add health check alerting and monitoring <!-- task-id:TODO-40f78c14618c -->
+- [ ] Add health check result export to external systems <!-- task-id:TODO-4dd27adb6c0b -->
+- [ ] Add health check result visualization <!-- task-id:TODO-a2fd995c07ef -->
+- [ ] Write Phase 3.1 documentation <!-- task-id:TODO-3a8bed88b298 -->
+
+### Phase 3.2 — Connector Management
+
+- [ ] Create connector configuration file format <!-- task-id:TODO-a8847657cb08 -->
+- [ ] Implement connector configuration loader and validation <!-- task-id:TODO-6f7fb941a8db -->
+- [ ] Add connector dependency management <!-- task-id:TODO-6df4df7050ac -->
+- [ ] Add connector versioning <!-- task-id:TODO-490414a4691f -->
+- [ ] Write connector management documentation <!-- task-id:TODO-666b2d694d2e -->
+
+### Phase 3.3 — Cloud and Local Model Endpoints
+
+- [ ] Create endpoint validation system <!-- task-id:TODO-23e7b8d98429 -->
+- [ ] Implement environment-specific endpoint configuration <!-- task-id:TODO-60202d9f778c -->
+- [ ] Add endpoint health monitoring <!-- task-id:TODO-b1b5687298e8 -->
+- [ ] Write endpoint validation documentation <!-- task-id:TODO-31d5db5f9132 -->

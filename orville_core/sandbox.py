@@ -7,11 +7,10 @@ has been configured and tested.
 
 from __future__ import annotations
 
-import os
-import shlex
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path, PureWindowsPath
-from typing import Any, Mapping, Protocol
+from typing import Any, Protocol
 
 
 class SandboxError(RuntimeError):
@@ -37,7 +36,9 @@ def sandbox_path_from_request(value: object) -> Path:
     """Preserve absolute Windows paths while resolving native host paths."""
     path = Path(str(value)).expanduser()
     if PureWindowsPath(str(path)).is_absolute():
-        return path
+        # Normalize Windows paths to use forward slashes for consistency
+        # (Windows Sandbox config expects forward slashes)
+        return Path(path.as_posix())
     return path.resolve()
 
 
@@ -95,7 +96,7 @@ class SandboxPlan:
             raise ValueError("credential-like environment variables are not allowed")
 
     @classmethod
-    def from_request(cls, request: Mapping[str, Any], policy: SandboxPolicy) -> "SandboxPlan":
+    def from_request(cls, request: Mapping[str, Any], policy: SandboxPolicy) -> SandboxPlan:
         command = request.get("command")
         if isinstance(command, str):
             raise ValueError("command must be argv, not a shell string")

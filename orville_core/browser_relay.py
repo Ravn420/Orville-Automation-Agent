@@ -6,13 +6,16 @@ allowed domains, and dispatches only approved action types to a local browser
 adapter supplied by the caller.
 """
 from __future__ import annotations
+
 import hashlib
 import hmac
 import secrets
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from urllib.parse import urlparse
-from typing import Any, Callable
+
 
 @dataclass(frozen=True)
 class RelaySession:
@@ -68,7 +71,7 @@ class LocalBrowserRelay:
         return session
 
     def dispatch(self, session_id: str, secret: str, action: str, payload: dict[str, Any], handler: Callable[[str, dict[str, Any]], Any]) -> Any:
-        session = self._authorize(session_id, secret)
+        self._authorize(session_id, secret)
         if action not in {"navigate", "extract", "screenshot", "takeover_request", "release"}:
             raise BrowserRelayError("browser action is not allowlisted")
         if action == "navigate":

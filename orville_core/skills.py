@@ -17,7 +17,6 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 from .extensions import PermissionSet
 
@@ -55,7 +54,7 @@ class SkillRecord:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SkillRecord":
+    def from_dict(cls, data: dict[str, Any]) -> SkillRecord:
         raw = dict(data)
         raw["permissions"] = PermissionSet(**raw.get("permissions", {}))
         raw["required_tools"] = tuple(raw.get("required_tools", ()))

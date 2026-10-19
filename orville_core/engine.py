@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 import hashlib
+from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -12,8 +13,16 @@ from typing import Any
 from uuid import uuid4
 
 from .checkpoint import CheckpointStore
-from .models import Checkpoint, Event, OperationCheckpoint, RunStatus, TaskGraph, TaskNode, TaskStatus
-from .workspace_locks import WorkspaceLeaseError, WorkspaceLeaseRegistry
+from .models import (
+    Checkpoint,
+    Event,
+    OperationCheckpoint,
+    RunStatus,
+    TaskGraph,
+    TaskNode,
+    TaskStatus,
+)
+from .workspace_locks import WorkspaceLeaseRegistry
 
 TaskHandler = Callable[[TaskNode, dict[str, Any]], Any]
 VerificationHandler = Callable[[TaskNode, Any, dict[str, Any]], Any]
@@ -287,7 +296,7 @@ class OrchestrationEngine:
                     future = executor.submit(handler, task, local_context)
                     try:
                         return task, future.result(timeout=task.timeout_seconds), None
-                    except FutureTimeoutError as exc:
+                    except FutureTimeoutError:
                         future.cancel()
                         return task, None, TimeoutError(f"task exceeded {task.timeout_seconds}s timeout")
             except Exception as exc:  # noqa: BLE001 - persisted as task failure
@@ -338,7 +347,7 @@ class OrchestrationEngine:
             raise ValueError(f"unsupported operation kind: {operation_kind}")
         sequence = len(checkpoint.operation_checkpoints) + 1
         checkpoint_id = "opcp-" + hashlib.sha256(
-            f"{checkpoint.run_id}:{task.task_id}:{phase}:{sequence}".encode("utf-8")
+            f"{checkpoint.run_id}:{task.task_id}:{phase}:{sequence}".encode()
         ).hexdigest()[:20]
         checkpoint.operation_checkpoints.append(
             OperationCheckpoint(

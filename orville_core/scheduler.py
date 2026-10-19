@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import sqlite3
 import json
+import sqlite3
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -306,7 +306,7 @@ class EventIntake:
 
     def recent(self, *, limit: int = 100) -> tuple[dict[str, Any], ...]:
         if not self.database:
-            return tuple()
+            return ()
         with sqlite3.connect(self.database) as db:
             rows = db.execute("SELECT event_id, received_at, source, event_type, accepted, reason FROM inbound_events ORDER BY received_at DESC LIMIT ?", (max(1, min(limit, 500)),)).fetchall()
         return tuple({"event_id": row[0], "received_at": row[1], "source": row[2], "event_type": row[3], "accepted": bool(row[4]), "reason": row[5]} for row in rows)
