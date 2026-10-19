@@ -3,12 +3,21 @@
   "name": "Orville Browser Operator",
   "version": "0.1.0",
   "description": "Explicitly pairs an authorized browser tab with the local Orville relay.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
   "action": {
-    "default_title": "Pair with Orville"
+    "default_popup": "popup.html",
+    "default_title": "Orville Browser Operator"
   },
   "background": {
     "service_worker": "background.js",
     "type": "module"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
 }

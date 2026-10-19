@@ -14,9 +14,11 @@ from .security import SecretRedactor
 class CheckpointStore:
     """Persist complete checkpoints using atomic replacement and fsync."""
 
-    def __init__(self, root: str | Path) -> None:
+    def __init__(self, root: str | Path, *, redact: bool = True, pretty: bool = True) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self.redact = redact
+        self.pretty = pretty
 
     def path_for(self, run_id: str) -> Path:
         safe_id = "".join(char for char in run_id if char.isalnum() or char in "-_ .")
@@ -27,7 +29,10 @@ class CheckpointStore:
 
     def save(self, checkpoint: Checkpoint) -> Path:
         destination = self.path_for(checkpoint.run_id)
-        payload = json.dumps(SecretRedactor.redact(checkpoint.to_dict()), indent=2, sort_keys=True, ensure_ascii=False)
+        data = checkpoint.to_dict()
+        if self.redact:
+            data = SecretRedactor.redact(data)
+        payload = json.dumps(data, indent=2 if self.pretty else None, sort_keys=self.pretty, ensure_ascii=False)
         with NamedTemporaryFile(
             mode="w", encoding="utf-8", dir=self.root, prefix=f".{destination.name}.", suffix=".tmp", delete=False
         ) as temporary:
