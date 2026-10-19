@@ -1,0 +1,23 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Zeref\\source\\repos\\copilot-worktrees\\Orville\\ravn420-bookish-waffle\\",
+  "Documents": [],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{a9d81a51-6b1c-4e18-9278-a148c66f7836}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

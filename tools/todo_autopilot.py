@@ -41,7 +41,10 @@ class AutomationError(RuntimeError):
 
 def run(command: str, cwd: Path, *, check: bool = True) -> subprocess.CompletedProcess[str]:
     """Run a shell command with captured output and a bounded text result."""
-    result = subprocess.run(command, cwd=cwd, shell=True, text=True, capture_output=True)
+    # Filter out GIT_CONFIG environment variables that can interfere with git commands
+    # when running in Copilot environment (GIT_CONFIG_COUNT, GIT_CONFIG_PARAMETERS, etc.)
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"))}
+    result = subprocess.run(command, cwd=cwd, shell=True, text=True, capture_output=True, env=env)
     if check and result.returncode != 0:
         detail = (result.stdout + "\n" + result.stderr).strip()[-4000:]
         raise AutomationError(f"command failed ({result.returncode}): {command}\n{detail}")
@@ -50,7 +53,10 @@ def run(command: str, cwd: Path, *, check: bool = True) -> subprocess.CompletedP
 
 def run_argv(command: Sequence[str], cwd: Path, *, check: bool = True) -> subprocess.CompletedProcess[str]:
     """Run an executable without shell quoting, for Git and other trusted commands."""
-    result = subprocess.run(list(command), cwd=cwd, text=True, capture_output=True)
+    # Filter out GIT_CONFIG environment variables that can interfere with git commands
+    # when running in Copilot environment (GIT_CONFIG_COUNT, GIT_CONFIG_PARAMETERS, etc.)
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"))}
+    result = subprocess.run(list(command), cwd=cwd, text=True, capture_output=True, env=env)
     if check and result.returncode != 0:
         detail = (result.stdout + "\n" + result.stderr).strip()[-4000:]
         raise AutomationError(f"command failed ({result.returncode}): {' '.join(command)}\n{detail}")
